@@ -1,102 +1,3 @@
----
-output:
-  html_document:
-    df_print: paged
-    fig.align: center
-    self_contained: yes
-    fig.height: 4
-    fig.width: 8
-    theme: united
-    toc: yes
-    toc_depth: 4
-    toc_float: yes
-    number_sections: yes
-    code_folding: hide
-title: "Auswertung TC Daten"
-author: "David Lilek"
-date: "`r format(Sys.time(), '%d %B %Y, %X')`"
----
-
-# Vergleich Unique-Razor | noMBR-MBR
-
-# Unique-Razor
-
-* Boxplot
-  + generell werden mit Razor etwas mehr Proteine gefunden egal ob MBR oder noMBR verwendet wird - das ist auch statistisch signifikant (paired t-Test)
-  + bei MBR werden ca. 10 Proteine mehr gefunden wenn Razor verwendet wird
-  + bei noMBR ca. 7.41
-  + bei noMBR gibt es manche Proben die etwas mehr Proteine mit Razor zeigen als Unique
-* es zeigt sich, dass der Unterschied Razor/Unique von der Anzahl der gefundenden Proteine anbhängt
-* 
-
-
-
-
-```{r}
-data <- read.csv("Extraktionen_gesamt_V2_DL.csv", sep=";")
-# unique vs razor
-MBR <- (data$Razor.MBR.2.peptides/data$Unique.MBR.2.peptides)*100
-noMBR <- (data$Razor.noMBR.2.peptides/data$Unique.no.MBR.2.peptides)*100
-
-boxplot(MBR, noMBR, main = "Abweichung Razor vs Unique [%]", names = c("MBR", "noMBR"))
-
-mean_MBR <- (data$Razor.MBR.2.peptides+data$Unique.MBR.2.peptide)/2
-mean_noMBR <- (data$Razor.noMBR.2.peptides+data$Unique.no.MBR.2.peptides)/2
-
-plot(mean_MBR,MBR, xlab= "Number proteins", ylab="Abweichung Razor vs. Unique", main = "MBR")
-plot(mean_noMBR,noMBR, xlab= "Number proteins", ylab="Abweichung Razor vs. Unique", main = "noMBR")
-
-#t.test(data$Razor.noMBR.2.peptides,data$Unique.no.MBR.2.peptides,paired = TRUE)
-#t.test(data$Razor.MBR.2.peptides,data$Unique.MBR.2.peptides,paired = TRUE)
-```
-
-## MBR vs. noMBR
-
-* Boxplot: Mit MBR können teilweise bis zu 4x mehr Proteine gefunden werden als bei Nichtverwendung von MBR. Die Unterschiede zwischen Razor bzw. Unique sind gering.
-* klar ist eine Abhänigkeit von der Gesamtanzahl an gefundenen Proteinen ersichtlich
-* ab ca. 350 gefundenen Proteinen bleiben die mehr gefundenen Proteinen auf einem ähnlichen Level
-* darunter steigt die Anzahl der gefundenen Proteine mit MBR dramatatisch an wenn sich die Gesamtanzahl an Proteinen reduziert
-* dies ist unabhängig ob Razor oder Unique verwendet wird
-
-
-```{r}
-#MBR evaluation
-unique <- (data$Unique.MBR.2.peptides/data$Unique.no.MBR.2.peptides)*100
-razor <- (data$Razor.MBR.2.peptides/data$Razor.noMBR.2.peptides)*100
-
-boxplot(unique,razor, main = "Abweichung MBR", names = c("Unique", "Razor"))
-
-mean_unique <- (data$Unique.MBR.2.peptides+data$Unique.no.MBR.2.peptides)/2
-mean_razor <- (data$Razor.noMBR.2.peptides+data$Razor.MBR.2.peptides)/2
-
-plot(mean_razor,razor, xlab= "Number proteins", ylab="Abweichung MBR", main = "Razor")
-plot(mean_unique,unique, xlab= "Number proteins", ylab="Abweichung MBR", main="Unique")
-
-```
-
-
-
-
-# B - B20-B30-B40 - AF - TF
-
-## AF-TF-B
-
-Data from 20220609
-
-* Merge all fractions:
-  + noMBR: 670-689-1538 
-  + MBR: 781-775-1690
-
-## Compare B 20-30-40
-
-Data from 20220609
-
-* noMBR: 1375-1383-1243
-* MBR: 1585-1532-1417
-
-## Plots
-
-```{r}
 # load libraries
 library(tidyverse)
 library(dplyr)
@@ -279,6 +180,158 @@ upset(fromList(lst),
       set_size.scale_max = 1500
 )
 
+#############################
+# D2
+###############################
+data <- readRDS(file = "results/results_run1_mqpar_extracts_2gether_D2_combined_txt_proteinGroups.txt_Razor.RDS")
+data <- data[[1]]
+data_sub <- dplyr::select(data, contains("Pool_20"))
+B_D2 <- data_sub*1
+B_D2[B_D2==0] <- NA
+
+
+### analysis B
+proteins <- as.data.frame(which(!is.na(B_D2), arr.ind=TRUE))
+
+B1 <- proteins %>% dplyr::filter(col == 1)
+B10 <- proteins %>% dplyr::filter(col == 2)
+B2 <- proteins %>% dplyr::filter(col == 3)
+B3 <- proteins %>% dplyr::filter(col == 4)
+B4 <- proteins %>% dplyr::filter(col == 5)
+B5 <- proteins %>% dplyr::filter(col == 6)
+B6 <- proteins %>% dplyr::filter(col == 7)
+B7 <- proteins %>% dplyr::filter(col == 8)
+B8 <- proteins %>% dplyr::filter(col == 9)
+B9 <- proteins %>% dplyr::filter(col == 10)
+# combine to list
+lst <- list(B1 = as.double(B1[,1]),
+            B2 = as.double(B2[,1]),
+            B3 = as.double(B3[,1]),
+            B4 = as.double(B4[,1]),
+            B5 = as.double(B5[,1]),
+            B6 = as.double(B6[,1]),
+            B7 = as.double(B7[,1]),
+            B8 = as.double(B8[,1]),
+            B9 = as.double(B9[,1]),
+            B10 = as.double(B10[,1]))            
+
+upset(fromList(lst), 
+      order.by = "freq",
+      nsets = 9,
+      nintersects = 15,
+      sets = c("B1","B2","B3","B4","B5","B6","B7","B8","B9","B10"),
+      keep.order = TRUE,
+      mainbar.y.label = "Number of shared proteins",
+      sets.x.label = "Number of proteins per fraction",
+      set_size.show = TRUE,
+      set_size.angles = 0,
+      set_size.scale_max = 1000
+)
+
+
+data_D2_pool <- dplyr::select(data, contains("Gesamt"))
+data_D2_pool <- apply(data_D2_pool, 1, any)
+data_D2_fractions <- dplyr::select(data, contains("20"))
+data_D2_fractions <- apply(data_D2_fractions, 1, any)
+data_D2 <- as.data.frame(cbind(data_D2_pool,data_D2_fractions))
+data_D2 <- data_D2*1
+data_D2[data_D2==0] <- NA
+# boxplot
+boxplot(sum(data_D2$data_D2_pool,na.rm = TRUE),
+        sum(data_D2$data_D2_fractions,na.rm = TRUE),
+        names = c("D2 pool","D2 fractions"))
+
+
+proteins <- as.data.frame(which(!is.na(data_D2), arr.ind=TRUE))
+
+D2_pool_inter <- proteins %>% dplyr::filter(col == 1)
+D2_fractions_inter <- proteins %>% dplyr::filter(col == 2)
+
+# combine to list
+lst <- list(D2_pool=as.double(D2_pool_inter[,1]),
+            D2_fractions=as.double(D2_fractions_inter[,1]))
+
+upset(fromList(lst), 
+      order.by = "freq",
+      nsets = 10,
+      nintersects = 15,
+      keep.order = TRUE,
+      sets=c("D2_pool", "D2_fractions"),
+      mainbar.y.label = "Number of shared proteins",
+      sets.x.label = "Number of proteins per fraction",
+      set_size.show = TRUE,
+      set_size.angles = 0,
+      set_size.scale_max = 1000
+)
+
+#venn digarams
+#get colors
+D2_pool_col <- rgb(255,93,93, maxColorValue = 255)
+D2_ingel_col <- rgb(169,208,142,maxColorValue = 255)
+#E4_D1_pool_col <- rgb(255,217,102, maxColorValue = 255)
+
+ggvenn(lst,
+       fill_color = c(D2_pool_col,D2_ingel_col),
+       stroke_size = 0.5, set_name_size = 5, text_size = 4, digits = 0, fill_alpha = 0.9)
+
+
+# D1-D2 comparison
+
+D1_raw <- readRDS(file = "results/results_run1_mqpar_extracts_2gether_E4_D1_B_combined_txt_proteinGroups.txt_Razor.RDS")
+D1_raw <- D1_raw[[1]]
+D1 <- dplyr::select(D1_raw, contains("20"))
+D1 <- apply(D1, 1, any)
+D1 <- as.data.frame(cbind(D1, D1_raw$FASTA))
+D2_raw <- readRDS(file = "results/results_run1_mqpar_extracts_2gether_D2_combined_txt_proteinGroups.txt_Razor.RDS")
+D2_raw <- D2_raw[[1]]
+D2 <- dplyr::select(data, contains("Pool_20"))
+D2 <- apply(D2, 1, any)
+D2 <- as.data.frame(cbind(D2, D2_raw$FASTA))
+D1_D2_comparison  <- merge(D1, D2,
+                           all = TRUE,
+                           by = "V2")
+
+D1_D2_comparison$D1 <- as.logical(D1_D2_comparison$D1)
+D1_D2_comparison$D2 <- as.logical(D1_D2_comparison$D2)
+D1_D2_comparison <- D1_D2_comparison[,-1]*1
+D1_D2_comparison[D1_D2_comparison==0] <- NA
+
+# boxplot
+boxplot(sum(D1_D2_comparison$D1,na.rm = TRUE),
+        sum(D1_D2_comparison$D2,na.rm = TRUE),
+        names = c("D1","D2"))
+
+proteins <- as.data.frame(which(!is.na(D1_D2_comparison), arr.ind=TRUE))
+
+D1_inter <- proteins %>% dplyr::filter(col == 1)
+D2_inter <- proteins %>% dplyr::filter(col == 2)
+
+# combine to list
+lst <- list("D1\ningeldigest_pool"=as.double(D1_inter[,1]),
+            "D2\ningeldigest_pool"=as.double(D2_inter[,1]))
+
+upset(fromList(lst), 
+      order.by = "freq",
+      nsets = 10,
+      nintersects = 15,
+      keep.order = TRUE,
+      sets=c("D1\ningeldigest_pool", "D2\ningeldigest_pool"),
+      mainbar.y.label = "Number of shared proteins",
+      sets.x.label = "Number of proteins per fraction",
+      set_size.show = TRUE,
+      set_size.angles = 0,
+      set_size.scale_max = 1000
+)
+
+#venn digarams
+#get colors
+D1_col <- rgb(255,93,93, maxColorValue = 255)
+D2_col <- rgb(169,208,142,maxColorValue = 255)
+#E4_D1_pool_col <- rgb(255,217,102, maxColorValue = 255)
+
+ggvenn(lst,
+       fill_color = c(D1_col,D2_col),
+       stroke_size = 0.5, set_name_size = 4, text_size = 4, digits = 0, fill_alpha = 0.9)
 
 
 ## compare AF TF B poster
@@ -404,16 +457,6 @@ ggvenn(lst,
        stroke_size = 0.5, set_name_size = 5, text_size = 4, digits = 0, fill_alpha = 0.9)
 
 
-
-
-
-```
-
-# extract a-j with pool (0609)
-
-## compare a-j
-
-```{r}
 ## compare A-J with pool
 aj_raw <- readRDS(file = "results/results_run1_mqpar_extracts_2gether_E4_D1_a-j_combined_txt_proteinGroups.txt_Razor.RDS")
 aj_raw <- aj_raw[[1]]
@@ -473,12 +516,6 @@ upset(fromList(lst),
 )
 
 
-
-```
-
-## Compare a-j with pool
-
-```{r}
 # compare with pool
 aj_pool <- apply(aj_pool, 1, any)
 aj_pool <- aj_pool*1
@@ -528,182 +565,4 @@ upset(fromList(lst),
       set_size.angles = 0,
       set_size.scale_max = 1000
 )
-```
-
-
-# D2
-
-```{r}
-#############################
-# D2
-###############################
-data <- readRDS(file = "results/results_run1_mqpar_extracts_2gether_D2_combined_txt_proteinGroups.txt_Razor.RDS")
-data <- data[[1]]
-data_sub <- dplyr::select(data, contains("Pool_20"))
-B_D2 <- data_sub*1
-B_D2[B_D2==0] <- NA
-
-
-### analysis B
-proteins <- as.data.frame(which(!is.na(B_D2), arr.ind=TRUE))
-
-B1 <- proteins %>% dplyr::filter(col == 1)
-B10 <- proteins %>% dplyr::filter(col == 2)
-B2 <- proteins %>% dplyr::filter(col == 3)
-B3 <- proteins %>% dplyr::filter(col == 4)
-B4 <- proteins %>% dplyr::filter(col == 5)
-B5 <- proteins %>% dplyr::filter(col == 6)
-B6 <- proteins %>% dplyr::filter(col == 7)
-B7 <- proteins %>% dplyr::filter(col == 8)
-B8 <- proteins %>% dplyr::filter(col == 9)
-B9 <- proteins %>% dplyr::filter(col == 10)
-# combine to list
-lst <- list(B1 = as.double(B1[,1]),
-            B2 = as.double(B2[,1]),
-            B3 = as.double(B3[,1]),
-            B4 = as.double(B4[,1]),
-            B5 = as.double(B5[,1]),
-            B6 = as.double(B6[,1]),
-            B7 = as.double(B7[,1]),
-            B8 = as.double(B8[,1]),
-            B9 = as.double(B9[,1]),
-            B10 = as.double(B10[,1]))            
-
-upset(fromList(lst), 
-      order.by = "freq",
-      nsets = 9,
-      nintersects = 15,
-      sets = c("B1","B2","B3","B4","B5","B6","B7","B8","B9","B10"),
-      keep.order = TRUE,
-      mainbar.y.label = "Number of shared proteins",
-      sets.x.label = "Number of proteins per fraction",
-      set_size.show = TRUE,
-      set_size.angles = 0,
-      set_size.scale_max = 1000
-)
-
-
-data_D2_pool <- dplyr::select(data, contains("Gesamt"))
-data_D2_pool <- apply(data_D2_pool, 1, any)
-data_D2_fractions <- dplyr::select(data, contains("20"))
-data_D2_fractions <- apply(data_D2_fractions, 1, any)
-data_D2 <- as.data.frame(cbind(data_D2_pool,data_D2_fractions))
-data_D2 <- data_D2*1
-data_D2[data_D2==0] <- NA
-# boxplot
-boxplot(sum(data_D2$data_D2_pool,na.rm = TRUE),
-        sum(data_D2$data_D2_fractions,na.rm = TRUE),
-        names = c("D2 pool","D2 fractions"))
-
-
-proteins <- as.data.frame(which(!is.na(data_D2), arr.ind=TRUE))
-
-D2_pool_inter <- proteins %>% dplyr::filter(col == 1)
-D2_fractions_inter <- proteins %>% dplyr::filter(col == 2)
-
-# combine to list
-lst <- list(D2_pool=as.double(D2_pool_inter[,1]),
-            D2_fractions=as.double(D2_fractions_inter[,1]))
-
-upset(fromList(lst), 
-      order.by = "freq",
-      nsets = 10,
-      nintersects = 15,
-      keep.order = TRUE,
-      sets=c("D2_pool", "D2_fractions"),
-      mainbar.y.label = "Number of shared proteins",
-      sets.x.label = "Number of proteins per fraction",
-      set_size.show = TRUE,
-      set_size.angles = 0,
-      set_size.scale_max = 1000
-)
-
-#venn digarams
-#get colors
-D2_pool_col <- rgb(255,93,93, maxColorValue = 255)
-D2_ingel_col <- rgb(169,208,142,maxColorValue = 255)
-#E4_D1_pool_col <- rgb(255,217,102, maxColorValue = 255)
-
-ggvenn(lst,
-       fill_color = c(D2_pool_col,D2_ingel_col),
-       stroke_size = 0.5, set_name_size = 5, text_size = 4, digits = 0, fill_alpha = 0.9)
-
-
-```
-
-
-# Compare D1-D2
-
-```{r}
-# D1-D2 comparison
-
-D1_raw <- readRDS(file = "results/results_run1_mqpar_extracts_2gether_E4_D1_B_combined_txt_proteinGroups.txt_Razor.RDS")
-D1_raw <- D1_raw[[1]]
-D1 <- dplyr::select(D1_raw, contains("20"))
-D1 <- apply(D1, 1, any)
-D1 <- as.data.frame(cbind(D1, D1_raw$FASTA))
-D2_raw <- readRDS(file = "results/results_run1_mqpar_extracts_2gether_D2_combined_txt_proteinGroups.txt_Razor.RDS")
-D2_raw <- D2_raw[[1]]
-D2 <- dplyr::select(data, contains("Pool_20"))
-D2 <- apply(D2, 1, any)
-D2 <- as.data.frame(cbind(D2, D2_raw$FASTA))
-D1_D2_comparison  <- merge(D1, D2,
-                           all = TRUE,
-                           by = "V2")
-
-D1_D2_comparison$D1 <- as.logical(D1_D2_comparison$D1)
-D1_D2_comparison$D2 <- as.logical(D1_D2_comparison$D2)
-D1_D2_comparison <- D1_D2_comparison[,-1]*1
-D1_D2_comparison[D1_D2_comparison==0] <- NA
-
-# boxplot
-boxplot(sum(D1_D2_comparison$D1,na.rm = TRUE),
-        sum(D1_D2_comparison$D2,na.rm = TRUE),
-        names = c("D1","D2"))
-
-proteins <- as.data.frame(which(!is.na(D1_D2_comparison), arr.ind=TRUE))
-
-D1_inter <- proteins %>% dplyr::filter(col == 1)
-D2_inter <- proteins %>% dplyr::filter(col == 2)
-
-# combine to list
-lst <- list("D1\ningeldigest_pool"=as.double(D1_inter[,1]),
-            "D2\ningeldigest_pool"=as.double(D2_inter[,1]))
-
-upset(fromList(lst), 
-      order.by = "freq",
-      nsets = 10,
-      nintersects = 15,
-      keep.order = TRUE,
-      sets=c("D1\ningeldigest_pool", "D2\ningeldigest_pool"),
-      mainbar.y.label = "Number of shared proteins",
-      sets.x.label = "Number of proteins per fraction",
-      set_size.show = TRUE,
-      set_size.angles = 0,
-      set_size.scale_max = 1000
-)
-
-#venn digarams
-#get colors
-D1_col <- rgb(255,93,93, maxColorValue = 255)
-D2_col <- rgb(169,208,142,maxColorValue = 255)
-#E4_D1_pool_col <- rgb(255,217,102, maxColorValue = 255)
-
-ggvenn(lst,
-       fill_color = c(D1_col,D2_col),
-       stroke_size = 0.5, set_name_size = 4, text_size = 4, digits = 0, fill_alpha = 0.9)
-
-```
-
-
-# Besprechen
-
-* nehmen wir LFQ oder die identifizierten Proteine?
-* nehmen wir razor oder unique? ich würde fast razor nehmen, weil ja ohnehin zu der proteingruppe zugeordnet wird die am wahrscheinlichsten ist
-* wie poolen wir? zB B1_1, B1_2, B2_1, B2_2...
-  + wenn ich dort alle Proteine zähle führt es ev. zu einem Überbefund?
-  + wäre es nicht besser B1_1 und B1_2 -> nur wenn Protein in beiden vorkommt ist es auch da? weil ja technische replikate also 2x gemessen oder?
-  + wenn 2 biologische replikate; also 2x extrahiert würde ich es so machen, dass ich auch sagen es ist da wenn es nur in einem Extrakt vorkommt | also zB B1_1 TRUE - B1_2 FALSE
-* was gehört überhaupt gepooled und verglichen? können wir uns das bitte noch anschauen?
-* was gehört bei D2 gepooled und verglichen?
 
