@@ -27,6 +27,9 @@ date: "`r format(Sys.time(), '%d %B %Y, %X')`"
   + bei noMBR ca. 7.41
   + bei noMBR gibt es manche Proben die etwas mehr Proteine mit Razor zeigen als Unique
 * es zeigt sich, dass der Unterschied Razor/Unique von der Anzahl der gefundenden Proteine anbhängt
+* 
+
+
 
 
 ```{r}
@@ -71,16 +74,6 @@ plot(mean_unique,unique, xlab= "Number proteins", ylab="Abweichung MBR", main="U
 
 ```
 
-## Summary data analysis
-
-* die unten folgenden Auswertungen wurden mit MBR und noMBR bzw Razor und Unique durchgeführt
-* es zeigt sich, dass unabhängig von MBR oder noMBR nur geringe Unterschiede zwischen Razor und Unique zu finden sind; die Aussage bleibt diesselbe
-* vergleicht man MBR und noMBR so weißt MBR etwas höhere Identifikationsraten auf wie schon oben gezeigt
-* in einem ersten Vergleich scheint es, dass es mehr gesharte Proteine zwischen den einzelnen Treatments gibt
-  + zB B-AF-TF noMBR 30% gemeinsam; MBR 35% gemeinsam
-  + zB B-TF noMBR 4%; MBR 7%
-  + gerade bei gemeinsam prozessierten Extrakten steigert es sich noch etwas extremer
-  + D2_pool mit D2_pool_fractions: noMBR 53% gemeinsam; MBR 69% gemeinsam
 
 
 
@@ -112,7 +105,7 @@ library(pheatmap)
 library(ggvenn)
 
 ############## B
-data <- readRDS(file = "results/results_run1_mqpar_extracts_2gether_E4_D1_B_combined_txt_proteinGroups.txt_Razor.RDS")
+data <- readRDS(file = "results/results_run1_mqpar_extracts_2gether_E4_D1_B_combined_txt_proteinGroups.txt_Unique.RDS")
 data <- data[[1]]
 data_sub <- dplyr::select(data, contains("Pool_G"))
 #get rid of FALSE values
@@ -159,7 +152,7 @@ upset(fromList(lst),
 
 
 ############AF
-data <- readRDS(file = "results/results_run1_mqpar_extracts_2gether_E4_D1_AF_TF_combined_txt_proteinGroups.txt_Razor.RDS")
+data <- readRDS(file = "results/results_run1_mqpar_extracts_2gether_E4_D1_AF_TF_combined_txt_proteinGroups.txt_Unique.RDS")
 data <- data[[1]]
 data_sub <- dplyr::select(data, contains("Pool_AF"))
 #get rid of FALSE values
@@ -171,7 +164,7 @@ nrow(AF[!ind,])
 
 
 ############TF
-data <- readRDS(file = "results/results_run1_mqpar_extracts_2gether_E4_D1_AF_TF_combined_txt_proteinGroups.txt_Razor.RDS")
+data <- readRDS(file = "results/results_run1_mqpar_extracts_2gether_E4_D1_AF_TF_combined_txt_proteinGroups.txt_Unique.RDS")
 data <- data[[1]]
 data_sub <- dplyr::select(data, contains("Pool_TF"))
 #get rid of FALSE values
@@ -188,7 +181,7 @@ nrow(TF[!ind,])
 
 
 #################### MBR
-data <- readRDS(file = "results/results_run1_mqpar_extracts_2gether_E4_D1_B_MBR_combined_txt_proteinGroups.txt_Razor.RDS")
+data <- readRDS(file = "results/results_run1_mqpar_extracts_2gether_E4_D1_B_MBR_combined_txt_proteinGroups.txt_Unique.RDS")
 data <- data[[1]]
 data_sub <- dplyr::select(data, contains("Pool_G"))
 #get rid of FALSE values
@@ -199,7 +192,7 @@ ind <- apply(B, 1, function(x) all(is.na(x)))
 nrow(B[!ind,])
 
 ############AF
-data <- readRDS(file = "results/results_run1_mqpar_extracts_2gether_E4_D1_AF_TF_MBR_combined_txt_proteinGroups.txt_Razor.RDS")
+data <- readRDS(file = "results/results_run1_mqpar_extracts_2gether_E4_D1_AF_TF_MBR_combined_txt_proteinGroups.txt_Unique.RDS")
 data <- data[[1]]
 data_sub <- dplyr::select(data, contains("Pool_AF"))
 #get rid of FALSE values
@@ -211,7 +204,7 @@ nrow(AF[!ind,])
 
 
 ############TF
-data <- readRDS(file = "results/results_run1_mqpar_extracts_2gether_E4_D1_AF_TF_MBR_combined_txt_proteinGroups.txt_Razor.RDS")
+data <- readRDS(file = "results/results_run1_mqpar_extracts_2gether_E4_D1_AF_TF_MBR_combined_txt_proteinGroups.txt_Unique.RDS")
 data <- data[[1]]
 data_sub <- dplyr::select(data, contains("Pool_TF"))
 #get rid of FALSE values
@@ -225,7 +218,7 @@ nrow(TF[!ind,])
 
 ############## B 20-30-40
 ############## B
-data <- readRDS(file = "results/results_run1_mqpar_extracts_2gether_E4_D1_B_MBR_combined_txt_proteinGroups.txt_Razor.RDS")
+data <- readRDS(file = "results/results_run1_mqpar_extracts_2gether_E4_D1_B_MBR_combined_txt_proteinGroups.txt_Unique.RDS")
 data <- data[[1]]
 B <- dplyr::select(data, contains("Pool_20"))
 B20 <- B
@@ -289,7 +282,7 @@ upset(fromList(lst),
 
 
 ## compare AF TF B poster
-AF_TF_raw <- readRDS(file = "results/results_run1_mqpar_extracts_2gether_E4_D1_AF_TF_combined_txt_proteinGroups.txt_Razor.RDS")
+AF_TF_raw <- readRDS(file = "results/results_run1_mqpar_extracts_2gether_E4_D1_AF_TF_combined_txt_proteinGroups.txt_Unique.RDS")
 AF_TF_raw <- AF_TF_raw[[1]]
 AF <- dplyr::select(AF_TF_raw, contains("AF"))
 AF <- apply(AF, 1, any)
@@ -297,7 +290,7 @@ AF <- as.data.frame(cbind(AF, AF_TF_raw$FASTA))
 TF <- dplyr::select(AF_TF_raw, contains("TF"))
 TF <- apply(TF, 1, any)
 TF <- as.data.frame(cbind(TF, AF_TF_raw$FASTA))
-B_raw <- readRDS(file = "results/results_run1_mqpar_extracts_2gether_E4_D1_B_combined_txt_proteinGroups.txt_Razor.RDS")
+B_raw <- readRDS(file = "results/results_run1_mqpar_extracts_2gether_E4_D1_B_combined_txt_proteinGroups.txt_Unique.RDS")
 B_raw <- B_raw[[1]]
 B <- dplyr::select(B_raw, contains("Pool_G"))
 B <- apply(B, 1, any)
@@ -363,12 +356,12 @@ ggvenn(lst,
        stroke_size = 0.5, set_name_size = 5, text_size = 4.25, digits = 0, fill_alpha = 0.9, label_sep = )
 
 #compare B to pool from 0609 
-B_raw <- readRDS(file = "results/results_run1_mqpar_extracts_2gether_E4_D1_B_combined_txt_proteinGroups.txt_Razor.RDS")
+B_raw <- readRDS(file = "results/results_run1_mqpar_extracts_2gether_E4_D1_B_combined_txt_proteinGroups.txt_Unique.RDS")
 B_raw <- B_raw[[1]]
 B <- dplyr::select(B_raw, contains("Pool_G"))
 B <- apply(B, 1, any)
 B <- as.data.frame(cbind(B, B_raw$FASTA))
-aj_raw <- readRDS(file = "results/results_run1_mqpar_extracts_2gether_E4_D1_a-j_combined_txt_proteinGroups.txt_Razor.RDS")
+aj_raw <- readRDS(file = "results/results_run1_mqpar_extracts_2gether_E4_D1_a-j_combined_txt_proteinGroups.txt_Unique.RDS")
 aj_raw <- aj_raw[[1]]
 aj <- dplyr::select(aj_raw, contains("Pool"))
 aj <- apply(aj, 1, any)
@@ -422,7 +415,7 @@ ggvenn(lst,
 
 ```{r}
 ## compare A-J with pool
-aj_raw <- readRDS(file = "results/results_run1_mqpar_extracts_2gether_E4_D1_a-j_combined_txt_proteinGroups.txt_Razor.RDS")
+aj_raw <- readRDS(file = "results/results_run1_mqpar_extracts_2gether_E4_D1_a-j_combined_txt_proteinGroups.txt_Unique.RDS")
 aj_raw <- aj_raw[[1]]
 aj <- dplyr::select(aj_raw, -contains(c("Pool","FASTA")))
 aj_pool <- dplyr::select(aj_raw, contains("Pool"))
@@ -544,7 +537,7 @@ upset(fromList(lst),
 #############################
 # D2
 ###############################
-data <- readRDS(file = "results/results_run1_mqpar_extracts_2gether_D2_combined_txt_proteinGroups.txt_Razor.RDS")
+data <- readRDS(file = "results/results_run1_mqpar_extracts_2gether_D2_combined_txt_proteinGroups.txt_Unique.RDS")
 data <- data[[1]]
 data_sub <- dplyr::select(data, contains("Pool_20"))
 B_D2 <- data_sub*1
@@ -644,12 +637,12 @@ ggvenn(lst,
 ```{r}
 # D1-D2 comparison
 
-D1_raw <- readRDS(file = "results/results_run1_mqpar_extracts_2gether_E4_D1_B_combined_txt_proteinGroups.txt_Razor.RDS")
+D1_raw <- readRDS(file = "results/results_run1_mqpar_extracts_2gether_E4_D1_B_combined_txt_proteinGroups.txt_Unique.RDS")
 D1_raw <- D1_raw[[1]]
 D1 <- dplyr::select(D1_raw, contains("20"))
 D1 <- apply(D1, 1, any)
 D1 <- as.data.frame(cbind(D1, D1_raw$FASTA))
-D2_raw <- readRDS(file = "results/results_run1_mqpar_extracts_2gether_D2_combined_txt_proteinGroups.txt_Razor.RDS")
+D2_raw <- readRDS(file = "results/results_run1_mqpar_extracts_2gether_D2_combined_txt_proteinGroups.txt_Unique.RDS")
 D2_raw <- D2_raw[[1]]
 D2 <- dplyr::select(data, contains("Pool_20"))
 D2 <- apply(D2, 1, any)
