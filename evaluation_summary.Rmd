@@ -696,7 +696,7 @@ ggvenn(lst,
 ```
 
 
-# Besprechen
+# Besprechen/todo
 
 * nehmen wir LFQ oder die identifizierten Proteine?
 * nehmen wir razor oder unique? ich würde fast razor nehmen, weil ja ohnehin zu der proteingruppe zugeordnet wird die am wahrscheinlichsten ist
@@ -706,4 +706,8 @@ ggvenn(lst,
   + wenn 2 biologische replikate; also 2x extrahiert würde ich es so machen, dass ich auch sagen es ist da wenn es nur in einem Extrakt vorkommt | also zB B1_1 TRUE - B1_2 FALSE
 * was gehört überhaupt gepooled und verglichen? können wir uns das bitte noch anschauen?
 * was gehört bei D2 gepooled und verglichen?
+
+
+* man könnte ja Razor nehmen und im paper bezug nehmen, dass ergebnisse ähnlich wie unique
+* zusätzlich noch anschauen mit LFQ? wieviele proteine von den identifzierten sind überhaupt quantifizierbar? das könnte man auch ins paper geben, dass wenn man lfq nimmt man mit ca. 20-25%(also je nachdem was dann rauskommt) rechnen muss? weil ja später dann bei differential expression analysis ja auch quantifizierte proteine verwendet werden; also meistens halt
 
