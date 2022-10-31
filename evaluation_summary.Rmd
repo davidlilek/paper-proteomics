@@ -1,0 +1,73 @@
+---
+output:
+  html_document:
+    df_print: paged
+    fig.align: center
+    self_contained: yes
+    fig.height: 4
+    fig.width: 8
+    theme: united
+    toc: yes
+    toc_depth: 4
+    toc_float: yes
+    number_sections: yes
+    code_folding: hide
+title: "Auswertung TC Daten"
+author: "David Lilek"
+date: "`r format(Sys.time(), '%d %B %Y, %X')`"
+---
+
+# Vergleich Unique-Razor | noMBR-MBR
+
+* Boxplot
+  + generell werden mit Razor etwas mehr Proteine gefunden egal ob MBR oder noMBR verwendet wird - das ist auch statistisch signifikant (paired t-Test)
+  + bei MBR werden ca. 10 Proteine mehr gefunden wenn Razor verwendet wird
+  + bei noMBR ca. 7.41
+  + bei noMBR gibt es manche Proben die etwas mehr Proteine mit Razor zeigen als Unique
+  + generell sind noMBR und MBR hier aber sehr ähnlich
+* 
+
+
+
+```{r}
+data <- read.csv("Extraktionen_gesamt_V2_DL.csv", sep=";")
+# unique vs razor
+MBR <- (data$Razor.MBR.2.peptides/data$Unique.MBR.2.peptides)*100
+noMBR <- (data$Razor.noMBR.2.peptides/data$Unique.no.MBR.2.peptides)*100
+
+boxplot(MBR, noMBR, main = "Abweichung Razor vs Unique [%]", names = c("MBR", "noMBR"))
+
+mean_MBR <- (data$Razor.MBR.2.peptides+data$Unique.MBR.2.peptide)/2
+mean_noMBR <- (data$Razor.noMBR.2.peptides+data$Unique.no.MBR.2.peptides)/2
+
+plot(mean_MBR,MBR, xlab= "Number proteins", ylab="Abweichung Razor vs. Unique", main = "MBR")
+plot(mean_noMBR,noMBR, xlab= "Number proteins", ylab="Abweichung Razor vs. Unique", main = "noMBR")
+
+#t.test(data$Razor.noMBR.2.peptides,data$Unique.no.MBR.2.peptides,paired = TRUE)
+#t.test(data$Razor.MBR.2.peptides,data$Unique.MBR.2.peptides,paired = TRUE)
+```
+
+## MBR vs. noMBR
+
+* Boxplot: Mit MBR können teilweise bis zu 4x mehr Proteine gefunden werden als bei Nichtverwendung von MBR. Die Unterschiede zwischen Razor bzw. Unique sind gering.
+* klar ist eine Abhänigkeit von der Gesamtanzahl an gefundenen Proteinen ersichtlich
+* ab ca. 350 gefundenen Proteinen bleiben die mehr gefundenen Proteinen auf einem ähnlichen Level
+* darunter steigt die Anzahl der gefundenen Proteine mit MBR dramatatisch an wenn sich die Gesamtanzahl an Proteinen reduziert
+* dies ist unabhängig ob Razor oder Unique verwendet wird
+
+
+```{r}
+#MBR evaluation
+unique <- (data$Unique.MBR.2.peptides/data$Unique.no.MBR.2.peptides)*100
+razor <- (data$Razor.MBR.2.peptides/data$Razor.noMBR.2.peptides)*100
+
+boxplot(unique,razor, main = "Abweichung MBR", name = c("Unique", "Razor"))
+
+mean_unique <- (data$Unique.MBR.2.peptides+data$Unique.no.MBR.2.peptides)/2
+mean_razor <- (data$Razor.noMBR.2.peptides+data$Razor.MBR.2.peptides)/2
+
+plot(mean_razor,razor, xlab= "Number proteins", ylab="Abweichung MBR", main = "Razor")
+plot(mean_unique,unique, xlab= "Number proteins", ylab="Abweichung MBR", main="Unique")
+
+```
+

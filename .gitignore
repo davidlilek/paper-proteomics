@@ -1,0 +1,15 @@
+.Rproj.user
+.Rhistory
+.RData
+.Ruserdata
+R.Rproj
+
+*.html
+*.csv
+*.png
+*.rds
+*.xlsx
+*.txt
+
+proteinGroups/
+results/
