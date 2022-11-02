@@ -57,7 +57,7 @@ unique <- params$unique  # how many peptides should be at least necessary to ide
 # which types should be evaluated TRUE or FALSE could be used
 RAZOR <- TRUE
 UNIQUE <- TRUE
-LFQ <- FALSE
+LFQ <- TRUE
 
 # define path of the proteinGroups.txt file(s)
 path = params$path
@@ -280,16 +280,18 @@ if (LFQ == TRUE) {
       
     }
     
-    results_lfq[[1]] <- results
+
     results_2gether_lfq[1,] <- sapply(results,function(x)sum(!is.na(x)))
+    results$FASTA <- data$Fasta.headers
+    results_lfq[[1]] <- results
+    
     cat("\n")
     
     #create heatmaps
     paletteLength <- 50
     myColor <- colorRampPalette(c("navy", "white",
                                   "firebrick3"))(paletteLength)
-      data4pheatmap <- results
-      data4pheatmap <- results
+      data4pheatmap <- results[,-ncol(results)]
       data4pheatmap <- data4pheatmap*1
       data4pheatmap[data4pheatmap == 0] <- NA
       # remove NA rows
@@ -365,6 +367,7 @@ results_final <- results_final[,colSums(is.na(results_final))<nrow(results_final
 write.csv2(results_final, file = paste(params$pathRDS,"_summary.csv",sep="")) 
 saveRDS(results_razor, file = paste(params$pathRDS,"_Razor.RDS",sep=""))
 saveRDS(results_unique, file = paste(params$pathRDS,"_Unique.RDS",sep=""))
+saveRDS(results_lfq, file = paste(params$pathRDS,"_LFQ.RDS",sep=""))
 ```
 
 # Used time

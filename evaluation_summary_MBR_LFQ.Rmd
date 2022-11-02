@@ -17,82 +17,8 @@ author: "David Lilek"
 date: "`r format(Sys.time(), '%d %B %Y, %X')`"
 ---
 
-# Vergleich Unique-Razor | noMBR-MBR
-
-## Unique-Razor
-
-* Boxplot
-  + generell werden mit Razor etwas mehr Proteine gefunden egal ob MBR oder noMBR verwendet wird - das ist auch statistisch signifikant (paired t-Test)
-  + bei MBR werden ca. 10 Proteine mehr gefunden wenn Razor verwendet wird
-  + bei noMBR ca. 7.41
-  + bei noMBR gibt es manche Proben die etwas mehr Proteine mit Razor zeigen als Unique
-* es zeigt sich, dass der Unterschied Razor/Unique von der Anzahl der gefundenden Proteine anbhängt
-* 
-
-
-
-
-```{r}
-data <- read.csv("Extraktionen_gesamt_V2_DL.csv", sep=";")
-# unique vs razor
-MBR <- (data$Razor.MBR.2.peptides/data$Unique.MBR.2.peptides)*100
-noMBR <- (data$Razor.noMBR.2.peptides/data$Unique.no.MBR.2.peptides)*100
-
-boxplot(MBR, noMBR, main = "Abweichung Razor vs Unique [%]", names = c("MBR", "noMBR"))
-
-mean_MBR <- (data$Razor.MBR.2.peptides+data$Unique.MBR.2.peptide)/2
-mean_noMBR <- (data$Razor.noMBR.2.peptides+data$Unique.no.MBR.2.peptides)/2
-
-plot(mean_MBR,MBR, xlab= "Number proteins", ylab="Abweichung Razor vs. Unique", main = "MBR")
-plot(mean_noMBR,noMBR, xlab= "Number proteins", ylab="Abweichung Razor vs. Unique", main = "noMBR")
-
-#t.test(data$Razor.noMBR.2.peptides,data$Unique.no.MBR.2.peptides,paired = TRUE)
-#t.test(data$Razor.MBR.2.peptides,data$Unique.MBR.2.peptides,paired = TRUE)
-```
-
-## MBR vs. noMBR
-
-* Boxplot: Mit MBR können teilweise bis zu 4x mehr Proteine gefunden werden als bei Nichtverwendung von MBR. Die Unterschiede zwischen Razor bzw. Unique sind gering.
-* klar ist eine Abhänigkeit von der Gesamtanzahl an gefundenen Proteinen ersichtlich
-* ab ca. 350 gefundenen Proteinen bleiben die mehr gefundenen Proteinen auf einem ähnlichen Level
-* darunter steigt die Anzahl der gefundenen Proteine mit MBR dramatatisch an wenn sich die Gesamtanzahl an Proteinen reduziert
-* dies ist unabhängig ob Razor oder Unique verwendet wird
-
-
-```{r}
-#MBR evaluation
-unique <- (data$Unique.MBR.2.peptides/data$Unique.no.MBR.2.peptides)*100
-razor <- (data$Razor.MBR.2.peptides/data$Razor.noMBR.2.peptides)*100
-
-boxplot(unique,razor, main = "Abweichung MBR", names = c("Unique", "Razor"))
-
-mean_unique <- (data$Unique.MBR.2.peptides+data$Unique.no.MBR.2.peptides)/2
-mean_razor <- (data$Razor.noMBR.2.peptides+data$Razor.MBR.2.peptides)/2
-
-plot(mean_razor,razor, xlab= "Number proteins", ylab="Abweichung MBR", main = "Razor")
-plot(mean_unique,unique, xlab= "Number proteins", ylab="Abweichung MBR", main="Unique")
-
-```
-
-
-
-
 # B - B20-B30-B40 - AF - TF
 
-## AF-TF-B
-
-Data from 20220609
-
-* Merge all fractions:
-  + noMBR: 670-689-1538 
-  + MBR: 781-775-1690
-
-## Compare B 20-30-40
-
-Data from 20220609
-
-* noMBR: 1375-1383-1243
-* MBR: 1585-1532-1417
 
 ## Plots
 
@@ -105,8 +31,10 @@ library(pheatmap)
 library(ggvenn)
 
 ############## B
-data <- readRDS(file = "results_v002/results_run1_mqpar_extracts_2gether_E4_D1_B_LFQ_combined_txt_proteinGroups.txt_Unique.RDS")
+data <- readRDS(file = "results_v002/results_run1_mqpar_extracts_2gether_E4_D1_B_MBR_LFQ_combined_txt_proteinGroups.txt_LFQ.RDS")
 data <- data[[1]]
+data[] <- data > 0
+data[is.na(data)]<- FALSE  
 data_sub <- dplyr::select(data, contains("Pool_G"))
 #get rid of FALSE values
 B <- data_sub*1
@@ -152,8 +80,10 @@ upset(fromList(lst),
 
 
 ############AF
-data <- readRDS(file = "results_v002/results_run1_mqpar_extracts_2gether_E4_D1_AF_TF_LFQ_combined_txt_proteinGroups.txt_Unique.RDS")
+data <- readRDS(file = "results_v002/results_run1_mqpar_extracts_2gether_E4_D1_AF_TF_MBR_LFQ_combined_txt_proteinGroups.txt_LFQ.RDS")
 data <- data[[1]]
+data[] <- data > 0
+data[is.na(data)]<- FALSE  
 data_sub <- dplyr::select(data, contains("Pool_AF"))
 #get rid of FALSE values
 AF <- data_sub*1
@@ -164,8 +94,10 @@ nrow(AF[!ind,])
 
 
 ############TF
-data <- readRDS(file = "results_v002/results_run1_mqpar_extracts_2gether_E4_D1_AF_TF_LFQ_combined_txt_proteinGroups.txt_Unique.RDS")
+data <- readRDS(file = "results_v002/results_run1_mqpar_extracts_2gether_E4_D1_AF_TF_MBR_LFQ_combined_txt_proteinGroups.txt_LFQ.RDS")
 data <- data[[1]]
+data[] <- data > 0
+data[is.na(data)]<- FALSE  
 data_sub <- dplyr::select(data, contains("Pool_TF"))
 #get rid of FALSE values
 TF <- data_sub*1
@@ -181,8 +113,10 @@ nrow(TF[!ind,])
 
 
 #################### MBR
-data <- readRDS(file = "results_v002/results_run1_mqpar_extracts_2gether_E4_D1_B_MBR_LFQ_combined_txt_proteinGroups.txt_Unique.RDS")
+data <- readRDS(file = "results_v002/results_run1_mqpar_extracts_2gether_E4_D1_B_MBR_LFQ_combined_txt_proteinGroups.txt_LFQ.RDS")
 data <- data[[1]]
+data[] <- data > 0
+data[is.na(data)]<- FALSE  
 data_sub <- dplyr::select(data, contains("Pool_G"))
 #get rid of FALSE values
 B <- data_sub*1
@@ -192,8 +126,10 @@ ind <- apply(B, 1, function(x) all(is.na(x)))
 nrow(B[!ind,])
 
 ############AF
-data <- readRDS(file = "results_v002/results_run1_mqpar_extracts_2gether_E4_D1_AF_TF_MBR_LFQ_combined_txt_proteinGroups.txt_Unique.RDS")
+data <- readRDS(file = "results_v002/results_run1_mqpar_extracts_2gether_E4_D1_AF_TF_MBR_LFQ_combined_txt_proteinGroups.txt_LFQ.RDS")
 data <- data[[1]]
+data[] <- data > 0
+data[is.na(data)]<- FALSE  
 data_sub <- dplyr::select(data, contains("Pool_AF"))
 #get rid of FALSE values
 AF <- data_sub*1
@@ -204,8 +140,10 @@ nrow(AF[!ind,])
 
 
 ############TF
-data <- readRDS(file = "results_v002/results_run1_mqpar_extracts_2gether_E4_D1_AF_TF_MBR_LFQ_combined_txt_proteinGroups.txt_Unique.RDS")
+data <- readRDS(file = "results_v002/results_run1_mqpar_extracts_2gether_E4_D1_AF_TF_MBR_LFQ_combined_txt_proteinGroups.txt_LFQ.RDS")
 data <- data[[1]]
+data[] <- data > 0
+data[is.na(data)]<- FALSE  
 data_sub <- dplyr::select(data, contains("Pool_TF"))
 #get rid of FALSE values
 TF <- data_sub*1
@@ -218,8 +156,10 @@ nrow(TF[!ind,])
 
 ############## B 20-30-40
 ############## B
-data <- readRDS(file = "results_v002/results_run1_mqpar_extracts_2gether_E4_D1_B_MBR_LFQ_combined_txt_proteinGroups.txt_Unique.RDS")
+data <- readRDS(file = "results_v002/results_run1_mqpar_extracts_2gether_E4_D1_B_MBR_LFQ_combined_txt_proteinGroups.txt_LFQ.RDS")
 data <- data[[1]]
+data[] <- data > 0
+data[is.na(data)]<- FALSE  
 B <- dplyr::select(data, contains("Pool_20"))
 B20 <- B
 #get rid of FALSE values
@@ -282,26 +222,32 @@ upset(fromList(lst),
 
 
 ## compare AF TF B poster
-AF_TF_raw <- readRDS(file = "results_v002/results_run1_mqpar_extracts_2gether_E4_D1_AF_TF_LFQ_combined_txt_proteinGroups.txt_Unique.RDS")
+AF_TF_raw <- readRDS(file = "results_v002/results_run1_mqpar_extracts_2gether_E4_D1_AF_TF_MBR_LFQ_combined_txt_proteinGroups.txt_LFQ.RDS")
 AF_TF_raw <- AF_TF_raw[[1]]
+FASTA <- AF_TF_raw$FASTA
+AF_TF_raw[] <- AF_TF_raw > 0
+AF_TF_raw[is.na(AF_TF_raw)]<- FALSE  
 AF <- dplyr::select(AF_TF_raw, contains("AF"))
 AF <- apply(AF, 1, any)
-AF <- as.data.frame(cbind(AF, AF_TF_raw$FASTA))
+AF <- as.data.frame(cbind(AF, FASTA))
 TF <- dplyr::select(AF_TF_raw, contains("TF"))
 TF <- apply(TF, 1, any)
-TF <- as.data.frame(cbind(TF, AF_TF_raw$FASTA))
-B_raw <- readRDS(file = "results_v002/results_run1_mqpar_extracts_2gether_E4_D1_B_LFQ_combined_txt_proteinGroups.txt_Unique.RDS")
+TF <- as.data.frame(cbind(TF, FASTA))
+B_raw <- readRDS(file = "results_v002/results_run1_mqpar_extracts_2gether_E4_D1_B_MBR_LFQ_combined_txt_proteinGroups.txt_LFQ.RDS")
 B_raw <- B_raw[[1]]
+FASTA <- B_raw$FASTA
+B_raw[] <- B_raw > 0
+B_raw[is.na(B_raw)]<- FALSE 
 B <- dplyr::select(B_raw, contains("Pool_G"))
 B <- apply(B, 1, any)
-B <- as.data.frame(cbind(B, B_raw$FASTA))
+B <- as.data.frame(cbind(B, FASTA))
 
 AF_TF_B_comparison  <- merge(B, AF,
                            all = TRUE,
-                           by = "V2")
+                           by = "FASTA")
 AF_TF_B_comparison <- merge(AF_TF_B_comparison, TF,
                             all = TRUE,
-                            by = "V2")
+                            by = "FASTA")
 
 AF_TF_B_comparison$B <- as.logical(AF_TF_B_comparison$B)
 AF_TF_B_comparison$AF <- as.logical(AF_TF_B_comparison$AF)
@@ -356,19 +302,25 @@ ggvenn(lst,
        stroke_size = 0.5, set_name_size = 5, text_size = 4.25, digits = 0, fill_alpha = 0.9, label_sep = )
 
 #compare B to pool from 0609 
-B_raw <- readRDS(file = "results_v002/results_run1_mqpar_extracts_2gether_E4_D1_B_LFQ_combined_txt_proteinGroups.txt_Unique.RDS")
+B_raw <- readRDS(file = "results_v002/results_run1_mqpar_extracts_2gether_E4_D1_B_MBR_LFQ_combined_txt_proteinGroups.txt_LFQ.RDS")
 B_raw <- B_raw[[1]]
+FASTA <- B_raw$FASTA
+B_raw[] <- B_raw > 0
+B_raw[is.na(B_raw)]<- FALSE 
 B <- dplyr::select(B_raw, contains("Pool_G"))
 B <- apply(B, 1, any)
-B <- as.data.frame(cbind(B, B_raw$FASTA))
-aj_raw <- readRDS(file = "results_v002/results_run1_mqpar_extracts_2gether_E4_D1_a-j_LFQ_combined_txt_proteinGroups.txt_Unique.RDS")
+B <- as.data.frame(cbind(B, FASTA))
+aj_raw <- readRDS(file = "results_v002/results_run1_mqpar_extracts_2gether_E4_D1_a-j_MBR_LFQ_combined_txt_proteinGroups.txt_LFQ.RDS")
 aj_raw <- aj_raw[[1]]
+FASTA <- aj_raw$FASTA
+aj_raw[] <- aj_raw > 0
+aj_raw[is.na(aj_raw)]<- FALSE 
 aj <- dplyr::select(aj_raw, contains("Pool"))
 aj <- apply(aj, 1, any)
-aj <- as.data.frame(cbind(aj, aj_raw$FASTA))
+aj <- as.data.frame(cbind(aj, FASTA))
 B_aj_comparison  <- merge(B, aj,
                              all = TRUE,
-                             by = "V2")
+                             by = "FASTA")
 
 B_aj_comparison$B <- as.logical(B_aj_comparison$B)
 B_aj_comparison$aj <- as.logical(B_aj_comparison$aj)
@@ -415,8 +367,10 @@ ggvenn(lst,
 
 ```{r}
 ## compare A-J with pool
-aj_raw <- readRDS(file = "results_v002/results_run1_mqpar_extracts_2gether_E4_D1_a-j_LFQ_combined_txt_proteinGroups.txt_Unique.RDS")
+aj_raw <- readRDS(file = "results_v002/results_run1_mqpar_extracts_2gether_E4_D1_a-j_MBR_LFQ_combined_txt_proteinGroups.txt_LFQ.RDS")
 aj_raw <- aj_raw[[1]]
+aj_raw[] <- aj_raw > 0
+aj_raw[is.na(aj_raw)]<- FALSE 
 aj <- dplyr::select(aj_raw, -contains(c("Pool","FASTA")))
 aj_pool <- dplyr::select(aj_raw, contains("Pool"))
 
@@ -425,7 +379,7 @@ for (i in seq(1:10)){
   tmp <- dplyr::select(aj, contains(ltters[i]))
   #use M as selector 
   aj[,paste(ltters[i],"M",sep="")] <- apply(tmp, 1, any)
-  
+
 }
 aj <- dplyr::select(aj, contains(paste(ltters,"M",sep="")))
 aj <- aj*1
@@ -537,8 +491,10 @@ upset(fromList(lst),
 #############################
 # D2
 ###############################
-data <- readRDS(file = "results_v002/results_run1_mqpar_extracts_2gether_D2_LFQ_combined_txt_proteinGroups.txt_Unique.RDS")
+data <- readRDS(file = "results_v002/results_run1_mqpar_extracts_2gether_D2_MBR_LFQ_combined_txt_proteinGroups.txt_LFQ.RDS")
 data <- data[[1]]
+data[] <- data > 0
+data[is.na(data)]<- FALSE  
 data_sub <- dplyr::select(data, contains("Pool_20"))
 B_D2 <- data_sub*1
 B_D2[B_D2==0] <- NA
@@ -637,19 +593,25 @@ ggvenn(lst,
 ```{r}
 # D1-D2 comparison
 
-D1_raw <- readRDS(file = "results_v002/results_run1_mqpar_extracts_2gether_E4_D1_B_LFQ_combined_txt_proteinGroups.txt_Unique.RDS")
+D1_raw <- readRDS(file = "results_v002/results_run1_mqpar_extracts_2gether_E4_D1_B_MBR_LFQ_combined_txt_proteinGroups.txt_LFQ.RDS")
 D1_raw <- D1_raw[[1]]
+FASTA <- D1_raw$FASTA
+D1_raw[] <- D1_raw > 0
+D1_raw[is.na(D1_raw)]<- FALSE 
 D1 <- dplyr::select(D1_raw, contains("20"))
 D1 <- apply(D1, 1, any)
-D1 <- as.data.frame(cbind(D1, D1_raw$FASTA))
-D2_raw <- readRDS(file = "results_v002/results_run1_mqpar_extracts_2gether_D2_LFQ_combined_txt_proteinGroups.txt_Unique.RDS")
+D1 <- as.data.frame(cbind(D1, FASTA))
+D2_raw <- readRDS(file = "results_v002/results_run1_mqpar_extracts_2gether_D2_MBR_LFQ_combined_txt_proteinGroups.txt_LFQ.RDS")
 D2_raw <- D2_raw[[1]]
+FASTA <- D2_raw$FASTA
+D2_raw[] <- D2_raw > 0
+D2_raw[is.na(D2_raw)]<- FALSE 
 D2 <- dplyr::select(data, contains("Pool_20"))
 D2 <- apply(D2, 1, any)
-D2 <- as.data.frame(cbind(D2, D2_raw$FASTA))
+D2 <- as.data.frame(cbind(D2, FASTA))
 D1_D2_comparison  <- merge(D1, D2,
                            all = TRUE,
-                           by = "V2")
+                           by = "FASTA")
 
 D1_D2_comparison$D1 <- as.logical(D1_D2_comparison$D1)
 D1_D2_comparison$D2 <- as.logical(D1_D2_comparison$D2)
