@@ -98,7 +98,7 @@ plot(mean_noMBR,noMBR, xlab= "Number proteins", ylab="Abweichung Razor vs. LFQ",
 
 ## Summary data analysis
 
-* die unten folgenden Auswertungen wurden mit MBR und noMBR bzw Razor und Unique durchgeführt
+* die unten folgenden Auswertungen wurden mit MBR und noMBR bzw Razor, Unique und LFQ durchgeführt
 * es zeigt sich, dass unabhängig von MBR oder noMBR nur geringe Unterschiede zwischen Razor und Unique zu finden sind; die Aussage bleibt diesselbe
 * vergleicht man MBR und noMBR so weißt MBR etwas höhere Identifikationsraten auf wie schon oben gezeigt
 * in einem ersten Vergleich scheint es, dass es mehr gesharte Proteine zwischen den einzelnen Treatments gibt
@@ -106,6 +106,9 @@ plot(mean_noMBR,noMBR, xlab= "Number proteins", ylab="Abweichung Razor vs. LFQ",
   + zB B-TF noMBR 4%; MBR 7%
   + gerade bei gemeinsam prozessierten Extrakten steigert es sich noch etwas extremer
   + D2_pool mit D2_pool_fractions: noMBR 53% gemeinsam; MBR 69% gemeinsam
+* LFQ
+  + mit MBR mehr gemeinsam gerade wenn gemeinsam ausgewertet
+  + sonst halt mit LFQ tendentiell weniger aber trotzdem ähnliche Verhältnisse wie bei Razor bzw Unique
 
 
 
@@ -386,6 +389,7 @@ IG <- rgb(180,198,231,maxColorValue = 255)
 ggvenn(lst,
        fill_color = c(IG,lowMW,highMW),
        stroke_size = 0.5, set_name_size = 5, text_size = 4.25, digits = 0, fill_alpha = 0.9, label_sep = )
+ggsave("./pics/razor_AF_TF_B.png")
 
 #compare B to pool from 0609 
 B_raw <- readRDS(file = "results_v002/results_run1_mqpar_extracts_2gether_E4_D1_B_LFQ_combined_txt_proteinGroups.txt_Razor.RDS")
@@ -434,7 +438,7 @@ upset(fromList(lst),
 
 ggvenn(lst,
        stroke_size = 0.5, set_name_size = 5, text_size = 4, digits = 0, fill_alpha = 0.9)
-
+ggsave("./pics/razor_B_D1pool.png")
 
 
 
@@ -659,7 +663,7 @@ D2_ingel_col <- rgb(169,208,142,maxColorValue = 255)
 ggvenn(lst,
        fill_color = c(D2_pool_col,D2_ingel_col),
        stroke_size = 0.5, set_name_size = 5, text_size = 4, digits = 0, fill_alpha = 0.9)
-
+ggsave("./pics/razor_D2.png")
 
 ```
 
@@ -724,7 +728,7 @@ D2_col <- rgb(169,208,142,maxColorValue = 255)
 ggvenn(lst,
        fill_color = c(D1_col,D2_col),
        stroke_size = 0.5, set_name_size = 4, text_size = 4, digits = 0, fill_alpha = 0.9)
-
+ggsave("./pics/razor_D1_D2.png")
 ```
 
 

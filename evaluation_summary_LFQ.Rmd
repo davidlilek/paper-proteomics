@@ -300,7 +300,7 @@ IG <- rgb(180,198,231,maxColorValue = 255)
 ggvenn(lst,
        fill_color = c(IG,lowMW,highMW),
        stroke_size = 0.5, set_name_size = 5, text_size = 4.25, digits = 0, fill_alpha = 0.9, label_sep = )
-
+ggsave("./pics/LFQ_AF_TF_B.png")
 #compare B to pool from 0609 
 B_raw <- readRDS(file = "results_v002/results_run1_mqpar_extracts_2gether_E4_D1_B_LFQ_combined_txt_proteinGroups.txt_LFQ.RDS")
 B_raw <- B_raw[[1]]
@@ -354,7 +354,7 @@ upset(fromList(lst),
 
 ggvenn(lst,
        stroke_size = 0.5, set_name_size = 5, text_size = 4, digits = 0, fill_alpha = 0.9)
-
+ggsave("./pics/LFQ_B_D1pool.png")
 
 
 
@@ -583,7 +583,7 @@ D2_ingel_col <- rgb(169,208,142,maxColorValue = 255)
 ggvenn(lst,
        fill_color = c(D2_pool_col,D2_ingel_col),
        stroke_size = 0.5, set_name_size = 5, text_size = 4, digits = 0, fill_alpha = 0.9)
-
+ggsave("./pics/LFQ_D2.png")
 
 ```
 
@@ -654,7 +654,7 @@ D2_col <- rgb(169,208,142,maxColorValue = 255)
 ggvenn(lst,
        fill_color = c(D1_col,D2_col),
        stroke_size = 0.5, set_name_size = 4, text_size = 4, digits = 0, fill_alpha = 0.9)
-
+ggsave("./pics/LFQ_D1_D2.png")
 ```
 
 
