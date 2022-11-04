@@ -110,22 +110,68 @@ plot(mean_noMBR,noMBR, xlab= "Number proteins", ylab="Abweichung Razor vs. LFQ",
   + mit MBR mehr gemeinsam gerade wenn gemeinsam ausgewertet
   + sonst halt mit LFQ tendentiell weniger aber trotzdem ähnliche Verhältnisse wie bei Razor bzw Unique
 
-## Venn diagrams
+# Venn diagrams
 
 ```{r results='asis'}
 pth <- "X:/wissenschaftliche Veröffentlichungen/Publikationen/2022/Proteomics_JRS_DL/data/pics/"
 filelist = list.files(path = pth, pattern = ".*.png")
-filelist <- as.list(filelist)
-for (file in filelist){
-  filename <- paste(pth,file,sep="")
+filelist <- as.list(
+  c(filelist[grepl("AF_TF_B", filelist)],
+    filelist[grepl("B_D1pool", filelist)],
+    filelist[grepl("D2_.png", filelist)],
+    filelist[grepl("_D2_.png", filelist)]))
+cat("\n")
+cat("##","AF_TF_B","\n")
+cat("\n")
+for (file in seq(1:6)){
+  filename <- paste(pth,filelist[file],sep="")
+  name <- paste(filelist[file])
   #print(filename)
   cat("\n")
-  cat("###",file,"\n")
+  cat("###",name,"\n")
   cat("\n")
   cat("![](",filename,")")
   cat("\n")
 }
-
+cat("\n")
+cat("##","B_D1pool","\n")
+cat("\n")
+for (file in seq(7:12)){
+  filename <- paste(pth,filelist[file],sep="")
+  name <- paste(filelist[file])
+  #print(filename)
+  cat("\n")
+  cat("###",name,"\n")
+  cat("\n")
+  cat("![](",filename,")")
+  cat("\n")
+}
+cat("\n")
+cat("##","D1_D2","\n")
+cat("\n")
+for (file in seq(13:18)){
+  filename <- paste(pth,filelist[file],sep="")
+  name <- paste(filelist[file])
+  #print(filename)
+  cat("\n")
+  cat("###",name,"\n")
+  cat("\n")
+  cat("![](",filename,")")
+  cat("\n")
+}
+cat("\n")
+cat("##","D1_D2","\n")
+cat("\n")
+for (file in seq(19:24)){
+  filename <- paste(pth,filelist[file],sep="")
+  name <- paste(filelist[file])
+  #print(filename)
+  cat("\n")
+  cat("###",name,"\n")
+  cat("\n")
+  cat("![](",filename,")")
+  cat("\n")
+}
 ```
 
 
