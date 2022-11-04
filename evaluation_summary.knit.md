@@ -14,7 +14,7 @@ output:
     code_folding: hide
 title: "Auswertung TC Daten"
 author: "David Lilek"
-date: "`r format(Sys.time(), '%d %B %Y, %X')`"
+date: "04 November 2022, 09:45:27"
 ---
 
 # Vergleich Unique-Razor | noMBR-MBR | Razor-LFQ
@@ -29,20 +29,34 @@ date: "`r format(Sys.time(), '%d %B %Y, %X')`"
 * es zeigt sich, dass der Unterschied Razor/Unique von der Anzahl der gefundenden Proteine anbhängt
 
 
-```{r}
+
+```r
 data <- read.csv("Extraktionen_gesamt_V2_DL.csv", sep=";")
 # unique vs razor
 MBR <- (data$Razor.MBR.2.peptides/data$Unique.MBR.2.peptides)*100
 noMBR <- (data$Razor.noMBR.2.peptides/data$Unique.no.MBR.2.peptides)*100
 
 boxplot(MBR, noMBR, main = "Abweichung Razor vs Unique [%]", names = c("MBR", "noMBR"))
+```
 
+<img src="evaluation_summary_files/figure-html/unnamed-chunk-1-1.png" width="672" />
+
+```r
 mean_MBR <- (data$Razor.MBR.2.peptides+data$Unique.MBR.2.peptide)/2
 mean_noMBR <- (data$Razor.noMBR.2.peptides+data$Unique.no.MBR.2.peptides)/2
 
 plot(mean_MBR,MBR, xlab= "Number proteins", ylab="Abweichung Razor vs. Unique", main = "MBR")
-plot(mean_noMBR,noMBR, xlab= "Number proteins", ylab="Abweichung Razor vs. Unique", main = "noMBR")
+```
 
+<img src="evaluation_summary_files/figure-html/unnamed-chunk-1-2.png" width="672" />
+
+```r
+plot(mean_noMBR,noMBR, xlab= "Number proteins", ylab="Abweichung Razor vs. Unique", main = "noMBR")
+```
+
+<img src="evaluation_summary_files/figure-html/unnamed-chunk-1-3.png" width="672" />
+
+```r
 #t.test(data$Razor.noMBR.2.peptides,data$Unique.no.MBR.2.peptides,paired = TRUE)
 #t.test(data$Razor.MBR.2.peptides,data$Unique.MBR.2.peptides,paired = TRUE)
 ```
@@ -56,20 +70,31 @@ plot(mean_noMBR,noMBR, xlab= "Number proteins", ylab="Abweichung Razor vs. Uniqu
 * dies ist unabhängig ob Razor oder Unique verwendet wird
 
 
-```{r}
+
+```r
 #MBR evaluation
 unique <- (data$Unique.MBR.2.peptides/data$Unique.no.MBR.2.peptides)*100
 razor <- (data$Razor.MBR.2.peptides/data$Razor.noMBR.2.peptides)*100
 
 boxplot(unique,razor, main = "Abweichung MBR", names = c("Unique", "Razor"))
+```
 
+<img src="evaluation_summary_files/figure-html/unnamed-chunk-2-1.png" width="672" />
+
+```r
 mean_unique <- (data$Unique.MBR.2.peptides+data$Unique.no.MBR.2.peptides)/2
 mean_razor <- (data$Razor.noMBR.2.peptides+data$Razor.MBR.2.peptides)/2
 
 plot(mean_razor,razor, xlab= "Number proteins", ylab="Abweichung MBR", main = "Razor")
-plot(mean_unique,unique, xlab= "Number proteins", ylab="Abweichung MBR", main="Unique")
-
 ```
+
+<img src="evaluation_summary_files/figure-html/unnamed-chunk-2-2.png" width="672" />
+
+```r
+plot(mean_unique,unique, xlab= "Number proteins", ylab="Abweichung MBR", main="Unique")
+```
+
+<img src="evaluation_summary_files/figure-html/unnamed-chunk-2-3.png" width="672" />
 
 ## Razor-LFQ
 
@@ -78,20 +103,34 @@ plot(mean_unique,unique, xlab= "Number proteins", ylab="Abweichung MBR", main="U
 * es zeigt sich, dass der Unterschied Razor/LFQ nicht von der Anzahl der gefundenen Proteine abhängt
 
 
-```{r}
+
+```r
 data <- read.csv("Extraktionen_gesamt_V2_DL.csv", sep=";")
 # unique vs razor
 MBR <- (data$Razor.MBR.2.peptides/data$LFQ.MBR)*100
 noMBR <- (data$Razor.noMBR.2.peptides/data$LFQ.noMBR)*100
 
 boxplot(MBR, noMBR, main = "Abweichung Razor vs LFQ [%]", names = c("MBR", "noMBR"))
+```
 
+<img src="evaluation_summary_files/figure-html/unnamed-chunk-3-1.png" width="672" />
+
+```r
 mean_MBR <- (data$Razor.MBR.2.peptides+data$LFQ.MBR)/2
 mean_noMBR <- (data$Razor.noMBR.2.peptides+data$LFQ.noMBR)/2
 
 plot(mean_MBR,MBR, xlab= "Number proteins", ylab="Abweichung Razor vs. LFQ", main = "MBR")
-plot(mean_noMBR,noMBR, xlab= "Number proteins", ylab="Abweichung Razor vs. LFQ", main = "noMBR")
+```
 
+<img src="evaluation_summary_files/figure-html/unnamed-chunk-3-2.png" width="672" />
+
+```r
+plot(mean_noMBR,noMBR, xlab= "Number proteins", ylab="Abweichung Razor vs. LFQ", main = "noMBR")
+```
+
+<img src="evaluation_summary_files/figure-html/unnamed-chunk-3-3.png" width="672" />
+
+```r
 #t.test(data$Razor.noMBR.2.peptides,data$Unique.no.MBR.2.peptides,paired = TRUE)
 #t.test(data$Razor.MBR.2.peptides,data$Unique.MBR.2.peptides,paired = TRUE)
 ```
@@ -148,7 +187,8 @@ Empfehlung:
 
 # Venn diagrams
 
-```{r results='asis'}
+
+```r
 pth <- "X:/wissenschaftliche Veröffentlichungen/Publikationen/2022/Proteomics_JRS_DL/data/pics/"
 filelist = list.files(path = pth, pattern = ".*.png")
 filelist <-   c(filelist[grepl("AF_TF_B", filelist)],
@@ -156,8 +196,19 @@ filelist <-   c(filelist[grepl("AF_TF_B", filelist)],
     filelist[grepl("D1_D2.png", filelist)],
     filelist[grepl("_D2_.png", filelist)])
 cat("\n")
+```
+
+```r
 cat("##","AF_TF_B","\n")
+```
+
+## AF_TF_B 
+
+```r
 cat("\n")
+```
+
+```r
 for (file in 1:6){
   filename <- paste(pth,filelist[file],sep="")
   name <- paste(filelist[file])
@@ -168,9 +219,48 @@ for (file in 1:6){
   cat("![](",filename,")")
   cat("\n")
 }
+```
+
+
+### LFQ_AF_TF_B.png 
+
+![]( X:/wissenschaftliche Veröffentlichungen/Publikationen/2022/Proteomics_JRS_DL/data/pics/LFQ_AF_TF_B.png )
+
+### LFQ_MBR_AF_TF_B.png 
+
+![]( X:/wissenschaftliche Veröffentlichungen/Publikationen/2022/Proteomics_JRS_DL/data/pics/LFQ_MBR_AF_TF_B.png )
+
+### razor_AF_TF_B.png 
+
+![]( X:/wissenschaftliche Veröffentlichungen/Publikationen/2022/Proteomics_JRS_DL/data/pics/razor_AF_TF_B.png )
+
+### razor_MBR_AF_TF_B.png 
+
+![]( X:/wissenschaftliche Veröffentlichungen/Publikationen/2022/Proteomics_JRS_DL/data/pics/razor_MBR_AF_TF_B.png )
+
+### unique_AF_TF_B.png 
+
+![]( X:/wissenschaftliche Veröffentlichungen/Publikationen/2022/Proteomics_JRS_DL/data/pics/unique_AF_TF_B.png )
+
+### unique_MBR_AF_TF_B.png 
+
+![]( X:/wissenschaftliche Veröffentlichungen/Publikationen/2022/Proteomics_JRS_DL/data/pics/unique_MBR_AF_TF_B.png )
+
+```r
 cat("\n")
+```
+
+```r
 cat("##","B_D1pool","\n")
+```
+
+## B_D1pool 
+
+```r
 cat("\n")
+```
+
+```r
 for (file in 7:12){
   filename <- paste(pth,filelist[file],sep="")
   name <- paste(filelist[file])
@@ -181,9 +271,48 @@ for (file in 7:12){
   cat("![](",filename,")")
   cat("\n")
 }
+```
+
+
+### LFQ_B_D1pool.png 
+
+![]( X:/wissenschaftliche Veröffentlichungen/Publikationen/2022/Proteomics_JRS_DL/data/pics/LFQ_B_D1pool.png )
+
+### LFQ_MBR_B_D1pool.png 
+
+![]( X:/wissenschaftliche Veröffentlichungen/Publikationen/2022/Proteomics_JRS_DL/data/pics/LFQ_MBR_B_D1pool.png )
+
+### razor_B_D1pool.png 
+
+![]( X:/wissenschaftliche Veröffentlichungen/Publikationen/2022/Proteomics_JRS_DL/data/pics/razor_B_D1pool.png )
+
+### razor_MBR_B_D1pool.png 
+
+![]( X:/wissenschaftliche Veröffentlichungen/Publikationen/2022/Proteomics_JRS_DL/data/pics/razor_MBR_B_D1pool.png )
+
+### unique_B_D1pool.png 
+
+![]( X:/wissenschaftliche Veröffentlichungen/Publikationen/2022/Proteomics_JRS_DL/data/pics/unique_B_D1pool.png )
+
+### unique_MBR_B_D1pool.png 
+
+![]( X:/wissenschaftliche Veröffentlichungen/Publikationen/2022/Proteomics_JRS_DL/data/pics/unique_MBR_B_D1pool.png )
+
+```r
 cat("\n")
+```
+
+```r
 cat("##","D1_D2","\n")
+```
+
+## D1_D2 
+
+```r
 cat("\n")
+```
+
+```r
 for (file in 13:18){
   filename <- paste(pth,filelist[file],sep="")
   name <- paste(filelist[file])
@@ -194,9 +323,48 @@ for (file in 13:18){
   cat("![](",filename,")")
   cat("\n")
 }
+```
+
+
+### LFQ_D1_D2.png 
+
+![]( X:/wissenschaftliche Veröffentlichungen/Publikationen/2022/Proteomics_JRS_DL/data/pics/LFQ_D1_D2.png )
+
+### LFQ_MBR_D1_D2.png 
+
+![]( X:/wissenschaftliche Veröffentlichungen/Publikationen/2022/Proteomics_JRS_DL/data/pics/LFQ_MBR_D1_D2.png )
+
+### razor_D1_D2.png 
+
+![]( X:/wissenschaftliche Veröffentlichungen/Publikationen/2022/Proteomics_JRS_DL/data/pics/razor_D1_D2.png )
+
+### razor_MBR_D1_D2.png 
+
+![]( X:/wissenschaftliche Veröffentlichungen/Publikationen/2022/Proteomics_JRS_DL/data/pics/razor_MBR_D1_D2.png )
+
+### unique_D1_D2.png 
+
+![]( X:/wissenschaftliche Veröffentlichungen/Publikationen/2022/Proteomics_JRS_DL/data/pics/unique_D1_D2.png )
+
+### unique_MBR_D1_D2.png 
+
+![]( X:/wissenschaftliche Veröffentlichungen/Publikationen/2022/Proteomics_JRS_DL/data/pics/unique_MBR_D1_D2.png )
+
+```r
 cat("\n")
+```
+
+```r
 cat("##","D2","\n")
+```
+
+## D2 
+
+```r
 cat("\n")
+```
+
+```r
 for (file in 19:24){
   filename <- paste(pth,filelist[file],sep="")
   name <- paste(filelist[file])
@@ -208,6 +376,31 @@ for (file in 19:24){
   cat("\n")
 }
 ```
+
+
+### LFQ_D2_.png 
+
+![]( X:/wissenschaftliche Veröffentlichungen/Publikationen/2022/Proteomics_JRS_DL/data/pics/LFQ_D2_.png )
+
+### LFQ_MBR_D2_.png 
+
+![]( X:/wissenschaftliche Veröffentlichungen/Publikationen/2022/Proteomics_JRS_DL/data/pics/LFQ_MBR_D2_.png )
+
+### razor_D2_.png 
+
+![]( X:/wissenschaftliche Veröffentlichungen/Publikationen/2022/Proteomics_JRS_DL/data/pics/razor_D2_.png )
+
+### razor_MBR_D2_.png 
+
+![]( X:/wissenschaftliche Veröffentlichungen/Publikationen/2022/Proteomics_JRS_DL/data/pics/razor_MBR_D2_.png )
+
+### unique_D2_.png 
+
+![]( X:/wissenschaftliche Veröffentlichungen/Publikationen/2022/Proteomics_JRS_DL/data/pics/unique_D2_.png )
+
+### unique_MBR_D2_.png 
+
+![]( X:/wissenschaftliche Veröffentlichungen/Publikationen/2022/Proteomics_JRS_DL/data/pics/unique_MBR_D2_.png )
 
 
 
