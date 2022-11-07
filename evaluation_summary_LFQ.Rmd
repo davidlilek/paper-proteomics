@@ -606,7 +606,7 @@ D2_raw <- D2_raw[[1]]
 FASTA <- D2_raw$FASTA
 D2_raw[] <- D2_raw > 0
 D2_raw[is.na(D2_raw)]<- FALSE 
-D2 <- dplyr::select(data, contains("Pool_20"))
+D2 <- dplyr::select(D2_raw, contains("Pool_20"))
 D2 <- apply(D2, 1, any)
 D2 <- as.data.frame(cbind(D2, FASTA))
 D1_D2_comparison  <- merge(D1, D2,
@@ -655,6 +655,44 @@ ggvenn(lst,
        fill_color = c(D1_col,D2_col),
        stroke_size = 0.5, set_name_size = 4, text_size = 4, digits = 0, fill_alpha = 0.9)
 ggsave("./pics/LFQ_D1_D2.png")
+```
+
+## Intensitätsvergleich
+
+```{r}
+# D1-D2 comparison
+
+D1_raw <- readRDS(file = "results_v002/results_run1_mqpar_extracts_2gether_E4_D1_B_LFQ_combined_txt_proteinGroups.txt_LFQ.RDS")
+D1_raw <- D1_raw[[1]]
+FASTA <- D1_raw$FASTA
+D1 <- dplyr::select(D1_raw, contains("20"))
+D1 <- as.data.frame(lapply(D1, as.numeric))
+D1 <- rowMeans(D1,na.rm = TRUE)
+D1 <- as.data.frame(cbind(D1, FASTA))
+D2_raw <- readRDS(file = "results_v002/results_run1_mqpar_extracts_2gether_D2_LFQ_combined_txt_proteinGroups.txt_LFQ.RDS")
+D2_raw <- D2_raw[[1]]
+FASTA <- D2_raw$FASTA
+D2 <- dplyr::select(D2_raw, contains("Pool_20"))
+D2 <- as.data.frame(lapply(D2, as.numeric))
+D2 <- rowMeans(D2,na.rm = TRUE)
+D2 <- as.data.frame(cbind(D2, FASTA))
+
+D1_D2_comparison  <- merge(D1, D2,
+                           all = TRUE,
+                           by = "FASTA")
+
+
+D1_D2_comparison <- as.data.frame(lapply(D1_D2_comparison, as.numeric))
+D1_D2_comparison$q <- D1_D2_comparison$D1/D1_D2_comparison$D2
+
+plot(D1_D2_comparison$q,ylab="Quotient Intensität D1/D2",xlab="Protein")
+abline(h=1,col="red")
+sum(D1_D2_comparison$q<1, na.rm = TRUE)
+sum(D1_D2_comparison$q>1, na.rm = TRUE)
+hist((D1_D2_comparison$D2-D1_D2_comparison$D1)/rowMeans(D1_D2_comparison[,c(1:2)],na.rm=TRUE)*100,
+     main="Relative Abweichung Intensität zwischen D2/D1",
+     xlab="Intensitäts-Abweichung D2/D1 [%]")
+summary((D1_D2_comparison$D2-D1_D2_comparison$D1)/rowMeans(D1_D2_comparison[,c(1:2)],na.rm=TRUE)*100)
 ```
 
 
