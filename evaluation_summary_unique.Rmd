@@ -548,7 +548,7 @@ B_D2[B_D2==0] <- NA
 ### analysis B
 proteins <- as.data.frame(which(!is.na(B_D2), arr.ind=TRUE))
 
-B1 <- proteins %>% dplyr::filter(col == 1)
+B1 <- proteins %>% dplyr::filter(col == 1 ) # | col == 2 -> means or col2
 B10 <- proteins %>% dplyr::filter(col == 2)
 B2 <- proteins %>% dplyr::filter(col == 3)
 B3 <- proteins %>% dplyr::filter(col == 4)
