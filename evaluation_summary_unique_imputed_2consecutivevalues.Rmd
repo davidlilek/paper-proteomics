@@ -16,83 +16,13 @@ title: "Auswertung TC Daten"
 author: "David Lilek"
 date: "`r format(Sys.time(), '%d %B %Y, %X')`"
 ---
-
-# Vergleich Unique-Razor | noMBR-MBR
-
-## Unique-Razor
-
-* Boxplot
-  + generell werden mit Razor etwas mehr Proteine gefunden egal ob MBR oder noMBR verwendet wird - das ist auch statistisch signifikant (paired t-Test)
-  + bei MBR werden ca. 10 Proteine mehr gefunden wenn Razor verwendet wird
-  + bei noMBR ca. 7.41
-  + bei noMBR gibt es manche Proben die etwas mehr Proteine mit Razor zeigen als Unique
-* es zeigt sich, dass der Unterschied Razor/Unique von der Anzahl der gefundenden Proteine anbhängt
-* 
-
-
-
-
 ```{r}
-data <- read.csv("Extraktionen_gesamt_V2_DL.csv", sep=";")
-# unique vs razor
-MBR <- (data$Razor.MBR.2.peptides/data$Unique.MBR.2.peptides)*100
-noMBR <- (data$Razor.noMBR.2.peptides/data$Unique.no.MBR.2.peptides)*100
-
-boxplot(MBR, noMBR, main = "Abweichung Razor vs Unique [%]", names = c("MBR", "noMBR"))
-
-mean_MBR <- (data$Razor.MBR.2.peptides+data$Unique.MBR.2.peptide)/2
-mean_noMBR <- (data$Razor.noMBR.2.peptides+data$Unique.no.MBR.2.peptides)/2
-
-plot(mean_MBR,MBR, xlab= "Number proteins", ylab="Abweichung Razor vs. Unique", main = "MBR")
-plot(mean_noMBR,noMBR, xlab= "Number proteins", ylab="Abweichung Razor vs. Unique", main = "noMBR")
-
-#t.test(data$Razor.noMBR.2.peptides,data$Unique.no.MBR.2.peptides,paired = TRUE)
-#t.test(data$Razor.MBR.2.peptides,data$Unique.MBR.2.peptides,paired = TRUE)
+# thresshold for consecutive values
+TRESHHOLD <- 2
 ```
-
-## MBR vs. noMBR
-
-* Boxplot: Mit MBR können teilweise bis zu 4x mehr Proteine gefunden werden als bei Nichtverwendung von MBR. Die Unterschiede zwischen Razor bzw. Unique sind gering.
-* klar ist eine Abhänigkeit von der Gesamtanzahl an gefundenen Proteinen ersichtlich
-* ab ca. 350 gefundenen Proteinen bleiben die mehr gefundenen Proteinen auf einem ähnlichen Level
-* darunter steigt die Anzahl der gefundenen Proteine mit MBR dramatatisch an wenn sich die Gesamtanzahl an Proteinen reduziert
-* dies ist unabhängig ob Razor oder Unique verwendet wird
-
-
-```{r}
-#MBR evaluation
-unique <- (data$Unique.MBR.2.peptides/data$Unique.no.MBR.2.peptides)*100
-razor <- (data$Razor.MBR.2.peptides/data$Razor.noMBR.2.peptides)*100
-
-boxplot(unique,razor, main = "Abweichung MBR", names = c("Unique", "Razor"))
-
-mean_unique <- (data$Unique.MBR.2.peptides+data$Unique.no.MBR.2.peptides)/2
-mean_razor <- (data$Razor.noMBR.2.peptides+data$Razor.MBR.2.peptides)/2
-
-plot(mean_razor,razor, xlab= "Number proteins", ylab="Abweichung MBR", main = "Razor")
-plot(mean_unique,unique, xlab= "Number proteins", ylab="Abweichung MBR", main="Unique")
-
-```
-
-
 
 
 # B - B20-B30-B40 - AF - TF
-
-## AF-TF-B
-
-Data from 20220609
-
-* Merge all fractions:
-  + noMBR: 670-689-1538 
-  + MBR: 781-775-1690
-
-## Compare B 20-30-40
-
-Data from 20220609
-
-* noMBR: 1375-1383-1243
-* MBR: 1585-1532-1417
 
 ## Plots
 
@@ -117,9 +47,15 @@ nrow(B[!ind,])
 
 # Comparison B20 (20220630) and B (20220609)
 B20_0609 <- dplyr::select(data, contains("Pool_G"))
-B20_0609 <- apply(B20_0609, 1, any)
+rows <- apply(B20_0609, 1, function(x)
+  as.numeric(any(rle(x)$lengths >= TRESHHOLD & rle(x)$values)))
+#transform 0 and 1 values to true and false
+B20_0609 <- rows==1
 B20_0630 <- dplyr::select(data, contains("20"))
-B20_0630 <- apply(B20_0630, 1, any)
+rows <- apply(B20_0630, 1, function(x)
+  as.numeric(any(rle(x)$lengths >= TRESHHOLD & rle(x)$values)))
+#transform 0 and 1 values to true and false
+B20_0630 <- rows==1
 B20_comp <- as.data.frame(cbind(B20_0609,B20_0630))
 B20_comp <- B20_comp*1
 B20_comp[B20_comp==0] <- NA
@@ -151,70 +87,6 @@ upset(fromList(lst),
 )
 
 
-############AF
-data <- readRDS(file = "results_v002/results_run1_mqpar_extracts_2gether_E4_D1_AF_TF_LFQ_combined_txt_proteinGroups.txt_Unique.RDS")
-data <- data[[1]]
-data_sub <- dplyr::select(data, contains("Pool_AF"))
-#get rid of FALSE values
-AF <- data_sub*1
-AF[AF==0] <- NA
-ind <- apply(AF, 1, function(x) all(is.na(x)))
-# B total proteins
-nrow(AF[!ind,])
-
-
-############TF
-data <- readRDS(file = "results_v002/results_run1_mqpar_extracts_2gether_E4_D1_AF_TF_LFQ_combined_txt_proteinGroups.txt_Unique.RDS")
-data <- data[[1]]
-data_sub <- dplyr::select(data, contains("Pool_TF"))
-#get rid of FALSE values
-TF <- data_sub*1
-TF[TF==0] <- NA
-ind <- apply(TF, 1, function(x) all(is.na(x)))
-# B total proteins
-nrow(TF[!ind,])
-
-
-
-
-
-
-
-#################### MBR
-data <- readRDS(file = "results_v002/results_run1_mqpar_extracts_2gether_E4_D1_B_MBR_LFQ_combined_txt_proteinGroups.txt_Unique.RDS")
-data <- data[[1]]
-data_sub <- dplyr::select(data, contains("Pool_G"))
-#get rid of FALSE values
-B <- data_sub*1
-B[B==0] <- NA
-ind <- apply(B, 1, function(x) all(is.na(x)))
-# B total proteins
-nrow(B[!ind,])
-
-############AF
-data <- readRDS(file = "results_v002/results_run1_mqpar_extracts_2gether_E4_D1_AF_TF_MBR_LFQ_combined_txt_proteinGroups.txt_Unique.RDS")
-data <- data[[1]]
-data_sub <- dplyr::select(data, contains("Pool_AF"))
-#get rid of FALSE values
-AF <- data_sub*1
-AF[AF==0] <- NA
-ind <- apply(AF, 1, function(x) all(is.na(x)))
-# B total proteins
-nrow(AF[!ind,])
-
-
-############TF
-data <- readRDS(file = "results_v002/results_run1_mqpar_extracts_2gether_E4_D1_AF_TF_MBR_LFQ_combined_txt_proteinGroups.txt_Unique.RDS")
-data <- data[[1]]
-data_sub <- dplyr::select(data, contains("Pool_TF"))
-#get rid of FALSE values
-TF <- data_sub*1
-TF[TF==0] <- NA
-ind <- apply(TF, 1, function(x) all(is.na(x)))
-# B total proteins
-nrow(TF[!ind,])
-
-
 
 ############## B 20-30-40
 ############## B
@@ -222,31 +94,23 @@ data <- readRDS(file = "results_v002/results_run1_mqpar_extracts_2gether_E4_D1_B
 data <- data[[1]]
 B <- dplyr::select(data, contains("Pool_20"))
 B20 <- B
-#get rid of FALSE values
-B <- data_sub*1
-B[B==0] <- NA
-ind <- apply(B, 1, function(x) all(is.na(x)))
-# B total proteins
-nrow(B[!ind,])
+rows <- apply(B20, 1, function(x)
+  as.numeric(any(rle(x)$lengths >= TRESHHOLD & rle(x)$values)))
+#transform 0 and 1 values to true and false
+B20 <- rows==1
 B <- dplyr::select(data, contains("Pool_30"))
 B30 <- B
-#get rid of FALSE values
-B <- data_sub*1
-B[B==0] <- NA
-ind <- apply(B, 1, function(x) all(is.na(x)))
-# B total proteins
-nrow(B[!ind,])
+rows <- apply(B30, 1, function(x)
+  as.numeric(any(rle(x)$lengths >= TRESHHOLD & rle(x)$values)))
+#transform 0 and 1 values to true and false
+B30 <- rows==1
+#b40
 B40 <- dplyr::select(data, contains("Pool_40"))
-#get rid of FALSE values
-B <- data_sub*1
-B[B==0] <- NA
-ind <- apply(B, 1, function(x) all(is.na(x)))
-# B total proteins
-nrow(B[!ind,])
+rows <- apply(B40, 1, function(x)
+  as.numeric(any(rle(x)$lengths >= TRESHHOLD & rle(x)$values)))
+#transform 0 and 1 values to true and false
+B40 <- rows==1
 
-B20 <- apply(B20, 1, any)
-B30 <- apply(B30, 1, any)
-B40 <- apply(B40, 1, any)
 
 B <- cbind(B20,B30,B40)
 B <- as.data.frame(B)
@@ -285,15 +149,24 @@ upset(fromList(lst),
 AF_TF_raw <- readRDS(file = "results_v002/results_run1_mqpar_extracts_2gether_E4_D1_AF_TF_LFQ_combined_txt_proteinGroups.txt_Unique.RDS")
 AF_TF_raw <- AF_TF_raw[[1]]
 AF <- dplyr::select(AF_TF_raw, contains("AF"))
-AF <- apply(AF, 1, any)
+rows <- apply(AF, 1, function(x)
+  as.numeric(any(rle(x)$lengths >= TRESHHOLD & rle(x)$values)))
+#transform 0 and 1 values to true and false
+AF <- rows==1
 AF <- as.data.frame(cbind(AF, AF_TF_raw$FASTA))
 TF <- dplyr::select(AF_TF_raw, contains("TF"))
-TF <- apply(TF, 1, any)
+rows <- apply(TF, 1, function(x)
+  as.numeric(any(rle(x)$lengths >= TRESHHOLD & rle(x)$values)))
+#transform 0 and 1 values to true and false
+TF <- rows==1
 TF <- as.data.frame(cbind(TF, AF_TF_raw$FASTA))
 B_raw <- readRDS(file = "results_v002/results_run1_mqpar_extracts_2gether_E4_D1_B_LFQ_combined_txt_proteinGroups.txt_Unique.RDS")
 B_raw <- B_raw[[1]]
 B <- dplyr::select(B_raw, contains("Pool_G"))
-B <- apply(B, 1, any)
+rows <- apply(B, 1, function(x)
+  as.numeric(any(rle(x)$lengths >= TRESHHOLD & rle(x)$values)))
+#transform 0 and 1 values to true and false
+B <- rows==1
 B <- as.data.frame(cbind(B, B_raw$FASTA))
 
 AF_TF_B_comparison  <- merge(B, AF,
@@ -354,18 +227,24 @@ IG <- rgb(180,198,231,maxColorValue = 255)
 ggvenn(lst,
        fill_color = c(IG,lowMW,highMW),
        stroke_size = 0.5, set_name_size = 5, text_size = 4.25, digits = 0, fill_alpha = 0.9, label_sep = )
-ggsave("./pics/unique_AF_TF_B.png")
+ggsave("./pics/unique_AF_TF_B_imputed_imputed_2consecutivevalues.png")
 
 #compare B to pool from 0609 
 B_raw <- readRDS(file = "results_v002/results_run1_mqpar_extracts_2gether_E4_D1_B_LFQ_combined_txt_proteinGroups.txt_Unique.RDS")
 B_raw <- B_raw[[1]]
 B <- dplyr::select(B_raw, contains("Pool_G"))
-B <- apply(B, 1, any)
+rows <- apply(B, 1, function(x)
+  as.numeric(any(rle(x)$lengths >= TRESHHOLD & rle(x)$values)))
+#transform 0 and 1 values to true and false
+B <- rows==1
 B <- as.data.frame(cbind(B, B_raw$FASTA))
 aj_raw <- readRDS(file = "results_v002/results_run1_mqpar_extracts_2gether_E4_D1_a-j_LFQ_combined_txt_proteinGroups.txt_Unique.RDS")
 aj_raw <- aj_raw[[1]]
 aj <- dplyr::select(aj_raw, contains("Pool"))
-aj <- apply(aj, 1, any)
+rows <- apply(aj, 1, function(x)
+  as.numeric(any(rle(x)$lengths >= TRESHHOLD & rle(x)$values)))
+#transform 0 and 1 values to true and false
+aj <- rows==1
 aj <- as.data.frame(cbind(aj, aj_raw$FASTA))
 B_aj_comparison  <- merge(B, aj,
                              all = TRUE,
@@ -403,7 +282,7 @@ upset(fromList(lst),
 
 ggvenn(lst,
        stroke_size = 0.5, set_name_size = 5, text_size = 4, digits = 0, fill_alpha = 0.9)
-ggsave("./pics/unique_B_D1pool.png")
+ggsave("./pics/unique_B_D1pool_imputed_imputed_2consecutivevalues.png")
 
 
 
@@ -425,7 +304,10 @@ ltters <- paste("_", letters[1:10],"_", sep = "")
 for (i in seq(1:10)){
   tmp <- dplyr::select(aj, contains(ltters[i]))
   #use M as selector 
-  aj[,paste(ltters[i],"M",sep="")] <- apply(tmp, 1, any)
+  rows <- apply(tmp, 1, function(x)
+  as.numeric(any(rle(x)$lengths >= TRESHHOLD & rle(x)$values)))
+  tmp <- tmp %>% mutate(sum = rowSums(across(where(is.logical))))
+  aj[,paste(ltters[i],"M",sep="")] <- rows==1
   
 }
 aj <- dplyr::select(aj, contains(paste(ltters,"M",sep="")))
@@ -481,7 +363,10 @@ upset(fromList(lst),
 
 ```{r}
 # compare with pool
-aj_pool <- apply(aj_pool, 1, any)
+rows <- apply(aj_pool, 1, function(x)
+  as.numeric(any(rle(x)$lengths >= TRESHHOLD & rle(x)$values)))
+#transform 0 and 1 values to true and false
+aj_pool <- rows==1
 aj_pool <- aj_pool*1
 aj_pool[aj_pool==0]<- NA
 
@@ -585,9 +470,16 @@ upset(fromList(lst),
 
 
 data_D2_pool <- dplyr::select(data, contains("Gesamt"))
-data_D2_pool <- apply(data_D2_pool, 1, any)
+rows <- apply(data_D2_pool, 1, function(x)
+  as.numeric(any(rle(x)$lengths >= TRESHHOLD & rle(x)$values)))
+#transform 0 and 1 values to true and false
+data_D2_pool <- rows==1
 data_D2_fractions <- dplyr::select(data, contains("20"))
-data_D2_fractions <- apply(data_D2_fractions, 1, any)
+data_D2_fractions <- data_D2_fractions[,c(1,2,5:20,3,4)]
+rows <- apply(data_D2_fractions, 1, function(x)
+  as.numeric(any(rle(x)$lengths >= TRESHHOLD & rle(x)$values)))
+#transform 0 and 1 values to true and false
+data_D2_fractions <- rows==1
 data_D2 <- as.data.frame(cbind(data_D2_pool,data_D2_fractions))
 data_D2 <- data_D2*1
 data_D2[data_D2==0] <- NA
@@ -628,7 +520,7 @@ D2_ingel_col <- rgb(169,208,142,maxColorValue = 255)
 ggvenn(lst,
        fill_color = c(D2_pool_col,D2_ingel_col),
        stroke_size = 0.5, set_name_size = 5, text_size = 4, digits = 0, fill_alpha = 0.9)
-ggsave("./pics/unique_D2_.png")
+ggsave("./pics/unique_D2__imputed_2consecutivevalues.png")
 
 ```
 
@@ -641,12 +533,18 @@ ggsave("./pics/unique_D2_.png")
 D1_raw <- readRDS(file = "results_v002/results_run1_mqpar_extracts_2gether_E4_D1_B_LFQ_combined_txt_proteinGroups.txt_Unique.RDS")
 D1_raw <- D1_raw[[1]]
 D1 <- dplyr::select(D1_raw, contains("20"))
-D1 <- apply(D1, 1, any)
+rows <- apply(D1, 1, function(x)
+  as.numeric(any(rle(x)$lengths >= TRESHHOLD & rle(x)$values)))
+#transform 0 and 1 values to true and false
+D1 <- rows==1
 D1 <- as.data.frame(cbind(D1, D1_raw$FASTA))
 D2_raw <- readRDS(file = "results_v002/results_run1_mqpar_extracts_2gether_D2_LFQ_combined_txt_proteinGroups.txt_Unique.RDS")
 D2_raw <- D2_raw[[1]]
 D2 <- dplyr::select(D2_raw, contains("Pool_20"))
-D2 <- apply(D2, 1, any)
+rows <- apply(D2, 1, function(x)
+  as.numeric(any(rle(x)$lengths >= TRESHHOLD & rle(x)$values)))
+#transform 0 and 1 values to true and false
+D2 <- rows==1
 D2 <- as.data.frame(cbind(D2, D2_raw$FASTA))
 D1_D2_comparison  <- merge(D1, D2,
                            all = TRUE,
@@ -693,7 +591,7 @@ D2_col <- rgb(169,208,142,maxColorValue = 255)
 ggvenn(lst,
        fill_color = c(D1_col,D2_col),
        stroke_size = 0.5, set_name_size = 4, text_size = 4, digits = 0, fill_alpha = 0.9)
-ggsave("./pics/unique_D1_D2.png")
+ggsave("./pics/unique_D1_D2_imputed_imputed_2consecutivevalues.png")
 ```
 
 

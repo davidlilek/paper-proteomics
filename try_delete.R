@@ -34,20 +34,28 @@ checkData(data_clear, verbose = TRUE)
 
 # get sum of TRUE values in a row
 # hängt an dataframe die spalte sum an wo eben die summe drinnensteht
-tb %>% mutate(sum = rowSums(across(where(is.logical))))
-
+TRESHHOLD <- 2
+data <- readRDS(file = "results_v002/results_run1_mqpar_extracts_2gether_D2_MBR_LFQ_combined_txt_proteinGroups.txt_Unique.RDS")
+data <- data[[1]]
+data <- data[,-c(1:4)]
+data <- data %>% mutate(sum = rowSums(across(where(is.logical))))
+rows <- data$sum>=TRESHHOLD
 
 #rle 
 #https://stackoverflow.com/questions/49664804/finding-rows-containing-more-than-two-sequential-true-logical-values
 data <- readRDS(file = "results_v002/results_run1_mqpar_extracts_2gether_D2_MBR_LFQ_combined_txt_proteinGroups.txt_Unique.RDS")
 data <- data[[1]]     
 Df <- data[,-c(1:4)]
+Df <- data[,-ncol(Df)]
 #get rows with a least one TRUE value
-rows <- apply(Df_new,1,any)
+rows <- apply(Df,1,any)
 rows[is.na(rows)] <- FALSE
 #re order data
 Df_new <- Df[rows,c(1,2,5:21,3,4)]
 
-Df$sum <- apply(Df[, -ncol(Df)], 1, function(x)
+rows <- apply(Df_new[, -ncol(Df_new)], 1, function(x)
   as.numeric(any(rle(x)$lengths >= 2 & rle(x)$values)))
-sum(Df$sum)
+#transform 0 and 1 values to true and false
+rows <- rows==1
+sum(rows)
+### sort data
