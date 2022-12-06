@@ -226,3 +226,109 @@ for (file in 19:24){
 * man könnte ja Razor nehmen und im paper bezug nehmen, dass ergebnisse ähnlich wie unique
 * zusätzlich noch anschauen mit LFQ? wieviele proteine von den identifzierten sind überhaupt quantifizierbar? das könnte man auch ins paper geben, dass wenn man lfq nimmt man mit ca. 20-25%(also je nachdem was dann rauskommt) rechnen muss? weil ja später dann bei differential expression analysis ja auch quantifizierte proteine verwendet werden; also meistens halt
 
+# Compare D1 and D2 B1-B9 resp B1-B10
+
+```{r}
+library(dplyr)
+library(UpSetR)
+#D1
+data <- readRDS(file = "results_v002/results_run1_mqpar_extracts_2gether_E4_D1_B_LFQ_combined_txt_proteinGroups.txt_Unique.RDS")
+data <- data[[1]]
+data_sub <- dplyr::select(data, contains("Pool_G"))
+B_D1 <- data_sub*1
+B_D1 <- sapply(seq(1,17,by=2),function(i) rowSums(B_D1[,i:(i+1)]))
+B_D1[B_D1==0] <- NA
+
+### analysis B
+proteins <- as.data.frame(which(!is.na(B_D1), arr.ind=TRUE))
+
+B1 <- proteins %>% dplyr::filter(col == 1)
+B2 <- proteins %>% dplyr::filter(col == 2)
+B3 <- proteins %>% dplyr::filter(col == 3)
+B4 <- proteins %>% dplyr::filter(col == 4)
+B5 <- proteins %>% dplyr::filter(col == 5)
+B6 <- proteins %>% dplyr::filter(col == 6)
+B7 <- proteins %>% dplyr::filter(col == 7)
+B8 <- proteins %>% dplyr::filter(col == 8)
+B9 <- proteins %>% dplyr::filter(col == 9)
+# combine to list
+lst <- list(B1 = as.double(B1[,1]),
+            B2 = as.double(B2[,1]),
+            B3 = as.double(B3[,1]),
+            B4 = as.double(B4[,1]),
+            B5 = as.double(B5[,1]),
+            B6 = as.double(B6[,1]),
+            B7 = as.double(B7[,1]),
+            B8 = as.double(B8[,1]),
+            B9 = as.double(B9[,1]))          
+
+upset(fromList(lst), 
+      order.by = "freq",
+      nsets = 9,
+      nintersects = 25,
+      sets = c("B1","B2","B3","B4","B5","B6","B7","B8","B9"),
+      keep.order = TRUE,
+      mainbar.y.label = "Number of shared proteins",
+      sets.x.label = "Number of proteins per fraction",
+      set_size.show = TRUE,
+      set_size.angles = 0,
+      set_size.scale_max = 1000)
+
+
+
+#D2
+data <- readRDS(file = "results_v002/results_run1_mqpar_extracts_2gether_D2_LFQ_combined_txt_proteinGroups.txt_Unique.RDS")
+#data <- readRDS(file = "results_v002/results_run1_mqpar_extracts_2gether_D2_MBR_LFQ_combined_txt_proteinGroups.txt_Unique.RDS")
+data <- data[[1]]
+#for D2
+data_sub <- dplyr::select(data, contains("Pool_20"))
+B_D2 <- data_sub*1
+B_D2 <- sapply(seq(1,19,by=2),function(i) rowSums(B_D2[,i:(i+1)]))
+B_D2[B_D2==0] <- NA
+
+### analysis B
+proteins <- as.data.frame(which(!is.na(B_D2), arr.ind=TRUE))
+
+B1 <- proteins %>% dplyr::filter(col == 1)
+B10 <- proteins %>% dplyr::filter(col == 2)
+B2 <- proteins %>% dplyr::filter(col == 3)
+B3 <- proteins %>% dplyr::filter(col == 4)
+B4 <- proteins %>% dplyr::filter(col == 5)
+B5 <- proteins %>% dplyr::filter(col == 6)
+B6 <- proteins %>% dplyr::filter(col == 7)
+B7 <- proteins %>% dplyr::filter(col == 8)
+B8 <- proteins %>% dplyr::filter(col == 9)
+B9 <- proteins %>% dplyr::filter(col == 10)
+# combine to list
+lst <- list(B1 = as.double(B1[,1]),
+            B2 = as.double(B2[,1]),
+            B3 = as.double(B3[,1]),
+            B4 = as.double(B4[,1]),
+            B5 = as.double(B5[,1]),
+            B6 = as.double(B6[,1]),
+            B7 = as.double(B7[,1]),
+            B8 = as.double(B8[,1]),
+            B9 = as.double(B9[,1]),
+            B10 = as.double(B10[,1]))            
+
+upset(fromList(lst), 
+      order.by = "freq",
+      nsets = 9,
+      nintersects = 25,
+      sets = c("B1","B2","B3","B4","B5","B6","B7","B8","B9","B10"),
+      keep.order = TRUE,
+      mainbar.y.label = "Number of shared proteins",
+      sets.x.label = "Number of proteins per fraction",
+      set_size.show = TRUE,
+      set_size.angles = 0,
+      set_size.scale_max = 1000
+)
+
+
+
+
+```
+
+# Complex UpsetR
+
+* https://krassowski.github.io/complex-upset/articles/Examples_R.html
