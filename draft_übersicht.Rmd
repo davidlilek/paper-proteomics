@@ -1,0 +1,33 @@
+---
+title: "R Notebook"
+output: html_notebook
+---
+
+# Auswertung Extrakte 
+* alle extrakte wurden am server ausgewertet (mqpar files: `/proj/proteomics/100_extracts_2gether/mqpar`)
+* es wurden thematisch ähnliche extrakte gemeinsam ausgewertet
+	+ D2
+	+ E3_D1
+	+ E4_D1_AF_TF
+	+ E4_D1_a_j
+	+ E4_D1_B
+* `X:\wissenschaftliche Veröffentlichungen\Publikationen\2022\Proteomics_JRS_DL\data\proteinGroups`: enthalten die proteinGroups.txt files die mit Razor/Unique ausgewertet wurden
+* später wurde dann zum mqpar file auch LFQ hinzugefügt und neu ausgewertet; diese Ergebnisse werden auch fürs Paper verwendet und sind in `proteinGroups_v002` zu finden
+
+## Basic postprocessing 
+* die proteingroups.txt files wurden dann mit `basis-postprocessing.R`ausgewertet
+* die Ergebnisse finden sich `results` bzw `results_v002`
+  + es wurden RDS, csv und html files abgespeichert
+  + diese Files wurden dann für die weitere Datenaufarbeitung verwendet
+
+
+
+# TA/YEAST
+
+* die Mehlwürmer wurden in Weizenmehl/Hefeextrakt gezüchtet
+* hier wurde getestet ob in den Extrakten auch Weizenproteine/Hefeproteine gefunden werden
+* zusätzlich wurde gegen Rattenproteine bzw A.thaliana proteine gesucht um zu sehen ob komplett fremde organismenproteine gefunden werden können
+* genommen wurden die mqpar files zur erzeugugn von proteinGroups, also ohne LFQ und nur Razor/Unique
+* Ergebnisfile/Zusammenfassungfile: summary-ta-yeast.Rmd
+  + es zeigt sich, dass sowohol Weizen/Hefe als auch Ratten- und a thaliana Proteine gefunden werden können
+  + Ausmaß max. 8% der Gesamtproteine
