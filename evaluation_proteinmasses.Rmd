@@ -1,0 +1,157 @@
+---
+output:
+  html_document:
+    df_print: paged
+    fig.align: center
+    self_contained: yes
+    fig.height: 4
+    fig.width: 8
+    theme: united
+    toc: yes
+    toc_depth: 4
+    toc_float: yes
+    number_sections: yes
+    code_folding: hide
+title: "Auswertung TC Daten"
+author: "David Lilek"
+date: "`r format(Sys.time(), '%d %B %Y, %X')`"
+---
+
+# Evaluierung der Massen der Proteine B1-B9 E4_D1_B
+
+* Verwendung von unique mit mind 2 peptiden
+* die doppelbestimmung wurde einfach "gemittelt" dh wenn ein protein zumindest in einer zb B1 messung vorkommt wurde es als vorhanden gewertet
+* die folgenden 3 plots zeigen dasselbe nur untersch. dargestellt
+
+```{r}
+######################
+###E4_D1_B Unique
+######################
+library(UniprotR)
+library(ggplot2)
+library(reshape2)
+data <- readRDS(file = "results_v002/results_run1_mqpar_extracts_2gether_E4_D1_B_LFQ_combined_txt_proteinGroups.txt_Unique.RDS")
+data <- data[[1]]
+FASTA <- data$FASTA
+data[] <- data > 0
+data[is.na(data)]<- FALSE  
+data_sub <- dplyr::select(data, contains("Pool_G"))
+B_D1 <- data_sub*1
+B_D1 <- sapply(seq(1,17,by=2),function(i) rowSums(B_D1[,i:(i+1)]))
+B_D1[B_D1==0] <- NA
+
+df <- as.data.frame(B_D1)
+colnames(df) <- paste("B",1:9,sep="")
+df$FASTA <- FASTA
+
+fasta <- c()
+for (i in 1:length(FASTA)){
+  tmp <- strsplit(FASTA[i],split='\\|')[[1]][2]
+  fasta <- c(fasta,tmp)
+}
+
+#getsequences <- GetSequences(fasta)
+#saveRDS(getsequences,file="sequences_uniprot_E4_D1_B_LFQ_combined_txt_proteinGroups.txt_Unique.RDS")
+getsequences <- readRDS("sequences_uniprot_E4_D1_B_LFQ_combined_txt_proteinGroups.txt_Unique.RDS")
+df$Mass <- getsequences$Mass
+df$number <- 1:length(data$FASTA)
+dat_4plot <- melt(df[,-c(10)], id.vars = c("Mass","number"))
+dat_4plot <- na.omit(dat_4plot)
+
+ggplot(dat_4plot, aes(x=variable, y=Mass)) + 
+  geom_boxplot()
+  #geom_violin(trim=FALSE)
+dat_4plot_sub <- dat_4plot[dat_4plot$Mass<250000,]
+ggplot(dat_4plot_sub, aes(x=variable, y=Mass)) + 
+  geom_boxplot()
+
+data_summary <- function(x) {
+  m <- mean(x)
+  ymin <- m-sd(x)
+  ymax <- m+sd(x)
+  return(c(y=m,ymin=ymin,ymax=ymax))
+}
+ggplot(dat_4plot_sub, aes(x=variable, y=Mass)) + 
+  geom_violin(trim=FALSE) +
+  stat_summary(fun.data=data_summary) + 
+  geom_jitter(shape=16, position=position_jitter(0.2))
+
+```
+
+
+# Evaluierung der Massen der geteilten Proteine in E4_D1_B
+
+* LFQ values wurden verwendet
+* in summe ca. 70 proteine die in allen fraktionen (b1-b9) kommen
+* von diesen proteinen wurden die lfq values gesucht und gegen die fraktion geplottet
+* die frage war ob die intensitäten der proteine in den einzelnen fraktionen unterschiedlich ist
+
+```{r message=FALSE, warning=FALSE}
+########################get intersections of E4_D1 LFQ
+### und dann suchen wir in den proteinen die über alle 9 fraktionen kommen die massen
+
+
+library(UpSetR)
+library(dplyr)
+  
+######################
+###E4_D1 LFQ
+######################
+data <- readRDS(file = "results_v002/results_run1_mqpar_extracts_2gether_E4_D1_B_LFQ_combined_txt_proteinGroups.txt_LFQ.RDS")
+data <- data[[1]]
+data[] <- data > 0
+data[is.na(data)]<- FALSE  
+data_sub <- dplyr::select(data, contains("Pool_G"))
+B_D1 <- data_sub*1
+B_D1 <- sapply(seq(1,17,by=2),function(i) rowSums(B_D1[,i:(i+1)]))
+B_D1[B_D1==0] <- NA
+
+### analysis B
+proteins <- as.data.frame(which(!is.na(B_D1), arr.ind=TRUE))
+
+B1 <- proteins %>% dplyr::filter(col == 1)
+B2 <- proteins %>% dplyr::filter(col == 2)
+B3 <- proteins %>% dplyr::filter(col == 3)
+B4 <- proteins %>% dplyr::filter(col == 4)
+B5 <- proteins %>% dplyr::filter(col == 5)
+B6 <- proteins %>% dplyr::filter(col == 6)
+B7 <- proteins %>% dplyr::filter(col == 7)
+B8 <- proteins %>% dplyr::filter(col == 8)
+B9 <- proteins %>% dplyr::filter(col == 9)
+
+
+intersct <- Reduce(intersect, list(B1$row,B2$row,B3$row,B4$row,B5$row,B6$row,B7$row,B8$row,B9$row))
+
+data <- readRDS(file = "results_v002/results_run1_mqpar_extracts_2gether_E4_D1_B_LFQ_combined_txt_proteinGroups.txt_LFQ.RDS")
+data <- data[[1]]
+data_sub <- dplyr::select(data, contains("Pool_G"))
+data_sub <- data_sub[intersct,]
+data_sub$FASTA <- data$FASTA[intersct]
+
+
+library(UniprotR)
+#test <- GetMiscellaneous(data$FASTA[intersect()])
+#Obj <- GetMiscellaneous(data$FASTA[strsplit(data$FASTA[1],split='\\|')[[1]][2]]
+
+fasta <- c()
+for (i in 1:length(data_sub$FASTA)){
+  tmp <- strsplit(data_sub$FASTA[i],split='\\|')[[1]][2]
+  fasta <- c(fasta,tmp)
+}
+
+seq <- GetSequences(fasta)
+
+for (i in 1:nrow(data_sub)){
+  plot(rep(1:9,each=2),
+       data_sub[i,-ncol(data_sub)],
+       main=paste("Mass:",seq$Mass[i], " Row:",rownames(data_sub)[i],sep=""),
+       xaxt = "n",
+       xlab=paste("Fraction B"),
+       ylab="LFQ values")
+  axis(1, at=1:9, labels=paste("B",1:9,sep=""))
+}
+
+
+
+```
+
