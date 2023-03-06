@@ -17,6 +17,15 @@ author: "David Lilek"
 date: "`r format(Sys.time(), '%d %B %Y, %X')`"
 ---
 
+# Informationen über die Proben
+
+JUDITH dein Text hier
+
+* das sind aufzählungen
+* das ist eine weiter aufzählung
+
+## das ist eine unterüberschrift
+
 # Vergleich Unique-Razor | noMBR-MBR | Razor-LFQ
 
 ## Unique-Razor
@@ -213,18 +222,22 @@ for (file in 19:24){
 
 # Besprechen/todo
 
-* nehmen wir LFQ oder die identifizierten Proteine?
-* nehmen wir razor oder unique? ich würde fast razor nehmen, weil ja ohnehin zu der proteingruppe zugeordnet wird die am wahrscheinlichsten ist
+* nehmen wir LFQ oder die identifizierten Proteine? --> ich würde die identified proteins nehmen für diese Auswertung jedenfalls
+* nehmen wir razor oder unique? ich würde fast razor nehmen, weil ja ohnehin zu der proteingruppe zugeordnet wird die am wahrscheinlichsten ist --> am Poster haben wir Unique verwendet!
 * wie poolen wir? zB B1_1, B1_2, B2_1, B2_2...
   + wenn ich dort alle Proteine zähle führt es ev. zu einem Überbefund?
   + wäre es nicht besser B1_1 und B1_2 -> nur wenn Protein in beiden vorkommt ist es auch da? weil ja technische replikate also 2x gemessen oder?
   + wenn 2 biologische replikate; also 2x extrahiert würde ich es so machen, dass ich auch sagen es ist da wenn es nur in einem Extrakt vorkommt | also zB B1_1 TRUE - B1_2 FALSE
-* was gehört überhaupt gepooled und verglichen? können wir uns das bitte noch anschauen?
+ --> ja, ich denke auch, dass Messreplikate sozusagen die verification voneinander sein sollten, Extraktionsreplikate zeigen ja die Reproduzierbarkeit.
+* was gehört überhaupt gepooled und verglichen? können wir uns das bitte noch anschauen? --> Unbedingt!
 * was gehört bei D2 gepooled und verglichen?
 
 
-* man könnte ja Razor nehmen und im paper bezug nehmen, dass ergebnisse ähnlich wie unique
+* man könnte ja Razor nehmen und im paper bezug nehmen, dass ergebnisse ähnlich wie unique --> die Formulierung "data not shown" hilft hier 
 * zusätzlich noch anschauen mit LFQ? wieviele proteine von den identifzierten sind überhaupt quantifizierbar? das könnte man auch ins paper geben, dass wenn man lfq nimmt man mit ca. 20-25%(also je nachdem was dann rauskommt) rechnen muss? weil ja später dann bei differential expression analysis ja auch quantifizierte proteine verwendet werden; also meistens halt
+--> Ja das finde ich eine gute Idee!
+
+* unter Punkt 2.2 würde ich den Vergleich zwischen Gesamtextrakt D1 (D1 Pool) und elektrophoretischer Auftrennung der Proteine (B) erwarten. Die Venn Diagramme zeigen aber wieder den Vergleich B/AF/TF. --> falsche Beschriftung? Falsche Diagramme? Oder ich versteh was nicht.
 
 # Compare D1 and D2 B1-B9 resp B1-B10
 
@@ -278,7 +291,7 @@ upset(fromList(lst),
 
 #D2
 data <- readRDS(file = "results_v002/results_run1_mqpar_extracts_2gether_D2_LFQ_combined_txt_proteinGroups.txt_Unique.RDS")
-#data <- readRDS(file = "results_v002/results_run1_mqpar_extracts_2gether_D2_MBR_LFQ_combined_txt_proteinGroups.txt_Unique.RDS")
+data <- readRDS(file = "results_v002/results_run1_mqpar_extracts_2gether_D2_MBR_LFQ_combined_txt_proteinGroups.txt_Unique.RDS")
 data <- data[[1]]
 #for D2
 data_sub <- dplyr::select(data, contains("Pool_20"))

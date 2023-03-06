@@ -21,10 +21,10 @@ params:
     value: ""
   path:
     label: "File path"
-    value: "X:/wissenschaftliche Veröffentlichungen/Publikationen/2022/Proteomics_JRS_DL/data/proteinGroups/2gether_D2_ta_yeast_proteinGroups.txt"
+    value: "X:/wissenschaftliche Veröffentlichungen/Publikationen/2022/Proteomics_JRS_DL/data/proteinGroups/2gether_E4_D1_B_ta_yeast_proteinGroups.txt"
   pathRDS:
     label: "File path RDS file"
-    value: "X:/wissenschaftliche Veröffentlichungen/Publikationen/2022/Proteomics_JRS_DL/data/"
+    value: "X:/wissenschaftliche Veröffentlichungen/Publikationen/2022/Proteomics_JRS_DL/data/ta_yeast/results/"
   unique: 
     label: "Number of unique peptides for identification"
     value: 2
@@ -103,8 +103,9 @@ library(tidyverse)
 library(dplyr)
 library(pheatmap)
 library(ggplot2)
-library(reshape)
+library(reshape2)
 library(knitr)
+library(plotly)
 # load functions
 source("filtering_function.R")
 print("loading sucessful")
@@ -169,6 +170,7 @@ if (RAZOR == TRUE) {
   cat("\n")
     data_raw <- as.data.frame(res_raw[[1]])
     data <- filtering(data_raw)
+    fasta <- data$Fasta.headers
     results <- data.frame(matrix(ncol = length(sample_names_razor), nrow = nrow(data)))
     colnames(results) <- sample_names_razor
     i <- 0
@@ -368,6 +370,59 @@ write.csv2(results_final, file = paste(params$pathRDS,"_summary.csv",sep=""))
 saveRDS(results_razor, file = paste(params$pathRDS,"_Razor.RDS",sep=""))
 saveRDS(results_unique, file = paste(params$pathRDS,"_Unique.RDS",sep=""))
 saveRDS(results_lfq, file = paste(params$pathRDS,"_LFQ.RDS",sep=""))
+```
+
+# Which proteins are in the extracts?
+
+* used Razor peptides and at least 2 peptides for identification
+
+```{r message=FALSE, warning=FALSE, results="asis"}
+p <-  ggplot(melt(results_2gether_razor),aes(x = variable, y = value)) +
+  geom_boxplot() + 
+  xlab("Sample name") + 
+  scale_x_discrete(labels = sample_names_raw) +
+  theme(axis.text.x = element_text(angle = 90)) +
+  labs(title = "Razor")
+ggplotly(p)
+dat <- results_razor[[1]]
+yeasx <- grep("YEASX",dat$FASTA)
+wheat <- grep("WHEAT",dat$FASTA)
+# write human oder trica in a column
+for (i in 1:nrow(dat)){
+  if (grepl("YEASX",dat$FASTA[i])){
+    dat$org[i] <- "YEASX"
+  }
+  else if (grepl("WHEAT",dat$FASTA[i])){
+    dat$org[i] <- "WHEAT"
+  }
+  else {
+    dat$org[i] <- NA
+  }
+}
+
+dat$org[intersect(yeasx,wheat)] <- "YEASX/WHEAT"
+
+dat4plot <- dat[,-c(ncol(dat)-1)]
+dat4plot_long <- melt(dat4plot, id = c("org"))
+tmp <- regmatches(dat4plot_long$variable,gregexpr("(?<=des.).*",dat4plot_long$variable,perl=TRUE))
+tmp <- unlist(tmp)
+dat4plot_long$variable <- tmp
+
+p <- ggplot(data=dat4plot_long, aes(x=variable, y=as.numeric(value), fill=org)) +
+  stat_summary(fun.y = sum, geom = "bar", position = "dodge") +
+  xlab("sample name") +
+  ylab("counts") +
+  theme(axis.text.x = element_text(angle = 90))
+ggplotly(p)
+
+for (i in 1:(ncol(dat)-2)){
+  cat("\n")
+  text <- paste(" Fasta Headers - Sample",sample_names_raw[i])
+  cat("##",text,"\n")
+  cat("\"n")
+  print(dat$fasta[which(dat[,i])])
+}
+
 ```
 
 # Used time
