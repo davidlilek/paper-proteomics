@@ -1,0 +1,90 @@
+---
+title: "QC Sample 20230201"
+autor: David Lilek
+output:
+  html_document:
+    df_print: paged
+    fig.align: center
+    self_contained: yes
+    fig.height: 4
+    fig.width: 8
+    theme: united
+    toc: yes
+    toc_depth: 4
+    toc_float: yes
+    number_sections: yes
+    code_folding: hide
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r message=FALSE, warning=FALSE}
+#load libraries
+library(tidyverse)
+library(dplyr)
+library(gplots)
+```
+
+# Read in and filter data
+
+```{r}
+##################
+#
+#Experiment 001
+#
+##################
+data_raw <- read.csv("N:/1_A_Bachelor_Master_Intern/2_M_2022/David/Data/27_20230201_FH/proteinGroups_QC.txt", dec=".", sep="\t")
+filtering <- function(data_raw){
+  data_raw %>% filter( 
+    Potential.contaminant == "",
+    Reverse == "",
+    Only.identified.by.site == "")
+}
+data <- filtering(data_raw) 
+
+filteredout <- nrow(data_raw)-nrow(data)
+#print("Filtered out")
+#filteredout
+```
+
+# Filtering using number of razor&unique peptides
+
+## ID at least 1 peptide
+
+```{r}
+#select only unique peptides
+uniq.razor <- data %>% select(starts_with("Razor...unique.peptides"))
+#replace -Inf values by NA
+uniq.razor[uniq.razor < 1] <- NA
+#get sums of identified proteins
+boxplot(colSums(!is.na(uniq.razor[-1])), main = "ID more than 1 peptide")
+m <- mean(colSums(!is.na(uniq.razor[-1])))
+print(colSums(!is.na(uniq.razor[-1])))
+print("Mean no protein identifications ID more than 1 peptide")
+print(m)
+```
+
+**Results**
+
+`r colSums(!is.na(uniq.razor[-1]))`
+
+**Mean no protein identifications ID more than 1 peptide**
+
+
+## ID at least 2 peptides 
+
+```{r}
+#select only unique peptides
+uniq.razor <- data %>% select(starts_with("Razor...unique.peptides"))
+#replace -Inf values by NA
+uniq.razor[uniq.razor < 2] <- NA
+#get sums of identified proteins
+boxplot(colSums(!is.na(uniq.razor[-1])), main = "ID more than 2 peptides")
+m <- mean(colSums(!is.na(uniq.razor[-1])))
+print(colSums(!is.na(uniq.razor[-1])))
+print("Mean no protein identifications ID more than 2 peptides")
+print(m)
+```
+
