@@ -26,16 +26,16 @@ editor_options:
 
 -   alle extrakte wurden am server ausgewertet (mqpar files:
     `/proj/proteomics/100_extracts_2gether/mqpar`)
--   es wurden thematisch ähnliche extrakte gemeinsam ausgewertet (farblich hier markiert `\\fhwn.ac.at\TU\Forschung\wissenschaftliche Veröffentlichungen\Publikationen\2022\Proteomics_JRS_DL\data\Extraktionen_gesamt_V2_DL.xlsx`)
+-   es wurden thematisch ähnliche extrakte gemeinsam ausgewertet
+    (farblich hier markiert
+    `\\fhwn.ac.at\TU\Forschung\wissenschaftliche Veröffentlichungen\Publikationen\2022\Proteomics_JRS_DL\data\Extraktionen_gesamt_V2_DL.xlsx`)
     -   D2
     -   E3_D1
     -   E4_D1_AF_TF
     -   E4_D1_a\_j
     -   E4_D1_B
     -   E5 (liegt unter data/27_202301_FH)
-    
--   `X:\wissenschaftliche
-Veröffentlichungen\Publikationen\2022\Proteomics_JRS_DL\data\proteinGroups`:
+-   `X:\wissenschaftliche Veröffentlichungen\Publikationen\2022\Proteomics_JRS_DL\data\proteinGroups`:
     enthalten die proteinGroups.txt files die mit Razor/Unique
     ausgewertet wurden
 -   später wurde dann zum mqpar file auch LFQ hinzugefügt und neu
@@ -51,19 +51,30 @@ Veröffentlichungen\Publikationen\2022\Proteomics_JRS_DL\data\proteinGroups`:
     -   diese Files wurden dann für die weitere Datenaufarbeitung
         verwendet
     -   es wurden 2 pepitdes verwendet
-    
+
 ### MBR
-* die Prozessierung erfolgte 1x ohne und 1x mit MBR
-* zb `X:/wissenschaftliche Veröffentlichungen/Publikationen/2022/Proteomics_JRS_DL/data/results_v002`
-  + `results_run1_mqpar_extracts_2gether_D2_LFQ_combined_txt_proteinGroups.txt_LFQ.RDS`: hier wurde D2 mit Unique/Razor/LFQ im xml file ausgewertet und die LFQ Ergebnisse abgespeichert
-  + `results_run1_mqpar_extracts_2gether_D2_MBR_LFQ_combined_txt_proteinGroups.txt_LFQ.RDS`: das gleiche wie oben nur mit MBR im xml file
-* als weiteres Beispiel für die Dateinamen
-  + `results_run1_mqpar_extracts_2gether_D2_MBR_LFQ_combined_txt_proteinGroups.txt_Razor.RDS`: hier wurde D2 mit Unique/Razor/LFQ ausgewertet und die Razor Ergebnisse abgespeichert
-  
+
+-   die Prozessierung erfolgte 1x ohne und 1x mit MBR
+-   zb
+    `X:/wissenschaftliche Veröffentlichungen/Publikationen/2022/Proteomics_JRS_DL/data/results_v002`
+    -   `results_run1_mqpar_extracts_2gether_D2_LFQ_combined_txt_proteinGroups.txt_LFQ.RDS`:
+        hier wurde D2 mit Unique/Razor/LFQ im xml file ausgewertet und
+        die LFQ Ergebnisse abgespeichert
+    -   `results_run1_mqpar_extracts_2gether_D2_MBR_LFQ_combined_txt_proteinGroups.txt_LFQ.RDS`:
+        das gleiche wie oben nur mit MBR im xml file
+-   als weiteres Beispiel für die Dateinamen
+    -   `results_run1_mqpar_extracts_2gether_D2_MBR_LFQ_combined_txt_proteinGroups.txt_Razor.RDS`:
+        hier wurde D2 mit Unique/Razor/LFQ ausgewertet und die Razor
+        Ergebnisse abgespeichert
+
 ### files im results_v002 ordner
-* hier sind die Ergebnisse der LFQ, Razor und Unique als RDS datei abgespeichert die dann für weitere Auswertungen verwendet werden
-* zusätzlich sind die html files die automatisch generiert wurden dabie
-* die csv datei enthält die gesamtidentifizierten/Quantifzierten proteine
+
+-   hier sind die Ergebnisse der LFQ, Razor und Unique als RDS datei
+    abgespeichert die dann für weitere Auswertungen verwendet werden
+-   zusätzlich sind die html files die automatisch generiert wurden
+    dabie
+-   die csv datei enthält die gesamtidentifizierten/Quantifzierten
+    proteine
 
 ## TA/YEAST
 
@@ -80,20 +91,55 @@ Veröffentlichungen\Publikationen\2022\Proteomics_JRS_DL\data\proteinGroups`:
         thaliana Proteine gefunden werden können
     -   Ausmaß max. 8% der Gesamtproteine
 
-
 ## evaluation_proteinmasses.html
 
-* hier wurden die Proteinmassen von B1-B9 E4_D1_B bzw E4_D2 automatisch von uniprot herunterladen und visualisert um zu sehen ob sich die proteinmassen je fraktion unterschdein -> conlusio: gerade in den ersten fraktionen ziemlich gleiche masse; erst gegen ende werden die proteine merklich kleiner
-* weiters wurden die Massen der geteilten Proteine in E4_D1_B angeschaut
-  + das waren ca. 70 Proteine die in allen Fraktionen (B1-B9) vorgekommen sind
+-   hier wurden die Proteinmassen von B1-B9 E4_D1_B bzw E4_D2
+    automatisch von uniprot herunterladen und visualisert um zu sehen ob
+    sich die proteinmassen je fraktion unterschdein -\> conlusio: gerade
+    in den ersten fraktionen ziemlich gleiche masse; erst gegen ende
+    werden die proteine merklich kleiner
+-   weiters wurden die Massen der geteilten Proteine in E4_D1_B
+    angeschaut
+    -   das waren ca. 70 Proteine die in allen Fraktionen (B1-B9)
+        vorgekommen sind
 
 ## files evaluation summary ...
 
-* hier wurden die RDS files kombiniert eingelesen und mit den verschiedenen parametern diagramme erstellt um versch. einstellungen während der prozessierung in maxquant zu vergleichen
-  + zb wurden Unique/Razor/LFQ mit MBR und ohne MBR verglichen zb `file:///X:/wissenschaftliche%20Ver%C3%B6ffentlichungen/Publikationen/2022/Proteomics_JRS_DL/data/evaluation_summary_unique.html` bzw. `file:///X:/wissenschaftliche%20Ver%C3%B6ffentlichungen/Publikationen/2022/Proteomics_JRS_DL/data/evaluation_summary_MBR_unique.html` 
-  + zusätzlich wurden noch versch imputation methods ausprobiert^`file:///X:/wissenschaftliche%20Ver%C3%B6ffentlichungen/Publikationen/2022/Proteomics_JRS_DL/data/evaluation_summary_unique_imputed_2consecutivevalues.html` oder `file:///X:/wissenschaftliche%20Ver%C3%B6ffentlichungen/Publikationen/2022/Proteomics_JRS_DL/data/evaluation_summary_unique_imputed.html`
-* die zusammengefassten ergebnisse finden sich hier
-  + `file:///X:/wissenschaftliche%20Ver%C3%B6ffentlichungen/Publikationen/2022/Proteomics_JRS_DL/data/evaluation_summary.html` 
+-   hier wurden die RDS files kombiniert eingelesen und mit den
+    verschiedenen parametern diagramme erstellt um versch. einstellungen
+    während der prozessierung in maxquant zu vergleichen
+    -   zb wurden Unique/Razor/LFQ mit MBR und ohne MBR verglichen zb
+        `file:///X:/wissenschaftliche%20Ver%C3%B6ffentlichungen/Publikationen/2022/Proteomics_JRS_DL/data/evaluation_summary_unique.html`
+        bzw.
+        `file:///X:/wissenschaftliche%20Ver%C3%B6ffentlichungen/Publikationen/2022/Proteomics_JRS_DL/data/evaluation_summary_MBR_unique.html`
+    -   zusätzlich wurden noch versch imputation methods
+        ausprobiert\^`file:///X:/wissenschaftliche%20Ver%C3%B6ffentlichungen/Publikationen/2022/Proteomics_JRS_DL/data/evaluation_summary_unique_imputed_2consecutivevalues.html`
+        oder
+        `file:///X:/wissenschaftliche%20Ver%C3%B6ffentlichungen/Publikationen/2022/Proteomics_JRS_DL/data/evaluation_summary_unique_imputed.html`
+-   die zusammengefassten ergebnisse finden sich hier
+    -   `file:///X:/wissenschaftliche%20Ver%C3%B6ffentlichungen/Publikationen/2022/Proteomics_JRS_DL/data/evaluation_summary.html`
+
+## merging of 2 data sets
+
+-   bei der auswertung mussten teilweise datensätze gemerged werden
+-   zb wenn D2 und D1 verglichen werden sollen, wurden D1 und D2 ja in
+    MaxQuant separat ausgewertet weswegen es 2 proteinGroupstxt files
+    und auch ergebnisfiles (RDS files) gibt
+-   zum mergen wurde die spalte `fasta.headers` des proteingroups txt
+    files verwendet
+-   im 1. Schritt wurde der gesamte text dieser spalte verwendet
+-   im 2. und hier dargestellten schritte wurde die accession number des
+    ersten proteins der jeweiligen protein group mit folgendem code extrahiert und zum mergen
+    verwendet
+
+```{=html}
+<!-- -->
+```
+    fasta <- c()
+    for (i in 1:length(AF_TF_raw$FASTA)){
+      tmp <- strsplit(AF_TF_raw$FASTA[i],split='\\|')[[1]][2]
+      fasta <- c(fasta,tmp)
+    }
 
 # Besprechungen
 
@@ -125,8 +171,13 @@ wirklich über die fraktionen
     mit der proteinanzahl abgleichen
     -   -\> gibt es korrelationen zwischen konzentration protein
         nasschemisch und anzahl proteine
-        
-* ideas venn diagram `https://cran.r-project.org/web/packages/eulerr/vignettes/gallery.html`
+-   ideas venn diagram
+    `https://cran.r-project.org/web/packages/eulerr/vignettes/gallery.html`
+* judith fragen: nehmen wir für B - also ingel digest - E4_D1_Pool_G_B1-B9 oder E4_D2_Pool_20_B1-B9?
+  + bis jetzt immer G; es macht aber wie mann bei punkt `8 Compare D1-D2
+8.1 fractions` sieht keinen großen unterschied
+  + bzw `compare E4_D1_Pool_G_B1-B9 and E4_D1_Pool_20_B1-B9`
+
 
 # Load Libraries
 
@@ -179,6 +230,7 @@ Tukey <- TukeyHSD(anova)
 plot(Tukey)
 Tukey
 ```
+
 # D1 - B - AF - TF
 
 ```{r}
@@ -362,6 +414,86 @@ plot(euler(lst, shape = "ellipse"), quantities = TRUE)
 
 ```
 
+
+## compare E4_D1_Pool_G_B1-B9 and E4_D1_Pool_20_B1-B9
+
+* um Unterschiede zwischen B1-B9 in Pool_G und Pool_20 zu sehen
+
+```{r}
+#E4_D1_Pool_G_B1-B9
+data <- readRDS(file = "results_v002/results_run1_mqpar_extracts_2gether_E4_D1_B_LFQ_combined_txt_proteinGroups.txt_Unique.RDS")
+data <- data[[1]]
+data_sub <- dplyr::select(data, contains("Pool_G"))
+B_D1<-apply(data_sub, 1, any)
+fasta <- c()
+for (i in 1:length(data$FASTA)){
+  tmp <- strsplit(data$FASTA[i],split='\\|')[[1]][2]
+  fasta <- c(fasta,tmp)
+}
+B_D1 <- as.data.frame(cbind(B_D1, fasta))
+#B_D1 <- as.data.frame(cbind(B_D1, data$FASTA))
+
+#E4_D1_Pool_20_B1-B9
+
+D1_raw <- readRDS(file = "results_v002/results_run1_mqpar_extracts_2gether_E4_D1_B_LFQ_combined_txt_proteinGroups.txt_Unique.RDS")
+D1_raw <- D1_raw[[1]]
+D1 <- dplyr::select(D1_raw, contains("20"))
+D1 <- apply(D1, 1, any)
+#D1 <- as.data.frame(cbind(D1, D1_raw$FASTA))
+fasta <- c()
+for (i in 1:length(data$FASTA)){
+  tmp <- strsplit(data$FASTA[i],split='\\|')[[1]][2]
+  fasta <- c(fasta,tmp)
+}
+D1 <- as.data.frame(cbind(D1, fasta))
+
+G_pool_comparison  <- merge(B_D1, D1,
+                           all = TRUE,
+                           by = "fasta")
+
+G_pool_comparison$B_D1 <- as.logical(G_pool_comparison$B_D1)
+G_pool_comparison$D1 <- as.logical(G_pool_comparison$D1)
+G_pool_comparison <- G_pool_comparison[,-1]*1
+G_pool_comparison[G_pool_comparison==0] <- NA
+
+# boxplot
+boxplot(sum(G_pool_comparison$B_D1,na.rm = TRUE),
+        sum(G_pool_comparison$D1,na.rm = TRUE),
+        names = c("pool_G","pool_20"))
+
+proteins <- as.data.frame(which(!is.na(G_pool_comparison), arr.ind=TRUE))
+
+B_D1_inter <- proteins %>% dplyr::filter(col == 1)
+D1_inter <- proteins %>% dplyr::filter(col == 2)
+
+# combine to list
+lst <- list("pool_G"=as.double(B_D1_inter[,1]),
+            "pool_20"=as.double(D1_inter[,1]))
+
+upset(fromList(lst), 
+      order.by = "freq",
+      nsets = 10,
+      nintersects = 15,
+      keep.order = TRUE,
+      sets=c("pool_G", "pool_20"),
+      mainbar.y.label = "Number of shared proteins",
+      sets.x.label = "Number of proteins per fraction",
+      set_size.show = TRUE,
+      set_size.angles = 0,
+      set_size.scale_max = 1000
+)
+
+#venn digarams
+#get colors
+D1_col <- rgb(255,93,93, maxColorValue = 255)
+D2_col <- rgb(169,208,142,maxColorValue = 255)
+#E4_D1_pool_col <- rgb(255,217,102, maxColorValue = 255)
+
+ggvenn(lst,
+       fill_color = c(D1_col,D2_col),
+       stroke_size = 0.5, set_name_size = 4, text_size = 4, digits = 0, fill_alpha = 0.9)
+```
+
 # Compare E3e E3f with E4_D1_a-j
 
 -   E3 e bzw E3 f sollte dasselbe sein wie das hier
@@ -439,8 +571,6 @@ ggplot(melt(results_2gether),aes(x = rownames(melt(results_2gether)), y = value)
   theme(axis.text.x = element_text(angle = 90)) +
   labs(title = "Unique")
 ```
-
-
 
 # D2
 
@@ -541,9 +671,6 @@ ggvenn(lst,
 
 
 ```
-
-
-
 
 # Compare D1-D2
 
@@ -776,8 +903,6 @@ ggvenn(lst,
        fill_color = c(D1_col,D2_col),
        stroke_size = 0.5, set_name_size = 4, text_size = 4, digits = 0, fill_alpha = 0.9)
 ```
-
-
 
 # E5 - venn diagramms of different dimensions
 
