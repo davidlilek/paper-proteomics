@@ -201,9 +201,6 @@ data_sub <- dplyr::select(data, contains("Pool_AF"))
 AF <- data_sub*1
 AF[AF==0] <- NA
 ind <- apply(AF, 1, function(x) all(is.na(x)))
-# B total proteins
-nrow(AF[!ind,])
-
 
 ############TF
 data <- readRDS(file = "results_v002/results_run1_mqpar_extracts_2gether_E4_D1_AF_TF_LFQ_combined_txt_proteinGroups.txt_Unique.RDS")
@@ -213,15 +210,6 @@ data_sub <- dplyr::select(data, contains("Pool_TF"))
 TF <- data_sub*1
 TF[TF==0] <- NA
 ind <- apply(TF, 1, function(x) all(is.na(x)))
-# B total proteins
-nrow(TF[!ind,])
-
-
-
-
-
-
-
 
 
 ## compare AF TF B poster
