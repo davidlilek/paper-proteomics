@@ -78,6 +78,7 @@ editor_options:
 
 ## TA/YEAST
 
+-   folder `X:\wissenschaftliche Veröffentlichungen\Publikationen\2022\Proteomics_JRS_DL\data\ta_yeast`
 -   die Mehlwürmer wurden in Weizenmehl/Hefeextrakt gezüchtet
 -   hier wurde getestet ob in den Extrakten auch
     Weizenproteine/Hefeproteine gefunden werden
@@ -177,7 +178,7 @@ wirklich über die fraktionen
   + bis jetzt immer G; es macht aber wie mann bei punkt `8 Compare D1-D2
 8.1 fractions` sieht keinen großen unterschied
   + bzw `compare E4_D1_Pool_G_B1-B9 and E4_D1_Pool_20_B1-B9`
-
+* besprechen e5_a bzw b D1-D3 bzw D1-D4
 
 # Load Libraries
 
@@ -191,8 +192,8 @@ library(ggvenn)
 library(knitr)
 library(reshape2)
 library(eulerr)
-library(venneuler)
-library(VennDiagram) 
+#library(venneuler)
+#library(VennDiagram) 
 ```
 
 # Comparison E3_D1 - noTreatment, Heatshock, ProteaseInhibitor
@@ -418,6 +419,8 @@ plot(euler(lst, shape = "ellipse"), quantities = TRUE)
 ## compare E4_D1_Pool_G_B1-B9 and E4_D1_Pool_20_B1-B9
 
 * um Unterschiede zwischen B1-B9 in Pool_G und Pool_20 zu sehen
+* habe mir die Proteine auch angeschaut die unterschiedlich sind. 31 davon sind uncharacterized proteins
+* teilweise sind sich die proteine schon ähnlich zumindest von der accesion number
 
 ```{r}
 #E4_D1_Pool_G_B1-B9
@@ -493,6 +496,49 @@ ggvenn(lst,
        fill_color = c(D1_col,D2_col),
        stroke_size = 0.5, set_name_size = 4, text_size = 4, digits = 0, fill_alpha = 0.9)
 ```
+
+### show fasta headers of non-shared proteins
+
+```{r}
+#E4_D1_Pool_G_B1-B9
+data <- readRDS(file = "results_v002/results_run1_mqpar_extracts_2gether_E4_D1_B_LFQ_combined_txt_proteinGroups.txt_Unique.RDS")
+data <- data[[1]]
+data_sub <- dplyr::select(data, contains("Pool_G"))
+B_D1<-apply(data_sub, 1, any)
+fasta <- data$FASTA
+B_D1 <- as.data.frame(cbind(B_D1, fasta))
+#B_D1 <- as.data.frame(cbind(B_D1, data$FASTA))
+
+#E4_D1_Pool_20_B1-B9
+D1_raw <- readRDS(file = "results_v002/results_run1_mqpar_extracts_2gether_E4_D1_B_LFQ_combined_txt_proteinGroups.txt_Unique.RDS")
+D1_raw <- D1_raw[[1]]
+fasta <- D1_raw$FASTA
+D1 <- dplyr::select(D1_raw, contains("20"))
+D1 <- apply(D1, 1, any)
+D1 <- as.data.frame(cbind(D1, fasta))
+
+G_pool_comparison  <- merge(B_D1, D1,
+                            all = TRUE,
+                            by = "fasta")
+tmp <- G_pool_comparison
+G_pool_comparison$B_D1 <- as.logical(G_pool_comparison$B_D1)
+G_pool_comparison$D1 <- as.logical(G_pool_comparison$D1)
+G_pool_comparison <- G_pool_comparison[,-1]*1
+G_pool_comparison[G_pool_comparison==0] <- NA
+
+proteins <- as.data.frame(which(!is.na(G_pool_comparison), arr.ind=TRUE))
+
+B_D1_inter <- proteins %>% dplyr::filter(col == 1)
+D1_inter <- proteins %>% dplyr::filter(col == 2)
+
+# combine to list
+lst <- list("pool_G"=as.double(B_D1_inter[,1]),
+            "pool_20"=as.double(D1_inter[,1]))
+
+test <- as.data.frame(tmp$fasta[setdiff(lst[[1]],lst[[2]])])
+test
+```
+
 
 # Compare E3e E3f with E4_D1_a-j
 
