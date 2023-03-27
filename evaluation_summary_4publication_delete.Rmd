@@ -412,7 +412,7 @@ ggvenn(lst,
        fill_color = c(IG,lowMW,highMW),
        stroke_size = 0.5, set_name_size = 5, text_size = 4.25, digits = 0, fill_alpha = 0.9, label_sep = )
 #ggsave("./pics/unique_AF_TF_B.png")
-
+plot(euler(lst),quantities=list(type = c('counts',"percent")))
 #compare B to pool from 0609 
 B_raw <- readRDS(file = "results_v002/results_run1_mqpar_extracts_2gether_E4_D1_B_LFQ_combined_txt_proteinGroups.txt_Unique.RDS")
 B_raw <- B_raw[[1]]
@@ -475,7 +475,9 @@ ggvenn(lst,
 plot(venn(lst))
 plot(euler(lst, shape = "ellipse"), quantities = TRUE)
 
-
+require(venneuler)
+v <- venneuler(c(A=450, B=1800, "A&B"=230))
+plot(v)
 ```
 
 
@@ -558,6 +560,7 @@ D2_col <- rgb(169,208,142,maxColorValue = 255)
 ggvenn(lst,
        fill_color = c(D1_col,D2_col),
        stroke_size = 0.5, set_name_size = 4, text_size = 4, digits = 0, fill_alpha = 0.9)
+plot(euler(lst),quantities=list(type = c('counts',"percent")))
 ```
 
 ### show fasta headers of non-shared proteins
@@ -778,7 +781,7 @@ ggvenn(lst,
        fill_color = c(D2_pool_col,D2_ingel_col),
        stroke_size = 0.5, set_name_size = 5, text_size = 4, digits = 0, fill_alpha = 0.9)
 
-
+plot(euler(lst),quantities=list(type = c('counts',"percent")))
 ```
 
 # Compare D1-D2
@@ -863,6 +866,8 @@ D2_col <- rgb(169,208,142,maxColorValue = 255)
 ggvenn(lst,
        fill_color = c(D1_col,D2_col),
        stroke_size = 0.5, set_name_size = 4, text_size = 4, digits = 0, fill_alpha = 0.9)
+
+plot(euler(lst),quantities=list(type = c('counts',"percent")))
 ```
 
 ### E4_D1_Pool_20_B1-B9 with E4_D2_Pool_20_B1-B9
@@ -937,6 +942,8 @@ D2_col <- rgb(169,208,142,maxColorValue = 255)
 ggvenn(lst,
        fill_color = c(D1_col,D2_col),
        stroke_size = 0.5, set_name_size = 4, text_size = 4, digits = 0, fill_alpha = 0.9)
+
+plot(euler(lst),quantities=list(type = c('counts',"percent")))
 ```
 
 ## pool
@@ -1011,6 +1018,8 @@ D2_col <- rgb(169,208,142,maxColorValue = 255)
 ggvenn(lst,
        fill_color = c(D1_col,D2_col),
        stroke_size = 0.5, set_name_size = 4, text_size = 4, digits = 0, fill_alpha = 0.9)
+
+plot(euler(lst),quantities=list(type = c('counts',"percent")))
 ```
 
 # E5 - venn diagramms of different dimensions
@@ -1065,6 +1074,8 @@ upset(fromList(lst),
 # venn diagram
 ggvenn(lst,
        stroke_size = 0.5, set_name_size = 5, text_size = 4.25, digits = 0, fill_alpha = 0.9, label_sep = )
+
+plot(euler(lst),quantities=list(type = c('counts',"percent")))
 ```
 
 ## b
@@ -1116,6 +1127,8 @@ upset(fromList(lst),
 # venn diagram
 ggvenn(lst,
        stroke_size = 0.5, set_name_size = 5, text_size = 4.25, digits = 0, fill_alpha = 0.9, label_sep = )
+
+plot(euler(lst),quantities=list(type = c('counts',"percent")))
 ```
 
 
@@ -1162,6 +1175,8 @@ upset(fromList(lst),
 # venn diagram
 ggvenn(lst,
        stroke_size = 0.5, set_name_size = 5, text_size = 4.25, digits = 0, fill_alpha = 0.9, label_sep = )
+
+plot(euler(lst),quantities=list(type = c('counts',"percent")))
 ```
 
 
@@ -1256,6 +1271,8 @@ E5_col <- rgb(169,208,142,maxColorValue = 255)
 ggvenn(lst,
        fill_color = c(E4_col,E5_col),
        stroke_size = 0.5, set_name_size = 4, text_size = 4, digits = 0, fill_alpha = 0.9)
+
+plot(euler(lst),quantities=list(type = c('counts',"percent")))
        
 ```
 
