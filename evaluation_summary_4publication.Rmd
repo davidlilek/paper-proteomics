@@ -195,7 +195,7 @@ wirklich über die fraktionen
   + bzw `compare E4_D1_Pool_G_B1-B9 and E4_D1_Pool_20_B1-B9`
 
 
-# Load Libraries
+# Load Libraries & Plot function
 
 ```{r message=FALSE, warning=FALSE}
 library(ggplot2)
@@ -210,6 +210,73 @@ library(eulerr)
 #library(venneuler)
 #library(VennDiagram) 
 ```
+
+```{r}
+euler_venn_2comp <- function(lst, label_venn, color_venn, cex_venn, grid, gList, h_just, v_just) {
+  ######################################
+  #################plot 2 venn diagrams
+  ######################################
+  p<-plot(euler(lst),
+          input="union",
+          shape="ellipse",
+          quantities=list(type = c("percent", 'counts'),
+                          cex = cex_venn), #schriftgröße für A, B bzw intersection
+          key=TRUE,
+          labels=FALSE,
+          lty = 1:2,
+          legend = list(labels = label_venn,
+                        side = "bottom",
+                        nrow = 1, ncol = 3),
+          edges=TRUE,
+          fills = color_venn, #color für A,B bzw intersection 
+          alpha=0.8)
+  # https://stackoverflow.com/questions/75177293/how-to-change-the-label-position-when-plotting-venn-diagram-from-eulerr-package
+  tags <- p$children[[2]]$children[[1]]$children$tags$children
+  tags <- do.call(grid::gList, lapply(tags, function(x) {
+    x$children[[2]]$label <- sub(" \\(", "\n(", x$children[[2]]$label)
+    x$children[[2]]$just <- NULL
+    x$children[[2]]$hjust <- h_just
+    x$children[[2]]$vjust <- v_just
+    x}))
+  
+  p$children[[2]]$children[[1]]$children$tags$children <- tags
+  print(p)
+}
+
+
+euler_venn_3comp <- function(lst, cex_venn, label_venn, color_venn, grid, gList, h_just, v_just) {
+  ##################################
+  ###### venn diagram 3 comparisons
+  ##################################
+  p<-plot(euler(lst),
+          input="union",
+          shape="ellipse",
+          quantities=list(type = c("percent", 'counts'),
+                          cex = cex_venn), #schriftgröße für A, B, C bzw intersection
+          key=TRUE,
+          labels=FALSE,
+          lty = 1:3,
+          legend = list(labels = label_venn,
+                        side = "bottom",
+                        nrow = 1, ncol = 3),
+          edges=TRUE,
+          fills = color_venn, #color für A,B bzw intersection fills = grey[c(10,18,25)]
+          alpha=0.8)
+  # https://stackoverflow.com/questions/75177293/how-to-change-the-label-position-when-plotting-venn-diagram-from-eulerr-packages
+  tags <- p$children[[2]]$children[[1]]$children$tags$children
+  tags <- do.call(grid::gList, lapply(tags, function(x) {
+    x$children[[2]]$label <- sub(" \\(", "\n(", x$children[[2]]$label)
+    x$children[[2]]$just <- NULL
+    x$children[[2]]$hjust <- h_just
+    x$children[[2]]$vjust <- v_just
+    x}))
+  
+  p$children[[2]]$children[[1]]$children$tags$children <- tags
+  print(p)
+}
+
+```
+
 
 # Vergleich Messreplikate Standardabweichung
 
@@ -412,6 +479,7 @@ ggvenn(lst,
        fill_color = c(IG,lowMW,highMW),
        stroke_size = 0.5, set_name_size = 5, text_size = 4.25, digits = 0, fill_alpha = 0.9, label_sep = )
 #ggsave("./pics/unique_AF_TF_B.png")
+euler_venn_3comp(lst, label_venn = c("B","AF","TF"), color_venn = c(IG,lowMW,highMW), cex_venn = c(1,1,1), h_just = 0.5, v_just = 0.5)
 
 #compare B to pool from 0609 
 B_raw <- readRDS(file = "results_v002/results_run1_mqpar_extracts_2gether_E4_D1_B_LFQ_combined_txt_proteinGroups.txt_Unique.RDS")
@@ -469,11 +537,12 @@ upset(fromList(lst),
 )
 
 ggvenn(lst,
+       fill_color = c(IG,total),
        stroke_size = 0.5, set_name_size = 5, text_size = 4, digits = 0, fill_alpha = 0.9)
 #ggsave("./pics/unique_B_D1pool.png")
 
-plot(venn(lst))
-plot(euler(lst, shape = "ellipse"), quantities = TRUE)
+euler_venn_2comp(lst, label_venn = c("B","E4_D1_pool"), color_venn = c(IG,total), cex_venn = c(1,1), h_just = 0.5, v_just = 0.5)
+
 
 
 ```
@@ -558,6 +627,7 @@ D2_col <- rgb(169,208,142,maxColorValue = 255)
 ggvenn(lst,
        fill_color = c(D1_col,D2_col),
        stroke_size = 0.5, set_name_size = 4, text_size = 4, digits = 0, fill_alpha = 0.9)
+euler_venn_2comp(lst, label_venn = c("pool_G","pool_20"), color_venn = c(D1_col,D2_col), cex_venn = c(1,1), h_just = 0.5, v_just = 0.5)
 ```
 
 ### show fasta headers of non-shared proteins
@@ -778,6 +848,7 @@ ggvenn(lst,
        fill_color = c(D2_pool_col,D2_ingel_col),
        stroke_size = 0.5, set_name_size = 5, text_size = 4, digits = 0, fill_alpha = 0.9)
 
+euler_venn_2comp(lst, label_venn = c("D2_pool","D2_fractions"), color_venn = c(D2_pool_col,D2_ingel_col), cex_venn = c(1,1), h_just = 0.5, v_just = 0.5)
 
 ```
 
@@ -785,7 +856,7 @@ ggvenn(lst,
 
 ## fractions
 
-### E4_D1_Pool_G\_B1-B9 with E4_D2_Pool_20_B1-B9
+### E4_D1_Pool_G_B1-B9 with E4_D2_Pool_20_B1-B9
 
 ```{r}
 #################### D1 fractions
@@ -863,6 +934,9 @@ D2_col <- rgb(169,208,142,maxColorValue = 255)
 ggvenn(lst,
        fill_color = c(D1_col,D2_col),
        stroke_size = 0.5, set_name_size = 4, text_size = 4, digits = 0, fill_alpha = 0.9)
+
+euler_venn_2comp(lst, label_venn = c("D1\ningeldigest_fraction","D2\ningeldigest_fraction"), color_venn = c(D1_col,D2_col), cex_venn = c(1,1), h_just = 0.5, v_just = 0.5)
+
 ```
 
 ### E4_D1_Pool_20_B1-B9 with E4_D2_Pool_20_B1-B9
@@ -937,6 +1011,7 @@ D2_col <- rgb(169,208,142,maxColorValue = 255)
 ggvenn(lst,
        fill_color = c(D1_col,D2_col),
        stroke_size = 0.5, set_name_size = 4, text_size = 4, digits = 0, fill_alpha = 0.9)
+euler_venn_2comp(lst, label_venn = c("D1\ningeldigest_fraction","D2\ningeldigest_fraction"), color_venn = c(D1_col,D2_col), cex_venn = c(1,1), h_just = 0.5, v_just = 0.5)
 ```
 
 ## pool
@@ -1011,6 +1086,7 @@ D2_col <- rgb(169,208,142,maxColorValue = 255)
 ggvenn(lst,
        fill_color = c(D1_col,D2_col),
        stroke_size = 0.5, set_name_size = 4, text_size = 4, digits = 0, fill_alpha = 0.9)
+euler_venn_2comp(lst, label_venn = c("D1_ingeldigest_fraction","D2_ingeldigest_fraction"), color_venn = c(D1_col,D2_col), cex_venn = c(1,1), h_just = 0.5, v_just = 0.5)
 ```
 
 # E5 - venn diagramms of different dimensions
@@ -1064,7 +1140,10 @@ upset(fromList(lst),
 )
 # venn diagram
 ggvenn(lst,
+       fill_color = c(IG,highMW,lowMW),
        stroke_size = 0.5, set_name_size = 5, text_size = 4.25, digits = 0, fill_alpha = 0.9, label_sep = )
+
+euler_venn_3comp(lst, label_venn = c("D1_a","D2_a","D3_a"), color_venn = c(IG,highMW,lowMW), cex_venn = c(1,1,1), h_just = 0.5, v_just = 0.5)
 ```
 
 ## b
@@ -1162,6 +1241,8 @@ upset(fromList(lst),
 # venn diagram
 ggvenn(lst,
        stroke_size = 0.5, set_name_size = 5, text_size = 4.25, digits = 0, fill_alpha = 0.9, label_sep = )
+
+euler_venn_3comp(lst, label_venn = c("D1_b","D2_b","D3_b"), color_venn = c(IG,highMW,lowMW), cex_venn = c(1,1,1), h_just = 0.5, v_just = 0.5)
 ```
 
 
@@ -1256,6 +1337,8 @@ E5_col <- rgb(169,208,142,maxColorValue = 255)
 ggvenn(lst,
        fill_color = c(E4_col,E5_col),
        stroke_size = 0.5, set_name_size = 4, text_size = 4, digits = 0, fill_alpha = 0.9)
+
+euler_venn_2comp(lst, label_venn = c("E4","E5"), color_venn = c(E4_col,E5_col), cex_venn = c(1,1,1), h_just = 0.5, v_just = 0.5)
        
 ```
 
