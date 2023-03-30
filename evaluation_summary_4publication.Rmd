@@ -223,7 +223,7 @@ euler_venn_2comp <- function(lst, label_venn, color_venn, cex_venn, grid, gList,
                           cex = cex_venn), #schriftgröße für A, B bzw intersection
           key=TRUE,
           labels=FALSE,
-          lty = 1:2,
+          lty = c(1,1),
           legend = list(labels = label_venn,
                         side = "bottom",
                         nrow = 1, ncol = 3),
@@ -255,7 +255,7 @@ euler_venn_3comp <- function(lst, cex_venn, label_venn, color_venn, grid, gList,
                           cex = cex_venn), #schriftgröße für A, B, C bzw intersection
           key=TRUE,
           labels=FALSE,
-          lty = 1:3,
+          lty = c(1,1,1),
           legend = list(labels = label_venn,
                         side = "bottom",
                         nrow = 1, ncol = 3),
@@ -1247,7 +1247,9 @@ euler_venn_3comp(lst, label_venn = c("D1_b","D2_b","D3_b"), color_venn = c(IG,hi
 
 
 
-# Compare E4_D1/D2pool mit E5_D1-D4 pool
+# Compare E4 mit E5
+
+## E4 - D1/D2 mit E5 D1-D4
 
 ```{r message=FALSE, warning=FALSE}
 # D1-D2 comparison
@@ -1277,7 +1279,7 @@ D1_D2_comparison  <- merge(D1, D2,
                            all = TRUE,
                            by = "fasta")
 D1_D2_comparison$comb <- apply(D1_D2_comparison[,c(2:3)], 1, any)
-#D5
+#E5
 data <- readRDS("./27_20230201_FH/results/D5_extracts_Razor.RDS")
 data <- data[[1]]
 b <- dplyr::select(data, contains("_b"))
@@ -1342,3 +1344,556 @@ euler_venn_2comp(lst, label_venn = c("E4","E5"), color_venn = c(E4_col,E5_col), 
        
 ```
 
+
+## E4 - D1/D2 mit E5 D1,D2 und D4
+
+* hier wurde E5_D3 (Citratpuffer weggelassen) da es hier fast keine identifzierten proteine gabe
+
+```{r message=FALSE, warning=FALSE}
+# D1-D2 comparison
+D1_raw <- readRDS(file = "results_v002/results_run1_mqpar_extracts_2gether_E4_D1_a-j_LFQ_combined_txt_proteinGroups.txt_Unique.RDS")
+D1_raw <- D1_raw[[1]]
+D1 <- dplyr::select(D1_raw, contains("Pool"))
+D1 <- apply(D1, 1, any)
+#D1 <- as.data.frame(cbind(D1, D1_raw$FASTA))
+fasta <- c()
+for (i in 1:length(D1_raw$FASTA)){
+  tmp <- strsplit(D1_raw$FASTA[i],split='\\|')[[1]][2]
+  fasta <- c(fasta,tmp)
+}
+D1 <- as.data.frame(cbind(D1, fasta))
+D2_raw <- readRDS(file = "results_v002/results_run1_mqpar_extracts_2gether_D2_LFQ_combined_txt_proteinGroups.txt_Unique.RDS")
+D2_raw <- D2_raw[[1]]
+D2 <- dplyr::select(D2_raw, contains("Gesamt"))
+D2 <- apply(D2, 1, any)
+fasta <- c()
+for (i in 1:length(D2_raw$FASTA)){
+  tmp <- strsplit(D2_raw$FASTA[i],split='\\|')[[1]][2]
+  fasta <- c(fasta,tmp)
+}
+#D2 <- as.data.frame(cbind(D2, D2_raw$FASTA))
+D2 <- as.data.frame(cbind(D2, fasta))
+D1_D2_comparison  <- merge(D1, D2,
+                           all = TRUE,
+                           by = "fasta")
+D1_D2_comparison$comb <- apply(D1_D2_comparison[,c(2:3)], 1, any)
+#E5
+data <- readRDS("./27_20230201_FH/results/D5_extracts_Razor.RDS")
+data <- data[[1]]
+b <- dplyr::select(data, contains("_b"))
+b <- b[,-c(5:6)]
+b <- as.data.frame(apply(b, 1, any))
+fasta <- c()
+for (i in 1:length(data$FASTA)){
+  tmp <- strsplit(data$FASTA[i],split='\\|')[[1]][2]
+  fasta <- c(fasta,tmp)
+}
+b$fasta <- fasta
+colnames(b) <- c("b","fasta")
+
+#merge with D5
+D1_D2_D5_comparison  <- merge(D1_D2_comparison[,c(1,4)],b,
+                           all = TRUE,
+                           by = "fasta")
+colnames(D1_D2_D5_comparison) <- c("fasta","E4","E5")
+
+D1_D2_D5_comparison$D1 <- as.logical(D1_D2_D5_comparison$E4)
+D1_D2_D5_comparison$D2 <- as.logical(D1_D2_D5_comparison$E5)
+D1_D2_D5_comparison <- D1_D2_D5_comparison[,-1]*1
+D1_D2_D5_comparison[D1_D2_D5_comparison==0] <- NA
+
+# boxplot
+boxplot(sum(D1_D2_D5_comparison$E4,na.rm = TRUE),
+        sum(D1_D2_D5_comparison$E5,na.rm = TRUE),
+        names = c("E4","E5"))
+
+proteins <- as.data.frame(which(!is.na(D1_D2_D5_comparison), arr.ind=TRUE))
+
+E4_inter <- proteins %>% dplyr::filter(col == 1)
+E5_inter <- proteins %>% dplyr::filter(col == 2)
+
+
+# combine to list
+lst <- list("E4"=as.double(E4_inter[,1]),
+            "E5"=as.double(E5_inter[,1]))
+
+upset(fromList(lst), 
+      order.by = "freq",
+      nsets = 10,
+      nintersects = 15,
+      keep.order = TRUE,
+      sets=c("E4", "E5"),
+      mainbar.y.label = "Number of shared proteins",
+      sets.x.label = "Number of proteins per fraction",
+      set_size.show = TRUE,
+      set_size.angles = 0,
+      set_size.scale_max = 1500
+)
+
+#venn digarams
+#get colors
+E4_col <- rgb(255,93,93, maxColorValue = 255)
+E5_col <- rgb(169,208,142,maxColorValue = 255)
+
+ggvenn(lst,
+       fill_color = c(E4_col,E5_col),
+       stroke_size = 0.5, set_name_size = 4, text_size = 4, digits = 0, fill_alpha = 0.9)
+
+euler_venn_2comp(lst, label_venn = c("E4","E5"), color_venn = c(E4_col,E5_col), cex_venn = c(1,1,1), h_just = 0.5, v_just = 0.5)
+       
+```
+
+
+## E4D1 mit E5D2
+
+```{r message=FALSE, warning=FALSE}
+# E4_D1
+D1_raw <- readRDS(file = "results_v002/results_run1_mqpar_extracts_2gether_E4_D1_a-j_LFQ_combined_txt_proteinGroups.txt_Unique.RDS")
+D1_raw <- D1_raw[[1]]
+D1 <- dplyr::select(D1_raw, contains("Pool"))
+D1 <- apply(D1, 1, any)
+#D1 <- as.data.frame(cbind(D1, D1_raw$FASTA))
+fasta <- c()
+for (i in 1:length(D1_raw$FASTA)){
+  tmp <- strsplit(D1_raw$FASTA[i],split='\\|')[[1]][2]
+  fasta <- c(fasta,tmp)
+}
+D1 <- as.data.frame(cbind(D1, fasta))
+
+#E5
+data <- readRDS("./27_20230201_FH/results/D5_extracts_Razor.RDS")
+data <- data[[1]]
+b <- dplyr::select(data, contains("_b"))
+b <- as.data.frame(apply(b, 1, any))
+fasta <- c()
+for (i in 1:length(data$FASTA)){
+  tmp <- strsplit(data$FASTA[i],split='\\|')[[1]][2]
+  fasta <- c(fasta,tmp)
+}
+b$fasta <- fasta
+colnames(b) <- c("b","fasta")
+
+#merge with D5
+E4_E5_comparison  <- merge(D1,b,
+                           all = TRUE,
+                           by = "fasta")
+colnames(E4_E5_comparison) <- c("fasta","E4","E5")
+
+E4_E5_comparison$E4 <- as.logical(E4_E5_comparison$E4)
+E4_E5_comparison$E5 <- as.logical(E4_E5_comparison$E5)
+E4_E5_comparison <- E4_E5_comparison[,-1]*1
+E4_E5_comparison[E4_E5_comparison==0] <- NA
+
+# boxplot
+boxplot(sum(E4_E5_comparison$E4,na.rm = TRUE),
+        sum(E4_E5_comparison$E5,na.rm = TRUE),
+        names = c("E4","E5"))
+
+proteins <- as.data.frame(which(!is.na(E4_E5_comparison), arr.ind=TRUE))
+
+E4_inter <- proteins %>% dplyr::filter(col == 1)
+E5_inter <- proteins %>% dplyr::filter(col == 2)
+
+
+# combine to list
+lst <- list("E4"=as.double(E4_inter[,1]),
+            "E5"=as.double(E5_inter[,1]))
+
+upset(fromList(lst), 
+      order.by = "freq",
+      nsets = 10,
+      nintersects = 15,
+      keep.order = TRUE,
+      sets=c("E4", "E5"),
+      mainbar.y.label = "Number of shared proteins",
+      sets.x.label = "Number of proteins per fraction",
+      set_size.show = TRUE,
+      set_size.angles = 0,
+      set_size.scale_max = 1500
+)
+
+#venn digarams
+#get colors
+E4_col <- rgb(255,93,93, maxColorValue = 255)
+E5_col <- rgb(169,208,142,maxColorValue = 255)
+
+ggvenn(lst,
+       fill_color = c(E4_col,E5_col),
+       stroke_size = 0.5, set_name_size = 4, text_size = 4, digits = 0, fill_alpha = 0.9)
+
+euler_venn_2comp(lst, label_venn = c("E4","E5"), color_venn = c(E4_col,E5_col), cex_venn = c(1,1,1), h_just = 0.5, v_just = 0.5)
+       
+```
+
+## E4 D2 mit E5 D2 mit E5 D4
+
+* hier wurden also 3 Gruppen verglichen
+
+```{r message=FALSE, warning=FALSE}
+# E4-D2 comparison
+D2_raw <- readRDS(file = "results_v002/results_run1_mqpar_extracts_2gether_D2_LFQ_combined_txt_proteinGroups.txt_Unique.RDS")
+D2_raw <- D2_raw[[1]]
+D2 <- dplyr::select(D2_raw, contains("Gesamt"))
+D2 <- apply(D2, 1, any)
+fasta <- c()
+for (i in 1:length(D2_raw$FASTA)){
+  tmp <- strsplit(D2_raw$FASTA[i],split='\\|')[[1]][2]
+  fasta <- c(fasta,tmp)
+}
+#D2 <- as.data.frame(cbind(D2, D2_raw$FASTA))
+D2 <- as.data.frame(cbind(D2, fasta))
+# E5-D2
+data <- readRDS("./27_20230201_FH/results/D5_extracts_Razor.RDS")
+data <- data[[1]]
+b <- dplyr::select(data, contains("2_b"))
+b <- as.data.frame(apply(b, 1, any))
+fasta <- c()
+for (i in 1:length(data$FASTA)){
+  tmp <- strsplit(data$FASTA[i],split='\\|')[[1]][2]
+  fasta <- c(fasta,tmp)
+}
+b$fasta <- fasta
+colnames(b) <- c("b","fasta")
+# E5-D4
+data <- readRDS("./27_20230201_FH/results/D5_extracts_Razor.RDS")
+data <- data[[1]]
+b <- dplyr::select(data, contains("2_b"))
+b <- as.data.frame(apply(b, 1, any))
+fasta <- c()
+for (i in 1:length(data$FASTA)){
+  tmp <- strsplit(data$FASTA[i],split='\\|')[[1]][2]
+  fasta <- c(fasta,tmp)
+}
+b$fasta <- fasta
+colnames(b) <- c("b","fasta")
+
+###merge E4_D2 pool with E5_D2
+comparison  <- merge(D2,b,
+                           all = TRUE,
+                           by = "fasta")
+colnames(comparison) <- c("fasta","E4_D2","E5_D2")
+
+#E5_D4
+data <- readRDS("./27_20230201_FH/results/D5_extracts_Razor.RDS")
+data <- data[[1]]
+b <- dplyr::select(data, contains("4_b"))
+b <- as.data.frame(apply(b, 1, any))
+fasta <- c()
+for (i in 1:length(data$FASTA)){
+  tmp <- strsplit(data$FASTA[i],split='\\|')[[1]][2]
+  fasta <- c(fasta,tmp)
+}
+b$fasta <- fasta
+colnames(b) <- c("b","fasta")
+
+###merge E4_D2 poo&E5_D2 with E5_D4
+comparison  <- merge(comparison,b,
+                     all = TRUE,
+                     by = "fasta")
+colnames(comparison) <- c("fasta","E4_D2","E5_D2","E5_D4")
+
+comparison$E4_D2 <- as.logical(comparison$E4_D2)
+comparison$E5_D2 <- as.logical(comparison$E5_D2)
+comparison$E5_D4 <- as.logical(comparison$E5_D2)
+comparison <- comparison[,-1]*1
+comparison[comparison==0] <- NA
+
+# boxplot
+boxplot(sum(comparison$E4_D2,na.rm = TRUE),
+        sum(comparison$E5_D2,na.rm = TRUE),
+        sum(comparison$E5_D4,na.rm = TRUE),
+        names = c("E4_D2","E5_D2","E5_D4"))
+
+proteins <- as.data.frame(which(!is.na(comparison), arr.ind=TRUE))
+
+E4_inter <- proteins %>% dplyr::filter(col == 1)
+E5_inter <- proteins %>% dplyr::filter(col == 2)
+E5_4_inter <- proteins %>% dplyr::filter(col == 3)
+
+
+
+# combine to list
+lst <- list("E4_D2"=as.double(E4_inter[,1]),
+            "E5_D2"=as.double(E5_inter[,1]),
+            "E5_D4"=as.double(E5_4_inter[,1]))
+
+upset(fromList(lst), 
+      order.by = "freq",
+      nsets = 10,
+      nintersects = 15,
+      keep.order = TRUE,
+      sets=c("E4_D2", "E5_D2", "E5_D4"),
+      mainbar.y.label = "Number of shared proteins",
+      sets.x.label = "Number of proteins per fraction",
+      set_size.show = TRUE,
+      set_size.angles = 0,
+      set_size.scale_max = 1500
+)
+
+ggvenn(lst,
+       fill_color = c(IG, highMW, lowMW),
+       stroke_size = 0.5, set_name_size = 4, text_size = 4, digits = 0, fill_alpha = 0.9)
+
+euler_venn_3comp(lst, label_venn = c("E4_D2","E5_D2","E5_D4"), color_venn = c(IG, highMW, lowMW), cex_venn = c(1,1,1), h_just = 0.5, v_just = 0.5)
+```
+
+
+
+## E4 D2 mit merge(E5 D2/E5 D4)
+
+* im vergleich zum oberen punkt wurde zuerst D2 und D4 von E5 zusammengefasst und dieses Ergebnis dann mit E4 D2 verglichen
+
+```{r message=FALSE, warning=FALSE}
+# E4-D2 comparison
+D2_raw <- readRDS(file = "results_v002/results_run1_mqpar_extracts_2gether_D2_LFQ_combined_txt_proteinGroups.txt_Unique.RDS")
+D2_raw <- D2_raw[[1]]
+D2 <- dplyr::select(D2_raw, contains("Gesamt"))
+D2 <- apply(D2, 1, any)
+fasta <- c()
+for (i in 1:length(D2_raw$FASTA)){
+  tmp <- strsplit(D2_raw$FASTA[i],split='\\|')[[1]][2]
+  fasta <- c(fasta,tmp)
+}
+#D2 <- as.data.frame(cbind(D2, D2_raw$FASTA))
+D2 <- as.data.frame(cbind(D2, fasta))
+# E5-D2
+data <- readRDS("./27_20230201_FH/results/D5_extracts_Razor.RDS")
+data <- data[[1]]
+b <- dplyr::select(data, contains("2_b"))
+b <- as.data.frame(apply(b, 1, any))
+fasta <- c()
+for (i in 1:length(data$FASTA)){
+  tmp <- strsplit(data$FASTA[i],split='\\|')[[1]][2]
+  fasta <- c(fasta,tmp)
+}
+b$fasta <- fasta
+colnames(b) <- c("b","fasta")
+# E5-D4
+data <- readRDS("./27_20230201_FH/results/D5_extracts_Razor.RDS")
+data <- data[[1]]
+b <- dplyr::select(data, contains("2_b"))
+b <- as.data.frame(apply(b, 1, any))
+fasta <- c()
+for (i in 1:length(data$FASTA)){
+  tmp <- strsplit(data$FASTA[i],split='\\|')[[1]][2]
+  fasta <- c(fasta,tmp)
+}
+b$fasta <- fasta
+colnames(b) <- c("b","fasta")
+
+###merge E4_D2 pool with E5_D2
+comparison  <- merge(D2,b,
+                           all = TRUE,
+                           by = "fasta")
+colnames(comparison) <- c("fasta","E4_D2","E5_D2")
+
+#E5_D4
+data <- readRDS("./27_20230201_FH/results/D5_extracts_Razor.RDS")
+data <- data[[1]]
+b <- dplyr::select(data, contains("4_b"))
+b <- as.data.frame(apply(b, 1, any))
+fasta <- c()
+for (i in 1:length(data$FASTA)){
+  tmp <- strsplit(data$FASTA[i],split='\\|')[[1]][2]
+  fasta <- c(fasta,tmp)
+}
+b$fasta <- fasta
+colnames(b) <- c("b","fasta")
+
+###merge E4_D2 poo&E5_D2 with E5_D4
+comparison  <- merge(comparison,b,
+                     all = TRUE,
+                     by = "fasta")
+colnames(comparison) <- c("fasta","E4_D2","E5_D2","E5_D4")
+
+comparison$comb_E5 <- apply(comparison[,c(3:4)], 1, any)
+
+
+comparison$E4_D2 <- as.logical(comparison$E4_D2)
+comparison$comb_E5 <- as.logical(comparison$comb_E5)
+comparison <- comparison[,-c(1,3,4)]*1
+comparison[comparison==0] <- NA
+
+# boxplot
+boxplot(sum(comparison$E4_D2,na.rm = TRUE),
+        sum(comparison$comb_E5,na.rm = TRUE),
+        names = c("E4_D2","E5_D2/D4"))
+
+proteins <- as.data.frame(which(!is.na(comparison), arr.ind=TRUE))
+
+E4_inter <- proteins %>% dplyr::filter(col == 1)
+E5_inter <- proteins %>% dplyr::filter(col == 2)
+
+# combine to list
+lst <- list("E4_D2"=as.double(E4_inter[,1]),
+            "E5_D2D4"=as.double(E5_inter[,1]))
+
+upset(fromList(lst), 
+      order.by = "freq",
+      nsets = 10,
+      nintersects = 15,
+      keep.order = TRUE,
+      sets=c("E4_D2", "E5_D2D4"),
+      mainbar.y.label = "Number of shared proteins",
+      sets.x.label = "Number of proteins per fraction",
+      set_size.show = TRUE,
+      set_size.angles = 0,
+      set_size.scale_max = 1500
+)
+
+ggvenn(lst,
+       fill_color = c(E4_col,E5_col),
+       stroke_size = 0.5, set_name_size = 4, text_size = 4, digits = 0, fill_alpha = 0.9)
+
+euler_venn_2comp(lst, label_venn = c("E4_D2","E5_D2D4"), color_venn = c(E4_col,E5_col), cex_venn = c(1,1,1), h_just = 0.5, v_just = 0.5)
+
+```
+
+# E3_D1 bzw E4_D1 und E5_D1
+
+* bei E3 e und f genommen (je 3 fach Messung) da das mit Proteaseinhibitor ist 
+* bei E4 pool das waren 2 Messungen
+* bei E5 habe ich 1_a und 1_b genommen - also von 4 Messungen gemerged
+
+```{r}
+#E3_D1
+D1_raw <- readRDS(file = "results_v002/results_run1_mqpar_extracts_2gether_E3_D1_LFQ_combined_txt_proteinGroups.txt_Unique.RDS")
+D1_raw <- D1_raw[[1]]
+D1 <- D1_raw[,c(13:18)]
+D1 <- apply(D1, 1, any)
+#D1 <- as.data.frame(cbind(D1, D1_raw$FASTA))
+fasta <- c()
+for (i in 1:length(D1_raw$FASTA)){
+  tmp <- strsplit(D1_raw$FASTA[i],split='\\|')[[1]][2]
+  fasta <- c(fasta,tmp)
+}
+E3_D1 <- as.data.frame(cbind(D1, fasta))
+#E4_D1
+D1_raw <- readRDS(file = "results_v002/results_run1_mqpar_extracts_2gether_E4_D1_a-j_LFQ_combined_txt_proteinGroups.txt_Unique.RDS")
+D1_raw <- D1_raw[[1]]
+D1 <- dplyr::select(D1_raw, contains("Pool"))
+D1 <- apply(D1, 1, any)
+#D1 <- as.data.frame(cbind(D1, D1_raw$FASTA))
+fasta <- c()
+for (i in 1:length(D1_raw$FASTA)){
+  tmp <- strsplit(D1_raw$FASTA[i],split='\\|')[[1]][2]
+  fasta <- c(fasta,tmp)
+}
+E4_D1 <- as.data.frame(cbind(D1, fasta))
+#E5_D1
+data_raw <- readRDS("./27_20230201_FH/results/D5_extracts_Razor.RDS")
+data_raw <- data_raw[[1]]
+E5_D1 <- dplyr::select(data_raw, contains("1_"))
+E5_D1 <- apply(E5_D1, 1, any)
+fasta <- c()
+for (i in 1:length(data_raw$FASTA)){
+  tmp <- strsplit(data_raw$FASTA[i],split='\\|')[[1]][2]
+  fasta <- c(fasta,tmp)
+}
+E5_D1 <- as.data.frame(cbind(E5_D1, fasta))
+
+#### merging
+comparison  <- merge(E3_D1, E4_D1,
+                           all = TRUE,
+                           by = "fasta")
+
+comparison  <- merge(comparison, E5_D1,
+                     all = TRUE,
+                     by = "fasta")
+colnames(comparison) <- c("fasta","E3_D1","E4_D1","E5_D1")
+
+comparison$E3_D1 <- as.logical(comparison$E3_D1)
+comparison$E4_D1 <- as.logical(comparison$E4_D1)
+comparison$E5_D1 <- as.logical(comparison$E5_D1)
+comparison <- comparison[,-1]*1
+comparison[comparison==0] <- NA
+
+# boxplot
+boxplot(sum(comparison$E3_D1,na.rm = TRUE),
+        sum(comparison$E4_D1,na.rm = TRUE),
+        sum(comparison$E5_D1,na.rm = TRUE),
+        names = c("E3_D1","E4_D1","E5_D1"))
+
+proteins <- as.data.frame(which(!is.na(comparison), arr.ind=TRUE))
+
+E3 <- proteins %>% dplyr::filter(col == 1)
+E4 <- proteins %>% dplyr::filter(col == 2)
+E5 <- proteins %>% dplyr::filter(col == 3)
+
+
+# combine to list
+lst <- list("E3"=as.double(E3[,1]),
+            "E4"=as.double(E4[,1]),
+            "E5"=as.double(E5[,1]))
+
+upset(fromList(lst), 
+      order.by = "freq",
+      nsets = 10,
+      nintersects = 15,
+      keep.order = TRUE,
+      sets=c("E3","E4", "E5"),
+      mainbar.y.label = "Number of shared proteins",
+      sets.x.label = "Number of proteins per fraction",
+      set_size.show = TRUE,
+      set_size.angles = 0,
+      set_size.scale_max = 1500
+)
+
+ggvenn(lst,
+       fill_color = c(IG,highMW,lowMW),
+       stroke_size = 0.5, set_name_size = 4, text_size = 4, digits = 0, fill_alpha = 0.9)
+
+euler_venn_3comp(lst, label_venn = c("E3","E4","E5"), color_venn = c(E4_col,E5_col), cex_venn = c(1,1,1), h_just = 0.5, v_just = 0.5)
+
+
+```
+
+
+# Barplots SDS gels
+
+## E4_D1
+
+* manuell von hier abgeschrieben `file://fhwn.ac.at/TU/Forschung/wissenschaftliche%20Ver%C3%B6ffentlichungen/Publikationen/2022/Proteomics_JRS_DL/data/evaluation_summary.html#4_Compare_D1_and_D2_B1-B9_resp_B1-B10`
+
+```{r, fig.width=4,fig.height=4}
+dat <- as.data.frame(
+  cbind(c(126,159,147,241,322,591,661,852,699),
+        c(paste("B",1:9,sep=""))))
+colnames(dat) <- c("no","fraction")
+dat$no <- as.numeric(dat$no)
+
+positions <-  c(paste("B",9:1,sep=""))
+
+
+ggplot(data=dat, aes(x=fraction,y=no))+
+  geom_bar(stat="identity") +
+  coord_flip() +
+  geom_text(aes(label=no), hjust=1.5,vjust=0.6, color="white", size=4) +
+  theme(axis.title.y = element_blank(),axis.text.y = element_text(size=14)) + 
+  scale_y_continuous(breaks = seq(0, 1000, by = 100)) +
+  labs(y="Number of proteins per fraction") +
+  scale_x_discrete(limits = positions)
+```
+
+## E4_D2
+
+* manuel von hier abgeschrieben `file:///X:/wissenschaftliche%20Ver%C3%B6ffentlichungen/Publikationen/2022/Proteomics_JRS_DL/data/evaluation_summary_4publication.html#9_D2`
+
+```{r, fig.width=4,fig.height=4}
+dat <- as.data.frame(
+  cbind(c(107,241,231,142,145,148,139,166,180,98),
+        c(paste("B",1:10,sep=""))))
+colnames(dat) <- c("no","fraction")
+dat$no <- as.numeric(dat$no)
+
+positions <-  c(paste("B",10:1,sep=""))
+
+ggplot(data=dat, aes(x=fraction,y=no))+
+  geom_bar(stat="identity") +
+  coord_flip() +
+  geom_text(aes(label=no), hjust=1.5,vjust=0.6, color="white", size=4) +
+  theme(axis.title.y = element_blank(),axis.text.y = element_text(size=14)) + 
+  scale_y_continuous(breaks = seq(0, 1000, by = 100)) +
+  scale_x_discrete(limits = positions) +
+  labs(y="Number of proteins per fraction")
+```
