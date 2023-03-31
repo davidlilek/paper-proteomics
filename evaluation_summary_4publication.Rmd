@@ -1086,7 +1086,7 @@ D2_col <- rgb(169,208,142,maxColorValue = 255)
 ggvenn(lst,
        fill_color = c(D1_col,D2_col),
        stroke_size = 0.5, set_name_size = 4, text_size = 4, digits = 0, fill_alpha = 0.9)
-euler_venn_2comp(lst, label_venn = c("D1_ingeldigest_fraction","D2_ingeldigest_fraction"), color_venn = c(D1_col,D2_col), cex_venn = c(1,1), h_just = 0.5, v_just = 0.5)
+euler_venn_2comp(lst, label_venn = c("D1\ningeldigest_pool", "D2\ningeldigest_pool"), color_venn = c(D1_col,D2_col), cex_venn = c(1,1), h_just = 0.5, v_just = 0.5)
 ```
 
 # E5 - venn diagramms of different dimensions
@@ -1843,7 +1843,7 @@ ggvenn(lst,
        fill_color = c(IG,highMW,lowMW),
        stroke_size = 0.5, set_name_size = 4, text_size = 4, digits = 0, fill_alpha = 0.9)
 
-euler_venn_3comp(lst, label_venn = c("E3","E4","E5"), color_venn = c(E4_col,E5_col), cex_venn = c(1,1,1), h_just = 0.5, v_just = 0.5)
+euler_venn_3comp(lst, label_venn = c("E3","E4","E5"), color_venn = c(IG,highMW,lowMW), cex_venn = c(1,1,1), h_just = 0.5, v_just = 0.5)
 
 
 ```
@@ -1877,7 +1877,7 @@ ggplot(data=dat, aes(x=fraction,y=no))+
 
 ## E4_D2
 
-* manuel von hier abgeschrieben `file:///X:/wissenschaftliche%20Ver%C3%B6ffentlichungen/Publikationen/2022/Proteomics_JRS_DL/data/evaluation_summary_4publication.html#9_D2`
+* manuell von hier abgeschrieben `file:///X:/wissenschaftliche%20Ver%C3%B6ffentlichungen/Publikationen/2022/Proteomics_JRS_DL/data/evaluation_summary_4publication.html#9_D2`
 
 ```{r, fig.width=4,fig.height=4}
 dat <- as.data.frame(
