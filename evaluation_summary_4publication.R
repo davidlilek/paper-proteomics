@@ -1,29 +1,4 @@
----
-output:
-  html_document:
-    df_print: paged
-    fig.align: center
-    self_contained: yes 
-    fig.height: 4
-    fig.width: 8
-    theme: united
-    toc: yes
-    toc_depth: 4
-    toc_float: yes
-    number_sections: yes
-    code_folding: hide
-title: "Auswertung TC Daten"
-author: "David Lilek"
-date: "`r format(Sys.time(), '%d %B %Y, %X')`"
-editor_options: 
-  markdown: 
-    wrap: 72
----
-
-
-# Load Libraries & Plot function
-
-```{r message=FALSE, warning=FALSE}
+## ----message=FALSE, warning=FALSE--------------------------------------------------------------------------------
 library(ggplot2)
 library(tidyverse)
 library(dplyr)
@@ -35,9 +10,9 @@ library(reshape2)
 library(eulerr)
 #library(venneuler)
 #library(VennDiagram) 
-```
 
-```{r}
+
+## ----------------------------------------------------------------------------------------------------------------
 euler_venn_2comp <- function(lst, label_venn, color_venn, cex_venn, grid, gList, h_just, v_just) {
   ######################################
   #################plot 2 venn diagrams
@@ -101,19 +76,9 @@ euler_venn_3comp <- function(lst, cex_venn, label_venn, color_venn, grid, gList,
   print(p)
 }
 
-```
 
 
-# Vergleich Messreplikate Standardabweichung
-
-* Taking a closer look the standard deviation of measurement replicates it is obvious that the standard deviation depends stronly on the number of identified proteins. Below 200 proteins a rsd of 5.24% was calculated. Above 200 proteins a significantly lower rsd of 1.57% was observed (p-value = 0.001608). 
-* die Messungen wurden in Triplikaten und Duplikaten durchgeführt
-* für jedes Triplikat/Duplikat wurde sd und mean berechnet und geplottet
-* es zeigt sich, dass die Messreproduzierbarkeit von der Anzahl der Proteine abhängt
-* <200 Proteine: median relative sd = 5.235318
-* \>200 proteine: median realtive sd = 1.568858
-
-```{r}
+## ----------------------------------------------------------------------------------------------------------------
 data <- read.csv("Extraktionen_gesamt_V2_DL.csv", sep=";")
 sample_group <- c(seq(1,18,by=3),seq(19,162,by=2))
 sd_samples <- c()
@@ -140,31 +105,9 @@ median(rel_sd[which(mean_samples<200)])
 median(rel_sd[which(mean_samples>200)])
 #t test rel sd <200 with rel sd >200
 t.test(rel_sd[which(mean_samples<200)],rel_sd[which(mean_samples>200)])
-```
 
 
-# Comparison E3_D1 - noTreatment, Heatshock, ProteaseInhibitor
-
-The results show that the significant highest number of protein identifications (median=586) could be achieved using protease inhibitor. The significant lowest number of proteins was determined using heatshock (median=315). No treatment resulted in 491 identified proteins. (p value ANOVA 1.43e-09; p value Tukey HSD test below 0.0003). All measurement were performed in using 6 technical replicates.
-
--   E3_D1 no Treatment X; Heatshok (HS); Protease Inhibitor (PI) -\>
-    outcome: mit PI die meisten Identifikationen gefunden -\> deswegen
-    E4 und E5 mit PI durchgeführt
-
--   extraktionsreplikate
-
-    -   a/b no treatment
-    -   c/d heatshock
-    -   e/f protease inhibitor
-
--   3 mittelwerte machen und mittels varianzanalyse unterschiede testen
-    `file:///X:/wissenschaftliche%20Ver%C3%B6ffentlichungen/Publikationen/2022/Proteomics_JRS_DL/data/results_v002/results_run1_mqpar_extracts_2gether_E3_D1_LFQ_combined_txt_proteinGroups.txt_post-processing.html#52_Summary_Unique`
-
--   varianzanalyse mit anschließendem tukey hsd test
-
--   es unterscheiden sich alle treatments signifikant voneinander
-
-```{r}
+## ----------------------------------------------------------------------------------------------------------------
 data <- read.csv("Extraktionen_gesamt_V2_DL.csv", sep=";")
 data_sub <- as.data.frame(data$Unique.no.MBR.2.peptides)
 data_sub <- as.data.frame(data_sub[c(1:18),])
@@ -186,11 +129,9 @@ summary(anova)
 Tukey <- TukeyHSD(anova)
 plot(Tukey)
 Tukey
-```
 
-# E4 - D1 - B - AF - TF
 
-```{r}
+## ----------------------------------------------------------------------------------------------------------------
 
 ############## B
 data <- readRDS(file = "results_v002/results_run1_mqpar_extracts_2gether_E4_D1_B_LFQ_combined_txt_proteinGroups.txt_Unique.RDS")
@@ -381,16 +322,9 @@ sum(B_aj_comparison$B,na.rm = TRUE)
 sum(B_aj_comparison$aj,na.rm = TRUE)
        
 
-```
 
 
-## compare E4_D1_Pool_G_B1-B9 and E4_D1_Pool_20_B1-B9
-
-* um Unterschiede zwischen B1-B9 in Pool_G und Pool_20 zu sehen
-* habe mir die Proteine auch angeschaut die unterschiedlich sind. 31 davon sind uncharacterized proteins
-* teilweise sind sich die proteine schon ähnlich zumindest von der accesion number
-
-```{r}
+## ----------------------------------------------------------------------------------------------------------------
 #E4_D1_Pool_G_B1-B9
 data <- readRDS(file = "results_v002/results_run1_mqpar_extracts_2gether_E4_D1_B_LFQ_combined_txt_proteinGroups.txt_Unique.RDS")
 data <- data[[1]]
@@ -468,15 +402,9 @@ euler_venn_2comp(lst, label_venn = c("E4_D1_G","E4_D1_20"), color_venn = c(D1_co
 print(c("E4_D1_G","E4_D1_20"))
 sum(G_pool_comparison$B_D1,na.rm = TRUE)
 sum(G_pool_comparison$D1,na.rm = TRUE)
-```
 
-# Compare E3e E3f with E4_D1_a-j
 
--   E3 e bzw E3 f sollte dasselbe sein wie das hier
-    `file:///X:/wissenschaftliche%20Ver%C3%B6ffentlichungen/Publikationen/2022/Proteomics_JRS_DL/data/results_v002/results_run1_mqpar_extracts_2gether_E4_D1_a-j_LFQ_combined_txt_proteinGroups.txt_post-processing.html#52_Summary_Unique`
-    und auch E5_D1 a und b
-
-```{r}
+## ----------------------------------------------------------------------------------------------------------------
 aj_raw <- readRDS(file = "results_v002/results_run1_mqpar_extracts_2gether_E4_D1_a-j_LFQ_combined_txt_proteinGroups.txt_Unique.RDS")
 aj_raw <- aj_raw[[1]]
 aj <- aj_raw[,-ncol(aj_raw)]
@@ -546,11 +474,9 @@ ggplot(melt(results_2gether),aes(x = rownames(melt(results_2gether)), y = value)
   scale_x_discrete(labels = substring(colnames(data4pheatmap_clear),17)) +
   theme(axis.text.x = element_text(angle = 90)) +
   labs(title = "Unique")
-```
 
-# E4-D2
 
-```{r}
+## ----------------------------------------------------------------------------------------------------------------
 #############################
 # D2
 ###############################
@@ -647,15 +573,9 @@ ggvenn(lst,
 
 euler_venn_2comp(lst, label_venn = c("D2_pool","D2_fractions"), color_venn = c(D2_pool_col,D2_ingel_col), cex_venn = c(1,1), h_just = 0.5, v_just = 0.5)
 
-```
 
-# E4 - Compare D1-D2
 
-## fractions
-
-### E4_D1_Pool_G_B1-B9 with E4_D2_Pool_20_B1-B10
-
-```{r}
+## ----------------------------------------------------------------------------------------------------------------
 #################### D1 fractions
 data <- readRDS(file = "results_v002/results_run1_mqpar_extracts_2gether_E4_D1_B_LFQ_combined_txt_proteinGroups.txt_Unique.RDS")
 data <- data[[1]]
@@ -738,11 +658,9 @@ print(c("E4_D1_fractions","E4_D2_fractions"))
 sum(D1_D2_comparison$B_D1,na.rm = TRUE)
 sum(D1_D2_comparison$B_D2,na.rm = TRUE)
         
-```
 
-### E4_D1_Pool_20_B1-B9 with E4_D2_Pool_20_B1-B10
 
-```{r}
+## ----------------------------------------------------------------------------------------------------------------
 # D1-D2 comparison
 
 D1_raw <- readRDS(file = "results_v002/results_run1_mqpar_extracts_2gether_E4_D1_B_LFQ_combined_txt_proteinGroups.txt_Unique.RDS")
@@ -818,11 +736,9 @@ print(c("E4_D1_fraction","E4_D2_fraction"))
 sum(D1_D2_comparison$D1,na.rm = TRUE)
 sum(D1_D2_comparison$D2,na.rm = TRUE)
 
-```
 
-## pool
 
-```{r}
+## ----------------------------------------------------------------------------------------------------------------
 # D1-D2 comparison
 
 D1_raw <- readRDS(file = "results_v002/results_run1_mqpar_extracts_2gether_E4_D1_a-j_LFQ_combined_txt_proteinGroups.txt_Unique.RDS")
@@ -898,20 +814,9 @@ euler_venn_2comp(lst, label_venn = c("E4_D1","E4_D2"), color_venn = c(D1_col,D2_
 print(c("E4_D1","E4_D2"))
 sum(D1_D2_comparison$D1,na.rm = TRUE)
 sum(D1_D2_comparison$D2,na.rm = TRUE)
-```
 
-# E5 - venn diagramms of different dimensions
 
--   `file:///N:/1_A_Bachelor_Master_Intern/2_M_2022/David/Data/27_20230201_FH/post-processing-extracts.html#52_Summary_Unique`
--   venn diagramm 1a,2a,3a,
--   venn diagramm 1b,2b,3b,4b
-* aussage: saurer puffer (2a,3b) bringt nichts -> citratpuffer
-
-## a
-
-* E5 a weglassen weil ja auch D4 fehlt
-
-```{r}
+## ----------------------------------------------------------------------------------------------------------------
 data <- readRDS("./27_20230201_FH/results/D5_extracts_Razor.RDS")
 data <- data[[1]]
 a <- dplyr::select(data, contains("_a"))
@@ -955,13 +860,9 @@ ggvenn(lst,
        stroke_size = 0.5, set_name_size = 5, text_size = 4.25, digits = 0, fill_alpha = 0.9, label_sep = )
 
 euler_venn_3comp(lst, label_venn = c("E5_D1_a","E5_D2_a","E5_D3_a"), color_venn = c(IG,highMW,lowMW), cex_venn = c(1,1,1), h_just = 0.5, v_just = 0.5)
-```
 
-## b
 
-### D1-D4
-
-```{r}
+## ----------------------------------------------------------------------------------------------------------------
 data <- readRDS("./27_20230201_FH/results/D5_extracts_Razor.RDS")
 data <- data[[1]]
 b <- dplyr::select(data, contains("_b"))
@@ -1006,12 +907,9 @@ upset(fromList(lst),
 # venn diagram
 ggvenn(lst,
        stroke_size = 0.5, set_name_size = 5, text_size = 4.25, digits = 0, fill_alpha = 0.9, label_sep = )
-```
 
 
-### D1,D2,D4
-
-```{r}
+## ----------------------------------------------------------------------------------------------------------------
 data <- readRDS("./27_20230201_FH/results/D5_extracts_Razor.RDS")
 data <- data[[1]]
 b <- dplyr::select(data, contains("_b"))
@@ -1054,15 +952,9 @@ ggvenn(lst,
        stroke_size = 0.5, set_name_size = 5, text_size = 4.25, digits = 0, fill_alpha = 0.9, label_sep = )
 
 euler_venn_3comp(lst, label_venn = c("E5_D1_b","E5_D2_b","E5_D4_b"), color_venn = c(IG,highMW,lowMW), cex_venn = c(1,1,1), h_just = 0.5, v_just = 0.5)
-```
 
 
-
-# Compare E4 mit E5
-
-## E4 - D1/D2 mit E5 D1-D4
-
-```{r message=FALSE, warning=FALSE}
+## ----message=FALSE, warning=FALSE--------------------------------------------------------------------------------
 # D1-D2 comparison
 D1_raw <- readRDS(file = "results_v002/results_run1_mqpar_extracts_2gether_E4_D1_a-j_LFQ_combined_txt_proteinGroups.txt_Unique.RDS")
 D1_raw <- D1_raw[[1]]
@@ -1156,14 +1048,9 @@ euler_venn_2comp(lst, label_venn = c("E4_D1_D2","E5_D1_D2_D3_D4"), color_venn = 
 print( c("E4_D1_D2","E5_D1_D2_D3_D4"))
 sum(D1_D2_D5_comparison$E4,na.rm = TRUE)
 sum(D1_D2_D5_comparison$E5,na.rm = TRUE)       
-```
 
 
-## E4 - D1/D2 mit E5 D1,D2 und D4
-
-* hier wurde E5_D3 (Citratpuffer weggelassen) da es hier fast keine identifzierten proteine gabe
-
-```{r message=FALSE, warning=FALSE}
+## ----message=FALSE, warning=FALSE--------------------------------------------------------------------------------
 # D1-D2 comparison
 D1_raw <- readRDS(file = "results_v002/results_run1_mqpar_extracts_2gether_E4_D1_a-j_LFQ_combined_txt_proteinGroups.txt_Unique.RDS")
 D1_raw <- D1_raw[[1]]
@@ -1259,12 +1146,9 @@ print(c("E4_D1_D2","E5_D1_D2_D4"))
 sum(D1_D2_D5_comparison$E4,na.rm = TRUE)
 sum(D1_D2_D5_comparison$E5,na.rm = TRUE)
        
-```
 
 
-## E4D1 mit E5D1
-
-```{r message=FALSE, warning=FALSE}
+## ----message=FALSE, warning=FALSE--------------------------------------------------------------------------------
 # E4_D1
 D1_raw <- readRDS(file = "results_v002/results_run1_mqpar_extracts_2gether_E4_D1_a-j_LFQ_combined_txt_proteinGroups.txt_Unique.RDS")
 D1_raw <- D1_raw[[1]]
@@ -1347,13 +1231,9 @@ print(c("E4_D1","E5_b_D1"))
 sum(E4_E5_comparison$E4,na.rm = TRUE)
 sum(E4_E5_comparison$E5,na.rm = TRUE)
        
-```
 
-## E4 D2 mit E5 D2 mit E5 D4
 
-* hier wurden also 3 Gruppen verglichen
-
-```{r message=FALSE, warning=FALSE}
+## ----message=FALSE, warning=FALSE--------------------------------------------------------------------------------
 # E4-D2 comparison
 D2_raw <- readRDS(file = "results_v002/results_run1_mqpar_extracts_2gether_D2_LFQ_combined_txt_proteinGroups.txt_Unique.RDS")
 D2_raw <- D2_raw[[1]]
@@ -1452,15 +1332,9 @@ print(c("E4_D2","E5_b_D2","E5_b_D4"))
 sum(comparison$E4_D2,na.rm = TRUE)
 sum(comparison$E5_D2,na.rm = TRUE)
 sum(comparison$E5_D4,na.rm = TRUE)
-```
 
 
-
-## E4 D2 mit merge(E5 D2/E5 D4)
-
-* im vergleich zum oberen punkt wurde zuerst D2 und D4 von E5 zusammengefasst und dieses Ergebnis dann mit E4 D2 verglichen
-
-```{r message=FALSE, warning=FALSE}
+## ----message=FALSE, warning=FALSE--------------------------------------------------------------------------------
 # E4-D2 comparison
 D2_raw <- readRDS(file = "results_v002/results_run1_mqpar_extracts_2gether_D2_LFQ_combined_txt_proteinGroups.txt_Unique.RDS")
 D2_raw <- D2_raw[[1]]
@@ -1555,15 +1429,9 @@ print(c("E4_D2","E5_D2_D4"))
 sum(comparison$E4_D2,na.rm = TRUE)
 sum(comparison$comb_E5,na.rm = TRUE)
 
-```
 
-# E3_D1 bzw E4_D1 und E5_D1
 
-* bei E3 e und f genommen (je 3 fach Messung) da das mit Proteaseinhibitor ist 
-* bei E4 pool das waren 2 Messungen
-* bei E5 habe ich 1_a und 1_b genommen - also von 4 Messungen gemerged
-
-```{r}
+## ----------------------------------------------------------------------------------------------------------------
 #E3_D1
 D1_raw <- readRDS(file = "results_v002/results_run1_mqpar_extracts_2gether_E3_D1_LFQ_combined_txt_proteinGroups.txt_Unique.RDS")
 D1_raw <- D1_raw[[1]]
@@ -1659,16 +1527,9 @@ sum(comparison$E4_D1,na.rm = TRUE)
 sum(comparison$E5_D1,na.rm = TRUE)
 
 
-```
 
 
-# Barplots SDS gels
-
-## E4_D1
-
-* manuell von hier abgeschrieben `file://fhwn.ac.at/TU/Forschung/wissenschaftliche%20Ver%C3%B6ffentlichungen/Publikationen/2022/Proteomics_JRS_DL/data/evaluation_summary.html#4_Compare_D1_and_D2_B1-B9_resp_B1-B10`
-
-```{r, fig.width=4,fig.height=4}
+## ---- fig.width=4,fig.height=4-----------------------------------------------------------------------------------
 dat <- as.data.frame(
   cbind(c(126,159,147,241,322,591,661,852,699),
         c(paste("B",1:9,sep=""))))
@@ -1686,13 +1547,9 @@ ggplot(data=dat, aes(x=fraction,y=no))+
   scale_y_continuous(breaks = seq(0, 1000, by = 100)) +
   labs(y="Number of proteins per fraction") +
   scale_x_discrete(limits = positions)
-```
 
-## E4_D2
 
-* manuell von hier abgeschrieben `file:///X:/wissenschaftliche%20Ver%C3%B6ffentlichungen/Publikationen/2022/Proteomics_JRS_DL/data/evaluation_summary_4publication.html#9_D2`
-
-```{r, fig.width=4,fig.height=4}
+## ---- fig.width=4,fig.height=4-----------------------------------------------------------------------------------
 dat <- as.data.frame(
   cbind(c(107,241,231,142,145,148,139,166,180,98),
         c(paste("B",1:10,sep=""))))
@@ -1709,128 +1566,4 @@ ggplot(data=dat, aes(x=fraction,y=no))+
   scale_y_continuous(breaks = seq(0, 1000, by = 100)) +
   scale_x_discrete(limits = positions) +
   labs(y="Number of proteins per fraction")
-```
 
-
-
-# Basic information
-
-## Auswertung Extrakte
-
--   alle extrakte wurden am server ausgewertet (mqpar files:
-    `/proj/proteomics/100_extracts_2gether/mqpar`)
--   es wurden thematisch ähnliche extrakte gemeinsam ausgewertet
-    (farblich hier markiert
-    `\\fhwn.ac.at\TU\Forschung\wissenschaftliche Veröffentlichungen\Publikationen\2022\Proteomics_JRS_DL\data\Extraktionen_gesamt_V2_DL.xlsx`)
-    -   D2
-    -   E3_D1
-    -   E4_D1_AF_TF
-    -   E4_D1_a\_j
-    -   E4_D1_B
-    -   E5 (liegt unter data/27_202301_FH)
--   `X:\wissenschaftliche Veröffentlichungen\Publikationen\2022\Proteomics_JRS_DL\data\proteinGroups`:
-    enthalten die proteinGroups.txt files die mit Razor/Unique
-    ausgewertet wurden
--   später wurde dann zum mqpar file auch LFQ hinzugefügt und neu
-    ausgewertet; diese Ergebnisse werden auch fürs Paper verwendet und
-    sind in `proteinGroups_v002` zu finden
-
-### Basic postprocessing
-
--   die proteingroups.txt files wurden dann mit
-    `basis-postprocessing.R`ausgewertet
--   die Ergebnisse finden sich `results` bzw `results_v002`
-    -   es wurden RDS, csv und html files abgespeichert
-    -   diese Files wurden dann für die weitere Datenaufarbeitung
-        verwendet
-    -   es wurden 2 pepitdes verwendet
-
-### MBR
-
--   die Prozessierung erfolgte 1x ohne und 1x mit MBR
--   zb
-    `X:/wissenschaftliche Veröffentlichungen/Publikationen/2022/Proteomics_JRS_DL/data/results_v002`
-    -   `results_run1_mqpar_extracts_2gether_D2_LFQ_combined_txt_proteinGroups.txt_LFQ.RDS`:
-        hier wurde D2 mit Unique/Razor/LFQ im xml file ausgewertet und
-        die LFQ Ergebnisse abgespeichert
-    -   `results_run1_mqpar_extracts_2gether_D2_MBR_LFQ_combined_txt_proteinGroups.txt_LFQ.RDS`:
-        das gleiche wie oben nur mit MBR im xml file
--   als weiteres Beispiel für die Dateinamen
-    -   `results_run1_mqpar_extracts_2gether_D2_MBR_LFQ_combined_txt_proteinGroups.txt_Razor.RDS`:
-        hier wurde D2 mit Unique/Razor/LFQ ausgewertet und die Razor
-        Ergebnisse abgespeichert
-
-### files im results_v002 ordner
-
--   hier sind die Ergebnisse der LFQ, Razor und Unique als RDS datei
-    abgespeichert die dann für weitere Auswertungen verwendet werden
--   zusätzlich sind die html files die automatisch generiert wurden
-    dabie
--   die csv datei enthält die gesamtidentifizierten/Quantifzierten
-    proteine
-
-## TA/YEAST
-
--   folder `X:\wissenschaftliche Veröffentlichungen\Publikationen\2022\Proteomics_JRS_DL\data\ta_yeast`
--   die Mehlwürmer wurden in Weizenmehl/Hefeextrakt gezüchtet
--   hier wurde getestet ob in den Extrakten auch
-    Weizenproteine/Hefeproteine gefunden werden
--   zusätzlich wurde gegen Rattenproteine bzw A.thaliana proteine
-    gesucht um zu sehen ob komplett fremde organismenproteine gefunden
-    werden können
--   genommen wurden die mqpar files zur erzeugugn von proteinGroups,
-    also ohne LFQ und nur Razor/Unique
--   Ergebnisfile/Zusammenfassungfile: summary-ta-yeast.Rmd
-    -   es zeigt sich, dass sowohol Weizen/Hefe als auch Ratten- und a
-        thaliana Proteine gefunden werden können
-    -   Ausmaß max. 8% der Gesamtproteine
-
-## evaluation_proteinmasses.html
-
--   hier wurden die Proteinmassen von B1-B9 E4_D1_B bzw E4_D2
-    automatisch von uniprot herunterladen und visualisert um zu sehen ob
-    sich die proteinmassen je fraktion unterschdein -\> conlusio: gerade
-    in den ersten fraktionen ziemlich gleiche masse; erst gegen ende
-    werden die proteine merklich kleiner
--   weiters wurden die Massen der geteilten Proteine in E4_D1_B
-    angeschaut
-    -   das waren ca. 70 Proteine die in allen Fraktionen (B1-B9)
-        vorgekommen sind
-
-## files evaluation summary ...
-
--   hier wurden die RDS files kombiniert eingelesen und mit den
-    verschiedenen parametern diagramme erstellt um versch. einstellungen
-    während der prozessierung in maxquant zu vergleichen
-    -   zb wurden Unique/Razor/LFQ mit MBR und ohne MBR verglichen zb
-        `file:///X:/wissenschaftliche%20Ver%C3%B6ffentlichungen/Publikationen/2022/Proteomics_JRS_DL/data/evaluation_summary_unique.html`
-        bzw.
-        `file:///X:/wissenschaftliche%20Ver%C3%B6ffentlichungen/Publikationen/2022/Proteomics_JRS_DL/data/evaluation_summary_MBR_unique.html`
-    -   zusätzlich wurden noch versch imputation methods
-        ausprobiert\^`file:///X:/wissenschaftliche%20Ver%C3%B6ffentlichungen/Publikationen/2022/Proteomics_JRS_DL/data/evaluation_summary_unique_imputed_2consecutivevalues.html`
-        oder
-        `file:///X:/wissenschaftliche%20Ver%C3%B6ffentlichungen/Publikationen/2022/Proteomics_JRS_DL/data/evaluation_summary_unique_imputed.html`
--   die zusammengefassten ergebnisse finden sich hier
-    -   `file:///X:/wissenschaftliche%20Ver%C3%B6ffentlichungen/Publikationen/2022/Proteomics_JRS_DL/data/evaluation_summary.html`
-
-## merging of 2 data sets
-
--   bei der auswertung mussten teilweise datensätze gemerged werden
--   zb wenn D2 und D1 verglichen werden sollen, wurden D1 und D2 ja in
-    MaxQuant separat ausgewertet weswegen es 2 proteinGroupstxt files
-    und auch ergebnisfiles (RDS files) gibt
--   zum mergen wurde die spalte `fasta.headers` des proteingroups txt
-    files verwendet
--   im 1. Schritt wurde der gesamte text dieser spalte verwendet
--   im 2. und hier dargestellten schritte wurde die accession number des
-    ersten proteins der jeweiligen protein group mit folgendem code extrahiert und zum mergen
-    verwendet
-
-```{=html}
-<!-- -->
-```
-    fasta <- c()
-    for (i in 1:length(AF_TF_raw$FASTA)){
-      tmp <- strsplit(AF_TF_raw$FASTA[i],split='\\|')[[1]][2]
-      fasta <- c(fasta,tmp)
-    }
