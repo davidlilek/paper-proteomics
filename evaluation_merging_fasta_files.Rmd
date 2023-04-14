@@ -1,0 +1,147 @@
+---
+output:
+  html_document:
+    df_print: paged
+    fig.align: center
+    self_contained: yes 
+    fig.height: 4
+    fig.width: 8
+    theme: united
+    toc: yes
+    toc_depth: 4
+    toc_float: yes
+    number_sections: yes
+    code_folding: hide
+title: "How to merge FASTA-Files"
+author: "David Lilek"
+date: "`r format(Sys.time(), '%d %B %Y, %X')`"
+editor_options: 
+  markdown: 
+    wrap: 72
+---
+
+```{r include=FALSE}
+d <- readRDS(file = "results_v002/results_run1_mqpar_extracts_2gether_E4_D1_a-j_LFQ_combined_txt_proteinGroups.txt_Unique.RDS")
+d <- d[[1]]
+```
+
+
+# Mergen von Files - Generelles
+
+* wir haben ja in MaxQuant immer nur "ähnliche" Samples gemeinsam prozessiert, dh zb alle D2 oder E1_D1 oder E4_D1_AF_TF oder E4_D1_B - die wurden immer separat prozessiert um "Proteinübertragungen" zu vermeiden
+* das bedingt wenn man zb AF,TF und B vergleichen will die Files zusammenführen (mergen) muss
+* die Frage ist wie macht man das "richtig"
+
+* Strategie 1
+  + einfach den gesamten FASTA Header nehmen: `"tr|A0A023ZYJ9|A0A023ZYJ9_TRICA Ras-related protein Rab-7a OS=Tribolium castaneum OX=7070 GN=Rab7a PE=2 SV=1"`
+  + das habe ich zb bei meiner Masterarbeit so gemacht
+* Strategie 2
+  + den ersten identifier extrahieren und diesen zum mergen zu verweden: `A0A023ZYJ9`
+
+Wo wird bzw wo könnte es problematisch werden? Im Proteomics Bereich identifizieren wir ja Peptide die aber auch in unterschiedlichen Proteinen vorkommen können, dh es ist möglich, dass das jeweilige Peptid in mehreren Proteinen vorkommt, weswegen man ja eigentlich von Proteingruppen spricht wo mehrere Proteine vorkommen können. zb in folgendem Beispiel sind es 2 Proteine (D7EJG6 und A0A139W8C1)die in einer Proteingruppe vorkommen
+
+* `"tr|D7EJG6|D7EJG6_TRICA RNA helicase OS=Tribolium castaneum OX=7070 GN=TcasGA2_TC002367 PE=3 SV=2;tr|A0A139W8C1|A0A139W8C1_TRICA RNA helicase OS=Tribolium castaneum OX=7070 GN=TcasGA2_TC002367 PE=3 SV=1"`
+
+Ich habe - hier nicht gezeigt - das mergen mit Strategie 1 und 2 ausprobiert und es haben sich die Proteinidentifikationen nur wenig unterschieden und die Gesamtaussage ist immer gleich geblieben.
+
+Was jetzt die Frage war. Könnte nicht auch die Reihenfolge der Proteine in den jeweiligen Proteingruppen "vertauscht" sein und man dadurch "gemeinsame" Proteine übersehen?
+Als Beispiel wenn man jetzt FASTA1 und FASTA2 mergen würde.
+
+* Beispiel 1:
+  + FASTA_1: `"tr|A0A139WGC5|A0A139WGC5_TRICA Uncharacterized protein OS=Tribolium castaneum OX=7070 GN=TcasGA2_TC034748 PE=4 SV=1;tr|A0A139WGG0|A0A139WGG0_TRICA Uncharacterized protein OS=Tribolium castaneum OX=7070 GN=TcasGA2_TC034748 PE=4 SV=1"`
+  + FASTA_2: `"tr|A0A139WGG0|A0A139WGG0_TRICA Uncharacterized protein OS=Tribolium castaneum OX=7070 GN=TcasGA2_TC034748 PE=4 SV=1;tr|A0A139WGC5|A0A139WGC5_TRICA Uncharacterized protein OS=Tribolium castaneum OX=7070 GN=TcasGA2_TC034748 PE=4 SV=1"`
+* Beispiel 2:
+  + FASTA_1: `"tr|A0A139W979|A0A139W979_TRICA Uncharacterized protein OS=Tribolium castaneum OX=7070 GN=TcasGA2_TC030965 PE=4 SV=1;tr|A0A139W974|A0A139W974_TRICA Uncharacterized protein OS=Tribolium castaneum OX=7070 GN=TcasGA2_TC030965 PE=4 SV=1"` 
+  + FASTA_2: `"tr|A0A139W974|A0A139W974_TRICA Uncharacterized protein OS=Tribolium castaneum OX=7070 GN=TcasGA2_TC030965 PE=4 SV=1;tr|A0A139W979|A0A139W979_TRICA Uncharacterized protein OS=Tribolium castaneum OX=7070 GN=TcasGA2_TC030965 PE=4 SV=1"`
+
+Bei beiden Beispielen sind einfach die 2 gefundenen Proteine in der jeweiligen Proteingruppe vertauscht; wenn man nur den ersten FASTA identifier nimmt würde das in 2 unterschiedlichen proteingruppen resultieren obwohl sie ja diesselben sind. Ich habe das für einen Vergleich (15) angeschaut und es sind alle 15 Vergleiche einfach vertauscht.
+
+Wie groß ist jetzt der Anteil an FASTA Files die so ausschauen und die wir durch unsere merging Methode verlieren? Um das zu ermitteln wurde wie folgt vorgegangen:
+
+* einlesen aller RDS Ergebnisfiles die wir haben und um das merging in allen Kombinationen zu ermitteln wurde mit `lapply(1:2, function(y) combn(file_path, y))` eine Kombination aller Files in 2er Kombi erstellt und verglichen
+* um die gemeinsamen hits zu entfernen wurde mit folgendem Befehl jeweils die ersten(!) identifier verglichen `FASTA_1_raw[-which(fasta1 %in% fasta2)]`
+  + dies war notwendig da ja im "normalen" Processing ja auch nur die ersten Fasta identifier verglichen wurden
+* danach wurden die FASTA identifiers von FASTA1 (also alle außer das erste) in FASTA2 gesucht mit `(any(str_detect(FASTA_2,paste0("\\b(", paste(FASTA_1[[i]], collapse="|"), ")\\b"))) && length(FASTA_1[[i]])>0)` 
+  + die `length(FASTA_1[[i]]>0` war notwendig, da es ja auch proteingruppen mit nur einem FASTA header gibt, deshalb steht in FASTA_1 dann nur "" drinnen und das würde man überall finden
+  + str detect wurde verwendet, um einen exact match zu bekommen, da bei der grundeinstellung des befehls `grepl` auch partielle match mitgenommen werden; mit dem `\\b`kann man mit str_detect einen exact match bekommen
+  + Berechnung der Abweichung $$deviation=number of hits/ mean(number proteins FASTA1 + FASTA2)*100$$
+
+* Die Ergebnisse zeigen, dass der Median unter 1% der gesamt gefundenen Proteine ist.
+  
+
+* [Wie macht es Perseus?](http://www.coxdocs.org/doku.php?id=perseus:user:activities:matrixprocessing:basic:combinebyidentifiersprocessing)
+
+
+```{r}
+library(stringr)
+#get all results
+files <- list.files(path = "results_v002/", pattern="*.RDS")
+files <- files[grep("_Unique",files)]
+files <- files[!grepl("MBR",files)]
+file_path <- paste("results_v002/",files,sep="")
+#get D5
+file_path <- c(file_path,"./27_20230201_FH/results/D5_extracts_Razor.RDS")
+#get all combinations 1:2 defines that you get eine 2er combination
+file_path_combinations <- lapply(1:2, function(y) combn(file_path, y))
+file_path_combinations <- as.data.frame(file_path_combinations[[2]])
+
+#combine all file path and analyze 
+results_2gether <- list()
+results_2gether_deviation <- c()
+
+
+
+###########new try
+for (FILES in 1:ncol(file_path_combinations)){
+  #print(FILES)
+  #read in files
+  FASTA_1 <- readRDS(file_path_combinations[1,FILES])
+  FASTA_1_raw <- FASTA_1[[1]]$FASTA
+  # prepare fasta ids for getting the intersection
+  fasta <- c()
+  for (i in 1:length(FASTA_1_raw)){
+    tmp <- strsplit(FASTA_1_raw[i],split='\\|')[[1]][2]
+    fasta <- c(fasta,tmp)
+  }
+  fasta1 <- fasta
+  
+  FASTA_2 <- readRDS(file_path_combinations[2,FILES])
+  FASTA_2 <- FASTA_2[[1]]$FASTA
+  fasta <- c()
+  for (i in 1:length(FASTA_2)){
+    tmp <- strsplit(FASTA_2[i],split='\\|')[[1]][2]
+    fasta <- c(fasta,tmp)
+  }
+  fasta2 <- fasta
+  
+  #determine length for caluclation
+  length_FASTA_1 <- length(FASTA_1_raw)
+  # which fasta ids at the first place are the same? -> this ids should be removed in the comparison
+  
+  FASTA_1_raw <- FASTA_1_raw[-which(fasta1 %in% fasta2)]
+  
+  
+  FASTA <- str_match_all(FASTA_1_raw, "\\|(.*?)\\|")
+  res<-list()
+  for (fasta in 1:length(FASTA_1_raw)){
+    res[[fasta]]<-FASTA[[fasta]][-1,2]
+  }
+  FASTA_1 <- res #this FASTA file is used to search for overlooked identifications
+
+  result <- c()
+  for (i in 1:length(FASTA_1)){
+    if (any(str_detect(FASTA_2,paste0("\\b(", paste(FASTA_1[[i]], collapse="|"), ")\\b"))) && length(FASTA_1[[i]])>0){
+      result<-c(result,i)
+    }
+  }
+
+  results_2gether[[FILES]] <- result
+  results_2gether_deviation <- c(results_2gether_deviation,
+                                 ((length(result))/mean(length_FASTA_1,length(FASTA_2))*100))
+}
+
+boxplot(results_2gether_deviation)
+
+
+```
+
