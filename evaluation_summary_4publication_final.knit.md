@@ -1,0 +1,855 @@
+---
+output:
+  html_document:
+    df_print: paged
+    fig.align: center
+    self_contained: yes 
+    fig.height: 4
+    fig.width: 8
+    theme: united
+    toc: yes
+    toc_depth: 4
+    toc_float: yes
+    number_sections: yes
+    code_folding: hide
+title: "Auswertung TC Daten"
+author: "David Lilek"
+date: "19 April 2023, 15:33:29"
+editor_options: 
+  markdown: 
+    wrap: 72
+---
+
+
+# Load Libraries & Plot function & Colors
+
+
+```r
+library(ggplot2)
+library(tidyverse)
+library(dplyr)
+library(UpSetR)
+library(pheatmap)
+library(ggvenn)
+library(knitr)
+library(reshape2)
+library(eulerr)
+#library(venneuler)
+#library(VennDiagram) 
+```
+
+
+```r
+euler_venn_2comp <- function(lst, label_venn, color_venn, cex_venn, grid, gList, h_just, v_just) {
+  ######################################
+  #################plot 2 venn diagrams
+  ######################################
+  p<-plot(euler(lst),
+          input="union",
+          shape="ellipse",
+          quantities=list(type = c("percent", 'counts'),
+                          cex = cex_venn), #schriftgröße für A, B bzw intersection
+          key=TRUE,
+          labels=FALSE,
+          lty = c(1,1),
+          legend = list(labels = label_venn,
+                        side = "bottom",
+                        nrow = 1, ncol = 3),
+          edges=TRUE,
+          fills = color_venn, #color für A,B bzw intersection 
+          alpha=0.8)
+  # https://stackoverflow.com/questions/75177293/how-to-change-the-label-position-when-plotting-venn-diagram-from-eulerr-package
+  tags <- p$children[[2]]$children[[1]]$children$tags$children
+  tags <- do.call(grid::gList, lapply(tags, function(x) {
+    x$children[[2]]$label <- sub(" \\(", "\n(", x$children[[2]]$label)
+    x$children[[2]]$just <- NULL
+    x$children[[2]]$hjust <- h_just
+    x$children[[2]]$vjust <- v_just
+    x}))
+  
+  p$children[[2]]$children[[1]]$children$tags$children <- tags
+  print(p)
+}
+
+
+euler_venn_3comp <- function(lst, cex_venn, label_venn, color_venn, grid, gList, h_just, v_just) {
+  ##################################
+  ###### venn diagram 3 comparisons
+  ##################################
+  p<-plot(euler(lst),
+          input="union",
+          shape="ellipse",
+          quantities=list(type = c("percent", 'counts'),
+                          cex = cex_venn), #schriftgröße für A, B, C bzw intersection
+          key=TRUE,
+          labels=FALSE,
+          lty = c(1,1,1),
+          legend = list(labels = label_venn,
+                        side = "bottom",
+                        nrow = 1, ncol = 3),
+          edges=TRUE,
+          fills = color_venn, #color für A,B bzw intersection fills = grey[c(10,18,25)]
+          alpha=0.8)
+  # https://stackoverflow.com/questions/75177293/how-to-change-the-label-position-when-plotting-venn-diagram-from-eulerr-packages
+  tags <- p$children[[2]]$children[[1]]$children$tags$children
+  tags <- do.call(grid::gList, lapply(tags, function(x) {
+    x$children[[2]]$label <- sub(" \\(", "\n(", x$children[[2]]$label)
+    x$children[[2]]$just <- NULL
+    x$children[[2]]$hjust <- h_just
+    x$children[[2]]$vjust <- v_just
+    x}))
+  
+  p$children[[2]]$children[[1]]$children$tags$children <- tags
+  print(p)
+}
+```
+
+
+```r
+#get colors
+#total protein extract
+total <- rgb(255,93,93, maxColorValue = 255)
+#fractions high MW SEC
+highMW <- rgb(169,208,142,maxColorValue = 255)
+#fractions low MW SEC
+lowMW <- rgb(255,217,102, maxColorValue = 255)
+#in-gel digest
+IG <- rgb(180,198,231,maxColorValue = 255)
+```
+
+# Grafik 1 - Comparison E3_D1 - noTreatment, Heatshock, ProteaseInhibitor
+
+The results show that the significant highest number of protein identifications (median=586) could be achieved using protease inhibitor. The significant lowest number of proteins was determined using heatshock (median=315). No treatment resulted in 491 identified proteins. (p value ANOVA 1.43e-09; p value Tukey HSD test below 0.0003). All measurement were performed in using 6 technical replicates.
+
+
+ACHTUNG: Die Anzahl der oben genannten Proteine beziehen sich auf die Bildung des einfachen Mittelwertes. Hier wenn man merged und die "wirkliche" Anzahl an Proteinen gibt.
+
+
+```r
+#E3_D1
+D1_raw <- readRDS(file = "results_v002/results_run1_mqpar_extracts_2gether_E3_D1_LFQ_combined_txt_proteinGroups.txt_Unique.RDS")
+D1_raw <- D1_raw[[1]]
+
+D1 <- D1_raw[,-ncol(D1_raw)]
+D1 <- D1*1
+
+noT <- apply(D1[,c(1:6)], 1, any)
+HS <- apply(D1[,c(7:12)],1,any)
+PI <- apply(D1[,c(13:18)],1,any)
+print("no Treatment")
+```
+
+```
+## [1] "no Treatment"
+```
+
+```r
+sum(noT*1)
+```
+
+```
+## [1] 643
+```
+
+```r
+print("Heatshock")
+```
+
+```
+## [1] "Heatshock"
+```
+
+```r
+sum(HS*1)
+```
+
+```
+## [1] 419
+```
+
+```r
+print("Protease Inhibitor")
+```
+
+```
+## [1] "Protease Inhibitor"
+```
+
+```r
+sum(PI*1)
+```
+
+```
+## [1] 774
+```
+
+
+```r
+data <- read.csv("Extraktionen_gesamt_V2_DL.csv", sep=";")
+data_sub <- as.data.frame(data$Unique.no.MBR.2.peptides)
+data_sub <- as.data.frame(data_sub[c(1:18),])
+data_sub$group <- c(rep("noTreatment",6),
+                   rep("Heatshock",6),
+                   rep("ProteaseInhibitor",6))
+colnames(data_sub) <- c("number","group")
+print("Median no Treatment")
+```
+
+```
+## [1] "Median no Treatment"
+```
+
+```r
+median(subset(data_sub,group=="noTreatment")[,1])
+```
+
+```
+## [1] 490.5
+```
+
+```r
+print("Median Heatshock")
+```
+
+```
+## [1] "Median Heatshock"
+```
+
+```r
+median(subset(data_sub,group=="Heatshock")[,1])
+```
+
+```
+## [1] 314.5
+```
+
+```r
+print("Median ProteaseInhibitor")
+```
+
+```
+## [1] "Median ProteaseInhibitor"
+```
+
+```r
+median(subset(data_sub,group=="ProteaseInhibitor")[,1])
+```
+
+```
+## [1] 586
+```
+
+```r
+ggplot(data_sub, aes(x=group, y=number)) + 
+  geom_boxplot()
+```
+
+<img src="evaluation_summary_4publication_final_files/figure-html/unnamed-chunk-5-1.png" width="672" />
+
+```r
+anova <- aov(number ~ group, data=data_sub)
+summary(anova)
+```
+
+```
+##             Df Sum Sq Mean Sq F value   Pr(>F)    
+## group        2 232951  116476   105.9 1.43e-09 ***
+## Residuals   15  16506    1100                     
+## ---
+## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+```
+
+```r
+Tukey <- TukeyHSD(anova)
+plot(Tukey)
+```
+
+<img src="evaluation_summary_4publication_final_files/figure-html/unnamed-chunk-5-2.png" width="672" />
+
+```r
+Tukey
+```
+
+```
+##   Tukey multiple comparisons of means
+##     95% family-wise confidence level
+## 
+## Fit: aov(formula = number ~ group, data = data_sub)
+## 
+## $group
+##                                   diff       lwr      upr     p adj
+## noTreatment-Heatshock         175.6667 125.92061 225.4127 0.0000004
+## ProteaseInhibitor-Heatshock   275.1667 225.42061 324.9127 0.0000000
+## ProteaseInhibitor-noTreatment  99.5000  49.75394 149.2461 0.0003018
+```
+
+# Grafik 2
+
+## A
+
+
+```r
+# D1-D2 comparison
+
+D1_raw <- readRDS(file = "results_v002/results_run1_mqpar_extracts_2gether_E4_D1_a-j_LFQ_combined_txt_proteinGroups.txt_Unique.RDS")
+D1_raw <- D1_raw[[1]]
+D1 <- dplyr::select(D1_raw, contains("Pool"))
+D1 <- apply(D1, 1, any)
+#D1 <- as.data.frame(cbind(D1, D1_raw$FASTA))
+fasta <- c()
+for (i in 1:length(D1_raw$FASTA)){
+  tmp <- strsplit(D1_raw$FASTA[i],split='\\|')[[1]][2]
+  fasta <- c(fasta,tmp)
+}
+D1 <- as.data.frame(cbind(D1, fasta))
+D2_raw <- readRDS(file = "results_v002/results_run1_mqpar_extracts_2gether_D2_LFQ_combined_txt_proteinGroups.txt_Unique.RDS")
+D2_raw <- D2_raw[[1]]
+D2 <- dplyr::select(D2_raw, contains("Gesamt"))
+D2 <- apply(D2, 1, any)
+fasta <- c()
+for (i in 1:length(D2_raw$FASTA)){
+  tmp <- strsplit(D2_raw$FASTA[i],split='\\|')[[1]][2]
+  fasta <- c(fasta,tmp)
+}
+#D2 <- as.data.frame(cbind(D2, D2_raw$FASTA))
+D2 <- as.data.frame(cbind(D2, fasta))
+D1_D2_comparison  <- merge(D1, D2,
+                           all = TRUE,
+                           by = "fasta")
+
+D1_D2_comparison$D1 <- as.logical(D1_D2_comparison$D1)
+D1_D2_comparison$D2 <- as.logical(D1_D2_comparison$D2)
+D1_D2_comparison <- D1_D2_comparison[,-1]*1
+D1_D2_comparison[D1_D2_comparison==0] <- NA
+
+
+
+proteins <- as.data.frame(which(!is.na(D1_D2_comparison), arr.ind=TRUE))
+
+D1_inter <- proteins %>% dplyr::filter(col == 1)
+D2_inter <- proteins %>% dplyr::filter(col == 2)
+
+# combine to list
+lst <- list("E4_D1"=as.double(D1_inter[,1]),
+            "E4_D2"=as.double(D2_inter[,1]))
+
+
+
+#venn digarams
+#get colors
+D1_col <- rgb(255,93,93, maxColorValue = 255)
+D2_col <- rgb(169,208,142,maxColorValue = 255)
+
+
+euler_venn_2comp(lst, label_venn = c("E4_D1","E4_D2"), color_venn = c(D1_col,D2_col), cex_venn = c(1,1), h_just = 0.5, v_just = 0.5)
+```
+
+<img src="evaluation_summary_4publication_final_files/figure-html/unnamed-chunk-6-1.png" width="672" />
+
+```r
+print(c("E4_D1","E4_D2"))
+```
+
+```
+## [1] "E4_D1" "E4_D2"
+```
+
+```r
+sum(D1_D2_comparison$D1,na.rm = TRUE)
+```
+
+```
+## [1] 657
+```
+
+```r
+sum(D1_D2_comparison$D2,na.rm = TRUE)
+```
+
+```
+## [1] 639
+```
+
+
+## B
+
+
+```r
+data <- readRDS("./27_20230201_FH/results/D5_extracts_Razor.RDS")
+data <- data[[1]]
+b <- dplyr::select(data, contains("_b"))
+D1_b <- b$Razor...unique.peptides.1_b_01+ b$Razor...unique.peptides.1_b_02
+D2_b <- b$Razor...unique.peptides.2_b_01 + b$Razor...unique.peptides.2_b_02
+D4_b <- b$Razor...unique.peptides.3_b_01 + b$Razor...unique.peptides.4_b_02
+b <- as.data.frame(cbind(D1_b,D2_b,D4_b))
+b[b==0] <- NA
+b[b==2] <- 1
+
+#venn diagram
+proteins <- as.data.frame(which(!is.na(b), arr.ind=TRUE))
+D1_b <- proteins %>% dplyr::filter(col == 1)
+D2_b <- proteins %>% dplyr::filter(col == 2)
+D4_b <- proteins %>% dplyr::filter(col == 3)
+
+# combine to list
+lst <- list(E5_D1_b = as.double(D1_b[,1]),
+            E5_D2_b = as.double(D2_b[,1]),
+            E5_D4_b = as.double(D4_b[,1]))
+
+
+euler_venn_3comp(lst, label_venn = c("E5_D1_b","E5_D2_b","E5_D4_b"), color_venn = c(IG,highMW,lowMW), cex_venn = c(1,1,1), h_just = 0.5, v_just = 0.5)
+```
+
+<img src="evaluation_summary_4publication_final_files/figure-html/unnamed-chunk-7-1.png" width="672" />
+
+
+
+
+## C
+
+
+```r
+# D1-D2 comparison
+D1_raw <- readRDS(file = "results_v002/results_run1_mqpar_extracts_2gether_E4_D1_a-j_LFQ_combined_txt_proteinGroups.txt_Unique.RDS")
+D1_raw <- D1_raw[[1]]
+D1 <- dplyr::select(D1_raw, contains("Pool"))
+D1 <- apply(D1, 1, any)
+#D1 <- as.data.frame(cbind(D1, D1_raw$FASTA))
+fasta <- c()
+for (i in 1:length(D1_raw$FASTA)){
+  tmp <- strsplit(D1_raw$FASTA[i],split='\\|')[[1]][2]
+  fasta <- c(fasta,tmp)
+}
+D1 <- as.data.frame(cbind(D1, fasta))
+D2_raw <- readRDS(file = "results_v002/results_run1_mqpar_extracts_2gether_D2_LFQ_combined_txt_proteinGroups.txt_Unique.RDS")
+D2_raw <- D2_raw[[1]]
+D2 <- dplyr::select(D2_raw, contains("Gesamt"))
+D2 <- apply(D2, 1, any)
+fasta <- c()
+for (i in 1:length(D2_raw$FASTA)){
+  tmp <- strsplit(D2_raw$FASTA[i],split='\\|')[[1]][2]
+  fasta <- c(fasta,tmp)
+}
+#D2 <- as.data.frame(cbind(D2, D2_raw$FASTA))
+D2 <- as.data.frame(cbind(D2, fasta))
+D1_D2_comparison  <- merge(D1, D2,
+                           all = TRUE,
+                           by = "fasta")
+D1_D2_comparison$comb <- apply(D1_D2_comparison[,c(2:3)], 1, any)
+#E5
+data <- readRDS("./27_20230201_FH/results/D5_extracts_Razor.RDS")
+data <- data[[1]]
+b <- dplyr::select(data, contains("_b"))
+b <- b[,-c(5:6)]
+b <- as.data.frame(apply(b, 1, any))
+fasta <- c()
+for (i in 1:length(data$FASTA)){
+  tmp <- strsplit(data$FASTA[i],split='\\|')[[1]][2]
+  fasta <- c(fasta,tmp)
+}
+b$fasta <- fasta
+colnames(b) <- c("b","fasta")
+
+#merge with D5
+D1_D2_D5_comparison  <- merge(D1_D2_comparison[,c(1,4)],b,
+                           all = TRUE,
+                           by = "fasta")
+colnames(D1_D2_D5_comparison) <- c("fasta","E4","E5")
+
+D1_D2_D5_comparison$D1 <- as.logical(D1_D2_D5_comparison$E4)
+D1_D2_D5_comparison$D2 <- as.logical(D1_D2_D5_comparison$E5)
+D1_D2_D5_comparison <- D1_D2_D5_comparison[,-1]*1
+D1_D2_D5_comparison[D1_D2_D5_comparison==0] <- NA
+
+
+
+proteins <- as.data.frame(which(!is.na(D1_D2_D5_comparison), arr.ind=TRUE))
+
+E4_inter <- proteins %>% dplyr::filter(col == 1)
+E5_inter <- proteins %>% dplyr::filter(col == 2)
+
+
+# combine to list
+lst <- list("E4_D1_D2"=as.double(E4_inter[,1]),
+            "E5_D1_D2_D4"=as.double(E5_inter[,1]))
+
+upset(fromList(lst), 
+      order.by = "freq",
+      nsets = 10,
+      nintersects = 15,
+      keep.order = TRUE,
+      sets=c("E4_D1_D2", "E5_D1_D2_D4"),
+      mainbar.y.label = "Number of shared proteins",
+      sets.x.label = "Number of proteins per fraction",
+      set_size.show = TRUE,
+      set_size.angles = 0,
+      set_size.scale_max = 1500
+)
+```
+
+<img src="evaluation_summary_4publication_final_files/figure-html/unnamed-chunk-8-1.png" width="672" />
+
+
+
+
+# Grafik 3
+
+## A + B
+
+
+```r
+############## B
+data <- readRDS(file = "results_v002/results_run1_mqpar_extracts_2gether_E4_D1_B_LFQ_combined_txt_proteinGroups.txt_Unique.RDS")
+data <- data[[1]]
+data_sub <- dplyr::select(data, contains("Pool_G"))
+#get rid of FALSE values
+B <- data_sub*1
+B[B==0] <- NA
+ind <- apply(B, 1, function(x) all(is.na(x)))
+
+
+############AF
+data <- readRDS(file = "results_v002/results_run1_mqpar_extracts_2gether_E4_D1_AF_TF_LFQ_combined_txt_proteinGroups.txt_Unique.RDS")
+data <- data[[1]]
+data_sub <- dplyr::select(data, contains("Pool_AF"))
+#get rid of FALSE values
+AF <- data_sub*1
+AF[AF==0] <- NA
+ind <- apply(AF, 1, function(x) all(is.na(x)))
+
+############TF
+data <- readRDS(file = "results_v002/results_run1_mqpar_extracts_2gether_E4_D1_AF_TF_LFQ_combined_txt_proteinGroups.txt_Unique.RDS")
+data <- data[[1]]
+data_sub <- dplyr::select(data, contains("Pool_TF"))
+#get rid of FALSE values
+TF <- data_sub*1
+TF[TF==0] <- NA
+ind <- apply(TF, 1, function(x) all(is.na(x)))
+
+
+## compare AF TF B poster
+AF_TF_raw <- readRDS(file = "results_v002/results_run1_mqpar_extracts_2gether_E4_D1_AF_TF_LFQ_combined_txt_proteinGroups.txt_Unique.RDS")
+AF_TF_raw <- AF_TF_raw[[1]]
+AF <- dplyr::select(AF_TF_raw, contains("AF"))
+AF <- apply(AF, 1, any)
+fasta <- c()
+for (i in 1:length(AF_TF_raw$FASTA)){
+  tmp <- strsplit(AF_TF_raw$FASTA[i],split='\\|')[[1]][2]
+  fasta <- c(fasta,tmp)
+}
+AF <- as.data.frame(cbind(AF, fasta))
+TF <- dplyr::select(AF_TF_raw, contains("TF"))
+TF <- apply(TF, 1, any)
+TF <- as.data.frame(cbind(TF, fasta))
+B_raw <- readRDS(file = "results_v002/results_run1_mqpar_extracts_2gether_E4_D1_B_LFQ_combined_txt_proteinGroups.txt_Unique.RDS")
+B_raw <- B_raw[[1]]
+B <- dplyr::select(B_raw, contains("Pool_G"))
+B <- apply(B, 1, any)
+fasta <- c()
+for (i in 1:length(B_raw$FASTA)){
+  tmp <- strsplit(B_raw$FASTA[i],split='\\|')[[1]][2]
+  fasta <- c(fasta,tmp)
+}
+B <- as.data.frame(cbind(B, fasta))
+
+AF_TF_B_comparison  <- merge(B, AF,
+                           all = TRUE,
+                           by = "fasta")
+AF_TF_B_comparison <- merge(AF_TF_B_comparison, TF,
+                            all = TRUE,
+                            by = "fasta")
+
+AF_TF_B_comparison$B <- as.logical(AF_TF_B_comparison$B)
+AF_TF_B_comparison$AF <- as.logical(AF_TF_B_comparison$AF)
+AF_TF_B_comparison$TF <- as.logical(AF_TF_B_comparison$TF)
+AF_TF_B_comparison <- AF_TF_B_comparison[,-1]*1
+AF_TF_B_comparison[AF_TF_B_comparison==0] <- NA
+
+
+
+
+proteins <- as.data.frame(which(!is.na(AF_TF_B_comparison), arr.ind=TRUE))
+
+B <- proteins %>% dplyr::filter(col == 1)
+AF <- proteins %>% dplyr::filter(col == 2)
+TF <- proteins %>% dplyr::filter(col == 3)
+
+
+# combine to list
+lst <- list("E4_D1_B"=as.double(B[,1]),
+            "E4_D1_AF"=as.double(AF[,1]),
+            "E4_D1_TF"=as.double(TF[,1]))
+
+
+#get colors
+#total protein extract
+total <- rgb(255,93,93, maxColorValue = 255)
+#fractions high MW SEC
+highMW <- rgb(169,208,142,maxColorValue = 255)
+#fractions low MW SEC
+lowMW <- rgb(255,217,102, maxColorValue = 255)
+#in-gel digest
+IG <- rgb(180,198,231,maxColorValue = 255)
+
+
+euler_venn_3comp(lst, label_venn = c("E4_D1_B","E4_D1_AF","E4_D1_TF"), color_venn = c(IG,lowMW,highMW), cex_venn = c(1,1,1), h_just = 0.5, v_just = 0.5)
+```
+
+<img src="evaluation_summary_4publication_final_files/figure-html/unnamed-chunk-9-1.png" width="672" />
+
+```r
+print(c("E4_D1_B","E4_D1_AF","E4_D1_TF"))
+```
+
+```
+## [1] "E4_D1_B"  "E4_D1_AF" "E4_D1_TF"
+```
+
+```r
+sum(AF_TF_B_comparison$B,na.rm = TRUE)
+```
+
+```
+## [1] 1520
+```
+
+```r
+sum(AF_TF_B_comparison$AF,na.rm = TRUE)
+```
+
+```
+## [1] 664
+```
+
+```r
+sum(AF_TF_B_comparison$TF,na.rm = TRUE)
+```
+
+```
+## [1] 671
+```
+
+## B
+
+
+```r
+#compare B to pool from 0609 
+B_raw <- readRDS(file = "results_v002/results_run1_mqpar_extracts_2gether_E4_D1_B_LFQ_combined_txt_proteinGroups.txt_Unique.RDS")
+B_raw <- B_raw[[1]]
+B <- dplyr::select(B_raw, contains("Pool_G"))
+B <- apply(B, 1, any)
+fasta <- c()
+for (i in 1:length(B_raw$FASTA)){
+  tmp <- strsplit(B_raw$FASTA[i],split='\\|')[[1]][2]
+  fasta <- c(fasta,tmp)
+}
+B <- as.data.frame(cbind(B, fasta))
+aj_raw <- readRDS(file = "results_v002/results_run1_mqpar_extracts_2gether_E4_D1_a-j_LFQ_combined_txt_proteinGroups.txt_Unique.RDS")
+aj_raw <- aj_raw[[1]]
+aj <- dplyr::select(aj_raw, contains("Pool"))
+aj <- apply(aj, 1, any)
+fasta <- c()
+for (i in 1:length(aj_raw$FASTA)){
+  tmp <- strsplit(aj_raw$FASTA[i],split='\\|')[[1]][2]
+  fasta <- c(fasta,tmp)
+}
+aj <- as.data.frame(cbind(aj, fasta))
+B_aj_comparison  <- merge(B, aj,
+                             all = TRUE,
+                             by = "fasta")
+
+B_aj_comparison$B <- as.logical(B_aj_comparison$B)
+B_aj_comparison$aj <- as.logical(B_aj_comparison$aj)
+B_aj_comparison <- B_aj_comparison[,-1]*1
+B_aj_comparison[B_aj_comparison==0] <- NA
+
+
+proteins <- as.data.frame(which(!is.na(B_aj_comparison), arr.ind=TRUE))
+
+B_inter <- proteins %>% dplyr::filter(col == 1)
+aj_inter <- proteins %>% dplyr::filter(col == 2)
+
+# combine to list
+lst <- list("E4_D1_B_fractions"=as.double(B_inter[,1]),
+            "E4_D1"=as.double(aj_inter[,1]))
+
+
+
+
+
+euler_venn_2comp(lst, label_venn = c("E4_D1_B_fractions","E4_D1"), color_venn = c(IG,total), cex_venn = c(1,1), h_just = 0.5, v_just = 0.5)
+```
+
+<img src="evaluation_summary_4publication_final_files/figure-html/unnamed-chunk-10-1.png" width="672" />
+
+```r
+print(c("B","E4_D1_pool"))
+```
+
+```
+## [1] "B"          "E4_D1_pool"
+```
+
+```r
+sum(B_aj_comparison$B,na.rm = TRUE)
+```
+
+```
+## [1] 1520
+```
+
+```r
+sum(B_aj_comparison$aj,na.rm = TRUE)
+```
+
+```
+## [1] 657
+```
+
+
+## C
+
+
+```r
+#############################
+# D2
+###############################
+data <- readRDS(file = "results_v002/results_run1_mqpar_extracts_2gether_D2_LFQ_combined_txt_proteinGroups.txt_Unique.RDS")
+data <- data[[1]]
+data_sub <- dplyr::select(data, contains("Pool_20"))
+B_D2 <- data_sub*1
+B_D2[B_D2==0] <- NA
+
+
+### analysis B
+proteins <- as.data.frame(which(!is.na(B_D2), arr.ind=TRUE))
+
+B1 <- proteins %>% dplyr::filter(col == 1 ) # | col == 2 -> means or col2
+B10 <- proteins %>% dplyr::filter(col == 2)
+B2 <- proteins %>% dplyr::filter(col == 3)
+B3 <- proteins %>% dplyr::filter(col == 4)
+B4 <- proteins %>% dplyr::filter(col == 5)
+B5 <- proteins %>% dplyr::filter(col == 6)
+B6 <- proteins %>% dplyr::filter(col == 7)
+B7 <- proteins %>% dplyr::filter(col == 8)
+B8 <- proteins %>% dplyr::filter(col == 9)
+B9 <- proteins %>% dplyr::filter(col == 10)
+# combine to list
+lst <- list(B1 = as.double(B1[,1]),
+            B2 = as.double(B2[,1]),
+            B3 = as.double(B3[,1]),
+            B4 = as.double(B4[,1]),
+            B5 = as.double(B5[,1]),
+            B6 = as.double(B6[,1]),
+            B7 = as.double(B7[,1]),
+            B8 = as.double(B8[,1]),
+            B9 = as.double(B9[,1]),
+            B10 = as.double(B10[,1]))            
+
+upset(fromList(lst), 
+      order.by = "freq",
+      nsets = 9,
+      nintersects = 15,
+      sets = c("B1","B2","B3","B4","B5","B6","B7","B8","B9","B10"),
+      keep.order = TRUE,
+      mainbar.y.label = "Number of shared proteins",
+      sets.x.label = "Number of proteins per fraction",
+      set_size.show = TRUE,
+      set_size.angles = 0,
+      set_size.scale_max = 1000
+)
+```
+
+<img src="evaluation_summary_4publication_final_files/figure-html/unnamed-chunk-11-1.png" width="672" />
+
+```r
+data_D2_pool <- dplyr::select(data, contains("Gesamt"))
+data_D2_pool <- apply(data_D2_pool, 1, any)
+data_D2_fractions <- dplyr::select(data, contains("20"))
+data_D2_fractions <- apply(data_D2_fractions, 1, any)
+data_D2 <- as.data.frame(cbind(data_D2_pool,data_D2_fractions))
+data_D2 <- data_D2*1
+data_D2[data_D2==0] <- NA
+
+
+
+proteins <- as.data.frame(which(!is.na(data_D2), arr.ind=TRUE))
+
+D2_pool_inter <- proteins %>% dplyr::filter(col == 1)
+D2_fractions_inter <- proteins %>% dplyr::filter(col == 2)
+
+# combine to list
+lst <- list(D2_pool=as.double(D2_pool_inter[,1]),
+            D2_fractions=as.double(D2_fractions_inter[,1]))
+
+#venn digarams
+#get colors
+D2_pool_col <- rgb(255,93,93, maxColorValue = 255)
+D2_ingel_col <- rgb(169,208,142,maxColorValue = 255)
+#E4_D1_pool_col <- rgb(255,217,102, maxColorValue = 255)
+
+
+euler_venn_2comp(lst, label_venn = c("D2_pool","D2_fractions"), color_venn = c(D2_pool_col,D2_ingel_col), cex_venn = c(1,1), h_just = 0.5, v_just = 0.5)
+```
+
+<img src="evaluation_summary_4publication_final_files/figure-html/unnamed-chunk-11-2.png" width="672" />
+
+
+
+# Grafik 4
+
+## E4_D1
+
+* manuell von hier abgeschrieben `file://fhwn.ac.at/TU/Forschung/wissenschaftliche%20Ver%C3%B6ffentlichungen/Publikationen/2022/Proteomics_JRS_DL/data/evaluation_summary.html#4_Compare_D1_and_D2_B1-B9_resp_B1-B10`
+
+
+```r
+dat <- as.data.frame(
+  cbind(c(126,159,147,241,322,591,661,852,699),
+        c(paste("B",1:9,sep=""))))
+colnames(dat) <- c("no","fraction")
+dat$no <- as.numeric(dat$no)
+
+positions <-  c(paste("B",9:1,sep=""))
+
+
+ggplot(data=dat, aes(x=fraction,y=no))+
+  geom_bar(stat="identity") +
+  coord_flip() +
+  geom_text(aes(label=no), hjust=1.5,vjust=0.6, color="white", size=4) +
+  theme(axis.title.y = element_blank(),axis.text.y = element_text(size=14)) + 
+  scale_y_continuous(breaks = seq(0, 1000, by = 100)) +
+  labs(y="Number of proteins per fraction") +
+  scale_x_discrete(limits = positions)
+```
+
+<img src="evaluation_summary_4publication_final_files/figure-html/unnamed-chunk-12-1.png" width="384" />
+
+## E4_D2
+
+* manuell von hier abgeschrieben `file:///X:/wissenschaftliche%20Ver%C3%B6ffentlichungen/Publikationen/2022/Proteomics_JRS_DL/data/evaluation_summary_4publication.html#9_D2`
+
+
+```r
+dat <- as.data.frame(
+  cbind(c(107,241,231,142,145,148,139,166,180,98),
+        c(paste("B",1:10,sep=""))))
+colnames(dat) <- c("no","fraction")
+dat$no <- as.numeric(dat$no)
+
+positions <-  c(paste("B",10:1,sep=""))
+
+ggplot(data=dat, aes(x=fraction,y=no))+
+  geom_bar(stat="identity") +
+  coord_flip() +
+  geom_text(aes(label=no), hjust=1.5,vjust=0.6, color="white", size=4) +
+  theme(axis.title.y = element_blank(),axis.text.y = element_text(size=14)) + 
+  scale_y_continuous(breaks = seq(0, 1000, by = 100)) +
+  scale_x_discrete(limits = positions) +
+  labs(y="Number of proteins per fraction")
+```
+
+<img src="evaluation_summary_4publication_final_files/figure-html/unnamed-chunk-13-1.png" width="384" />
+
+
+

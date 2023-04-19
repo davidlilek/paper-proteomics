@@ -37,6 +37,7 @@ d <- d[[1]]
   + das habe ich zb bei meiner Masterarbeit so gemacht
 * Strategie 2
   + den ersten identifier extrahieren und diesen zum mergen zu verweden: `A0A023ZYJ9`
+  + so habe ich es jetzt für unsere Auswertungen gemacht
 
 Wo wird bzw wo könnte es problematisch werden? Im Proteomics Bereich identifizieren wir ja Peptide die aber auch in unterschiedlichen Proteinen vorkommen können, dh es ist möglich, dass das jeweilige Peptid in mehreren Proteinen vorkommt, weswegen man ja eigentlich von Proteingruppen spricht wo mehrere Proteine vorkommen können. zb in folgendem Beispiel sind es 2 Proteine (D7EJG6 und A0A139W8C1)die in einer Proteingruppe vorkommen
 
@@ -54,13 +55,14 @@ Als Beispiel wenn man jetzt FASTA1 und FASTA2 mergen würde.
   + FASTA_1: `"tr|A0A139W979|A0A139W979_TRICA Uncharacterized protein OS=Tribolium castaneum OX=7070 GN=TcasGA2_TC030965 PE=4 SV=1;tr|A0A139W974|A0A139W974_TRICA Uncharacterized protein OS=Tribolium castaneum OX=7070 GN=TcasGA2_TC030965 PE=4 SV=1"` 
   + FASTA_2: `"tr|A0A139W974|A0A139W974_TRICA Uncharacterized protein OS=Tribolium castaneum OX=7070 GN=TcasGA2_TC030965 PE=4 SV=1;tr|A0A139W979|A0A139W979_TRICA Uncharacterized protein OS=Tribolium castaneum OX=7070 GN=TcasGA2_TC030965 PE=4 SV=1"`
 
-Bei beiden Beispielen sind einfach die 2 gefundenen Proteine in der jeweiligen Proteingruppe vertauscht; wenn man nur den ersten FASTA identifier nimmt würde das in 2 unterschiedlichen proteingruppen resultieren obwohl sie ja diesselben sind. Ich habe das für einen Vergleich (15) angeschaut und es sind alle 15 Vergleiche einfach vertauscht.
+Bei beiden Beispielen sind einfach die 2 gefundenen Proteine in der jeweiligen Proteingruppe vertauscht; wenn man nur den ersten FASTA identifier nimmt (Strategie 2) würde das in 2 unterschiedlichen proteingruppen resultieren obwohl sie ja diesselben sind. Ich habe das für einen Vergleich (15) angeschaut und es sind alle 15 Vergleiche einfach vertauscht.
 
 Wie groß ist jetzt der Anteil an FASTA Files die so ausschauen und die wir durch unsere merging Methode verlieren? Um das zu ermitteln wurde wie folgt vorgegangen:
 
 * einlesen aller RDS Ergebnisfiles die wir haben und um das merging in allen Kombinationen zu ermitteln wurde mit `lapply(1:2, function(y) combn(file_path, y))` eine Kombination aller Files in 2er Kombi erstellt und verglichen
+  + zb wenn wir 3 Files A,B,C haben wurde also AB, AC, BA, CA, BC, CB erstellt
 * um die gemeinsamen hits zu entfernen wurde mit folgendem Befehl jeweils die ersten(!) identifier verglichen `FASTA_1_raw[-which(fasta1 %in% fasta2)]`
-  + dies war notwendig da ja im "normalen" Processing ja auch nur die ersten Fasta identifier verglichen wurden
+  + dies war notwendig da ja im "normalen" Processing (Strategie2) ja auch nur die ersten Fasta identifier verglichen wurden
 * danach wurden die FASTA identifiers von FASTA1 (also alle außer das erste) in FASTA2 gesucht mit `(any(str_detect(FASTA_2,paste0("\\b(", paste(FASTA_1[[i]], collapse="|"), ")\\b"))) && length(FASTA_1[[i]])>0)` 
   + die `length(FASTA_1[[i]]>0` war notwendig, da es ja auch proteingruppen mit nur einem FASTA header gibt, deshalb steht in FASTA_1 dann nur "" drinnen und das würde man überall finden
   + str detect wurde verwendet, um einen exact match zu bekommen, da bei der grundeinstellung des befehls `grepl` auch partielle match mitgenommen werden; mit dem `\\b`kann man mit str_detect einen exact match bekommen
@@ -82,8 +84,11 @@ file_path <- paste("results_v002/",files,sep="")
 #get D5
 file_path <- c(file_path,"./27_20230201_FH/results/D5_extracts_Razor.RDS")
 #get all combinations 1:2 defines that you get eine 2er combination
-file_path_combinations <- lapply(1:2, function(y) combn(file_path, y))
-file_path_combinations <- as.data.frame(file_path_combinations[[2]])
+#file_path_combinations <- lapply(1:2, function(y) combn(file_path, y))
+#file_path_combinations <- as.data.frame(file_path_combinations[[2]])
+#this code can be used to get a-b, b-a, a-c, c-a,...
+file_path_combinations <- subset(expand.grid(rep(list(file_path),2)), Var1 != Var2)
+file_path_combinations <- as.data.frame(t(file_path_combinations))
 
 #combine all file path and analyze 
 results_2gether <- list()

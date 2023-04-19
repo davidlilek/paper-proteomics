@@ -64,6 +64,8 @@ file_path <- c(file_path,"./27_20230201_FH/results/D5_extracts_Razor.RDS")
 #get all combinations 1:2 defines that you get eine 2er combination
 file_path_combinations <- lapply(1:2, function(y) combn(file_path, y))
 file_path_combinations <- as.data.frame(file_path_combinations[[2]])
+file_path_combinations <- subset(expand.grid(rep(list(file_path),2)), Var1 != Var2)
+file_path_combinations <- as.data.frame(t(file_path_combinations))
 
 #combine all file path and analyze 
 results_2gether <- list()
