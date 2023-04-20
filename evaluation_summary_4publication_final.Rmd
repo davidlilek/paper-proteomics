@@ -168,7 +168,7 @@ Tukey
 
 ## A
 
-```{r}
+```{r, fig.width=4,fig.height=4}
 # D1-D2 comparison
 
 D1_raw <- readRDS(file = "results_v002/results_run1_mqpar_extracts_2gether_E4_D1_a-j_LFQ_combined_txt_proteinGroups.txt_Unique.RDS")
@@ -232,7 +232,7 @@ sum(D1_D2_comparison$D2,na.rm = TRUE)
 
 ## B
 
-```{r}
+```{r, fig.width=4,fig.height=4}
 data <- readRDS("./27_20230201_FH/results/D5_extracts_Razor.RDS")
 data <- data[[1]]
 b <- dplyr::select(data, contains("_b"))
@@ -263,7 +263,7 @@ euler_venn_3comp(lst, label_venn = c("E5_D1_b","E5_D2_b","E5_D4_b"), color_venn 
 
 ## C
 
-```{r message=FALSE, warning=FALSE}
+```{r, fig.width=8,fig.height=4,message=FALSE, warning=FALSE}
 # D1-D2 comparison
 D1_raw <- readRDS(file = "results_v002/results_run1_mqpar_extracts_2gether_E4_D1_a-j_LFQ_combined_txt_proteinGroups.txt_Unique.RDS")
 D1_raw <- D1_raw[[1]]
@@ -350,9 +350,9 @@ upset(fromList(lst),
 
 # Grafik 3
 
-## A + B
+## A
 
-```{r}
+```{r, fig.width=4,fig.height=4}
 
 ############## B
 data <- readRDS(file = "results_v002/results_run1_mqpar_extracts_2gether_E4_D1_B_LFQ_combined_txt_proteinGroups.txt_Unique.RDS")
@@ -461,7 +461,7 @@ sum(AF_TF_B_comparison$TF,na.rm = TRUE)
 
 ## B
 
-```{r}
+```{r, fig.width=4,fig.height=4}
 #compare B to pool from 0609 
 B_raw <- readRDS(file = "results_v002/results_run1_mqpar_extracts_2gether_E4_D1_B_LFQ_combined_txt_proteinGroups.txt_Unique.RDS")
 B_raw <- B_raw[[1]]
@@ -518,7 +518,7 @@ sum(B_aj_comparison$aj,na.rm = TRUE)
 
 ## C
 
-```{r}
+```{r, fig.width=4,fig.height=4}
 #############################
 # D2
 ###############################
@@ -553,19 +553,6 @@ lst <- list(B1 = as.double(B1[,1]),
             B8 = as.double(B8[,1]),
             B9 = as.double(B9[,1]),
             B10 = as.double(B10[,1]))            
-
-upset(fromList(lst), 
-      order.by = "freq",
-      nsets = 9,
-      nintersects = 15,
-      sets = c("B1","B2","B3","B4","B5","B6","B7","B8","B9","B10"),
-      keep.order = TRUE,
-      mainbar.y.label = "Number of shared proteins",
-      sets.x.label = "Number of proteins per fraction",
-      set_size.show = TRUE,
-      set_size.angles = 0,
-      set_size.scale_max = 1000
-)
 
 
 data_D2_pool <- dplyr::select(data, contains("Gesamt"))
@@ -607,6 +594,10 @@ euler_venn_2comp(lst, label_venn = c("D2_pool","D2_fractions"), color_venn = c(D
 * manuell von hier abgeschrieben `file://fhwn.ac.at/TU/Forschung/wissenschaftliche%20Ver%C3%B6ffentlichungen/Publikationen/2022/Proteomics_JRS_DL/data/evaluation_summary.html#4_Compare_D1_and_D2_B1-B9_resp_B1-B10`
 
 ```{r, fig.width=4,fig.height=4}
+#col <- rgb(98,90,189, maxColorValue = 255)
+#col <- rgb(87,83,148, maxColorValue = 255)
+#col <- rgb(142,136,200, maxColorValue = 255)
+#col <- rgb(146,146,233, maxColorValue = 255)
 dat <- as.data.frame(
   cbind(c(126,159,147,241,322,591,661,852,699),
         c(paste("B",1:9,sep=""))))
@@ -617,7 +608,7 @@ positions <-  c(paste("B",9:1,sep=""))
 
 
 ggplot(data=dat, aes(x=fraction,y=no))+
-  geom_bar(stat="identity") +
+  geom_bar(stat="identity") +#fill=col
   coord_flip() +
   geom_text(aes(label=no), hjust=1.5,vjust=0.6, color="white", size=4) +
   theme(axis.title.y = element_blank(),axis.text.y = element_text(size=14)) + 
