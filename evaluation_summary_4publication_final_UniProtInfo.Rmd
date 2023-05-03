@@ -1,0 +1,1026 @@
+---
+output:
+  html_document:
+    df_print: paged
+    fig.align: center
+    self_contained: yes 
+    fig.height: 4
+    fig.width: 8
+    theme: united
+    toc: yes
+    toc_depth: 4
+    toc_float: yes
+    number_sections: yes
+    code_folding: hide
+title: "Auswertung TC Daten"
+author: "David Lilek"
+date: "`r format(Sys.time(), '%d %B %Y, %X')`"
+editor_options: 
+  markdown: 
+    wrap: 72
+---
+
+
+# Load Libraries & Plot function & Colors
+
+```{r message=FALSE, warning=FALSE}
+library(ggplot2)
+library(tidyverse)
+library(dplyr)
+library(UpSetR)
+library(pheatmap)
+library(ggvenn)
+library(knitr)
+library(reshape2)
+library(eulerr)
+library(UniprotR)
+#library(venneuler)
+#library(VennDiagram) 
+```
+
+```{r}
+euler_venn_2comp <- function(lst, label_venn, color_venn, cex_venn, grid, gList, h_just, v_just) {
+  ######################################
+  #################plot 2 venn diagrams
+  ######################################
+  p<-plot(euler(lst),
+          input="union",
+          shape="ellipse",
+          quantities=list(type = c("percent", 'counts'),
+                          cex = cex_venn), #schriftgröße für A, B bzw intersection
+          key=TRUE,
+          labels=FALSE,
+          lty = c(1,1),
+          legend = list(labels = label_venn,
+                        side = "bottom",
+                        nrow = 1, ncol = 3),
+          edges=TRUE,
+          fills = color_venn, #color für A,B bzw intersection 
+          alpha=0.8)
+  # https://stackoverflow.com/questions/75177293/how-to-change-the-label-position-when-plotting-venn-diagram-from-eulerr-package
+  tags <- p$children[[2]]$children[[1]]$children$tags$children
+  tags <- do.call(grid::gList, lapply(tags, function(x) {
+    x$children[[2]]$label <- sub(" \\(", "\n(", x$children[[2]]$label)
+    x$children[[2]]$just <- NULL
+    x$children[[2]]$hjust <- h_just
+    x$children[[2]]$vjust <- v_just
+    x}))
+  
+  p$children[[2]]$children[[1]]$children$tags$children <- tags
+  print(p)
+}
+
+
+euler_venn_3comp <- function(lst, cex_venn, label_venn, color_venn, grid, gList, h_just, v_just) {
+  ##################################
+  ###### venn diagram 3 comparisons
+  ##################################
+  p<-plot(euler(lst),
+          input="union",
+          shape="ellipse",
+          quantities=list(type = c("percent", 'counts'),
+                          cex = cex_venn), #schriftgröße für A, B, C bzw intersection
+          key=TRUE,
+          labels=FALSE,
+          lty = c(1,1,1),
+          legend = list(labels = label_venn,
+                        side = "bottom",
+                        nrow = 1, ncol = 3),
+          edges=TRUE,
+          fills = color_venn, #color für A,B bzw intersection fills = grey[c(10,18,25)]
+          alpha=0.8)
+  # https://stackoverflow.com/questions/75177293/how-to-change-the-label-position-when-plotting-venn-diagram-from-eulerr-packages
+  tags <- p$children[[2]]$children[[1]]$children$tags$children
+  tags <- do.call(grid::gList, lapply(tags, function(x) {
+    x$children[[2]]$label <- sub(" \\(", "\n(", x$children[[2]]$label)
+    x$children[[2]]$just <- NULL
+    x$children[[2]]$hjust <- h_just
+    x$children[[2]]$vjust <- v_just
+    x}))
+  
+  p$children[[2]]$children[[1]]$children$tags$children <- tags
+  print(p)
+}
+
+```
+
+```{r}
+#get colors
+#total protein extract
+total <- rgb(255,93,93, maxColorValue = 255)
+#fractions high MW SEC
+highMW <- rgb(169,208,142,maxColorValue = 255)
+#fractions low MW SEC
+lowMW <- rgb(255,217,102, maxColorValue = 255)
+#in-gel digest
+IG <- rgb(180,198,231,maxColorValue = 255)
+```
+
+# Überblick 
+
+* für die ausgewählten Grafiken des Papers wurden die Proteine (und zwar nur das erste einer Proteingruppe) mittels des Packages `UniprotR` einer molekularen, biologischen Funktion bzw einem zellulärem Compartment zugeordnet
+* [UniprotR](https://github.com/Proteomicslab57357/UniprotR)
+* Ablauf: einlesen der Daten und extrahieren der Accesion Number und mittels Funktion `GetProteinGOInfo` die Daten vom UniProt Server gelesen
+* diese GO Terms dann je Extraktion zb E4_D1_pool und absteigender Frequenz sortiert und die besten 20 geplottet wobei dabei nicht zuordenbare Accessionnumbers ignoriert wurden (bei ein paar habe ich es mir angeschaut und es sind so 10-20% die nicht zuordenbar sind)
+* [Zusatzinfo GO Terms Uniprot](http://geneontology.org/docs/ontology-documentation/)
+* [Zusatzinfo Panther DB](http://www.pantherdb.org/about.jsp)
+
+# Grafik 1
+
+* fehlt weil ja uninteressant für diesen Vergleich
+
+# Grafik 2
+
+## A
+
+```{r, fig.width=4,fig.height=4}
+# D1-D2 comparison
+
+D1_raw <- readRDS(file = "results_v002/results_run1_mqpar_extracts_2gether_E4_D1_a-j_LFQ_combined_txt_proteinGroups.txt_Unique.RDS")
+D1_raw <- D1_raw[[1]]
+D1 <- dplyr::select(D1_raw, contains("Pool"))
+D1 <- apply(D1, 1, any)
+#D1 <- as.data.frame(cbind(D1, D1_raw$FASTA))
+fasta <- c()
+for (i in 1:length(D1_raw$FASTA)){
+  tmp <- strsplit(D1_raw$FASTA[i],split='\\|')[[1]][2]
+  fasta <- c(fasta,tmp)
+}
+D1 <- as.data.frame(cbind(D1, fasta))
+D2_raw <- readRDS(file = "results_v002/results_run1_mqpar_extracts_2gether_D2_LFQ_combined_txt_proteinGroups.txt_Unique.RDS")
+D2_raw <- D2_raw[[1]]
+D2 <- dplyr::select(D2_raw, contains("Gesamt"))
+D2 <- apply(D2, 1, any)
+fasta <- c()
+for (i in 1:length(D2_raw$FASTA)){
+  tmp <- strsplit(D2_raw$FASTA[i],split='\\|')[[1]][2]
+  fasta <- c(fasta,tmp)
+}
+#D2 <- as.data.frame(cbind(D2, D2_raw$FASTA))
+D2 <- as.data.frame(cbind(D2, fasta))
+D1_D2_comparison  <- merge(D1, D2,
+                           all = TRUE,
+                           by = "fasta")
+
+D1_D2_comparison$D1 <- as.logical(D1_D2_comparison$D1)
+D1_D2_comparison$D2 <- as.logical(D1_D2_comparison$D2)
+
+D1 <- D1_D2_comparison$fasta[D1_D2_comparison$D1]
+D1 <- D1[!is.na(D1)]
+D2 <- D1_D2_comparison$fasta[D1_D2_comparison$D2]
+D2 <- D2[!is.na(D2)]
+#D1_uni <- GetProteinGOInfo(D1)
+#saveRDS(D1_uni,"./go_terms/graph2_D1_uni.RDS")
+GO_1 <- readRDS("./go_terms/graph2_D1_uni.RDS")
+#D2_uni <- GetProteinGOInfo(D2)
+#saveRDS(D2_uni,"./go_terms/graph2_D2_uni.RDS")
+GO_2 <- readRDS("./go_terms/graph2_D2_uni.RDS")
+
+################################# Biological process
+t_BP <- as.data.frame(table(GO_1$Gene.Ontology..biological.process.))
+t_BP_sorted <- arrange(t_BP, desc(Freq))
+t_BP_sorted_1 <- t_BP_sorted[c(1:20),]
+t_BP <- as.data.frame(table(GO_2$Gene.Ontology..biological.process.))
+t_BP_sorted <- arrange(t_BP, desc(Freq))
+t_BP_sorted_2 <- t_BP_sorted[c(1:20),]
+#t_BP <- as.data.frame(table(GO[[3]]$Gene.ontology..biological.process.))
+#t_BP_sorted <- arrange(t_BP, desc(Freq))
+#t_BP_sorted_3 <- t_BP_sorted[c(1:20),]
+BP <- merge(t_BP_sorted_1, t_BP_sorted_2,
+            all = TRUE,
+            by = "Var1")
+#BP <- merge(BP, t_BP_sorted_3, all = TRUE, by = "Var1")
+
+colnames(BP) <- c("Function", "D1","D2")
+BP_4ggplot <- melt(BP)
+BP_4ggplot$Function_short <- substr(BP_4ggplot$Function,1,15)
+ggplot(BP_4ggplot, aes(x=Function_short, y=value, fill=variable)) +
+  geom_bar(stat='identity', position='dodge') +
+  theme_minimal() +
+  scale_fill_brewer(palette="Dark2") +
+  theme(legend.position="bottom") +
+  theme(legend.key.size = unit(0.15, 'cm')) +
+  guides(fill=guide_legend(nrow=2, byrow=TRUE)) +
+  ylab("Counts") +
+  labs(fill = "Proteins") +
+  ggtitle("Biological processes") +
+  coord_flip()
+
+
+################################# molecular function
+t_BP <- as.data.frame(table(GO_1$Gene.Ontology..molecular.function.))
+t_BP_sorted <- arrange(t_BP, desc(Freq))
+t_BP_sorted_1 <- t_BP_sorted[c(1:20),]
+t_BP <- as.data.frame(table(GO_2$Gene.Ontology..molecular.function.))
+t_BP_sorted <- arrange(t_BP, desc(Freq))
+t_BP_sorted_2 <- t_BP_sorted[c(1:20),]
+#t_BP <- as.data.frame(table(GO_3$Gene.Ontology..molecular.function.))
+#t_BP_sorted <- arrange(t_BP, desc(Freq))
+#t_BP_sorted_3 <- t_BP_sorted[c(1:20),]
+BP <- merge(t_BP_sorted_1, t_BP_sorted_2,
+            all = TRUE,
+            by = "Var1")
+#BP <- merge(BP, t_BP_sorted_3, all = TRUE, by = "Var1")
+
+colnames(BP) <- c("Function", "D1","D2")
+BP_4ggplot <- melt(BP)
+BP_4ggplot$Function_short <- substr(BP_4ggplot$Function,1,15)
+ggplot(BP_4ggplot, aes(x=Function_short, y=value, fill=variable)) +
+  geom_bar(stat='identity', position='dodge') +
+  theme_minimal() +
+  scale_fill_brewer(palette="Dark2") +
+  theme(legend.position="bottom") +
+  theme(legend.key.size = unit(0.15, 'cm')) +
+  guides(fill=guide_legend(nrow=2, byrow=TRUE)) +
+  ylab("Counts") +
+  labs(fill = "Proteins") +
+  ggtitle("Molecular Function") +
+  coord_flip()
+
+################################# molecular function
+t_BP <- as.data.frame(table(GO_1$Gene.Ontology..cellular.component.))
+t_BP_sorted <- arrange(t_BP, desc(Freq))
+t_BP_sorted_1 <- t_BP_sorted[c(1:20),]
+t_BP <- as.data.frame(table(GO_2$Gene.Ontology..cellular.component.))
+t_BP_sorted <- arrange(t_BP, desc(Freq))
+t_BP_sorted_2 <- t_BP_sorted[c(1:20),]
+#t_BP <- as.data.frame(table(GO_3$Gene.Ontology..cellular.component.))
+#t_BP_sorted <- arrange(t_BP, desc(Freq))
+#t_BP_sorted_3 <- t_BP_sorted[c(1:20),]
+BP <- merge(t_BP_sorted_1, t_BP_sorted_2,
+            all = TRUE,
+            by = "Var1")
+#BP <- merge(BP, t_BP_sorted_3, all = TRUE, by = "Var1")
+
+colnames(BP) <- c("Function", "D1","D2")
+BP_4ggplot <- melt(BP)
+BP_4ggplot$Function_short <- substr(BP_4ggplot$Function,1,15)
+ggplot(BP_4ggplot, aes(x=Function_short, y=value, fill=variable)) +
+  geom_bar(stat='identity', position='dodge') +
+  theme_minimal() +
+  scale_fill_brewer(palette="Dark2") +
+  theme(legend.position="bottom") +
+  theme(legend.key.size = unit(0.15, 'cm')) +
+  guides(fill=guide_legend(nrow=2, byrow=TRUE)) +
+  ylab("Counts") +
+  labs(fill = "Proteins") +
+  ggtitle("Cellular Compartment") +
+  coord_flip()
+```
+
+
+## B
+
+```{r, fig.width=4,fig.height=4}
+data <- readRDS("./27_20230201_FH/results/D5_extracts_Razor.RDS")
+data <- data[[1]]
+b <- dplyr::select(data, contains("_b"))
+D1_b <- b$Razor...unique.peptides.1_b_01+ b$Razor...unique.peptides.1_b_02
+D2_b <- b$Razor...unique.peptides.2_b_01 + b$Razor...unique.peptides.2_b_02
+D4_b <- b$Razor...unique.peptides.3_b_01 + b$Razor...unique.peptides.4_b_02
+b <- as.data.frame(cbind(D1_b,D2_b,D4_b))
+b[b==0] <- NA
+b[b==2] <- 1
+
+fasta <- c()
+for (i in 1:length(data$FASTA)){
+  tmp <- strsplit(data$FASTA[i],split='\\|')[[1]][2]
+  fasta <- c(fasta,tmp)
+}
+
+E5_D1_b <- fasta[as.logical(b$Razor...unique.peptides.1_b_01)]
+E5_D1_b <- E5_D1_b[!is.na(E5_D1_b)]
+E5_D2_b <- fasta[as.logical(b$Razor...unique.peptides.2_b_01)]
+E5_D2_b <- E5_D2_b[!is.na(E5_D2_b)]
+E5_D4_b <- fasta[as.logical(b$Razor...unique.peptides.3_b_01)]
+E5_D4_b <- E5_D4_b[!is.na(E5_D4_b)]
+
+
+  
+#D1_uni <- GetProteinGOInfo(E5_D1_b)
+#saveRDS(D1_uni,"./go_terms/graph2_E5_D1_uni.RDS")
+GO_1 <- readRDS("./go_terms/graph2_E5_D1_uni.RDS")
+#D2_uni <- GetProteinGOInfo(E5_D2_b)
+#saveRDS(D2_uni,"./go_terms/graph2_E5_D2_uni.RDS")
+GO_2 <- readRDS("./go_terms/graph2_E5_D2_uni.RDS")
+#D4_uni <- GetProteinGOInfo(E5_D4_b)
+#saveRDS(D4_uni,"./go_terms/graph2_E5_D4_uni.RDS")
+GO_3 <- readRDS("./go_terms/graph2_E5_D4_uni.RDS")
+################################# Biological process
+t_BP <- as.data.frame(table(GO_1$Gene.Ontology..biological.process.))
+t_BP_sorted <- arrange(t_BP, desc(Freq))
+t_BP_sorted_1 <- t_BP_sorted[c(1:20),]
+t_BP <- as.data.frame(table(GO_2$Gene.Ontology..biological.process.))
+t_BP_sorted <- arrange(t_BP, desc(Freq))
+t_BP_sorted_2 <- t_BP_sorted[c(1:20),]
+t_BP <- as.data.frame(table(GO_3$Gene.Ontology..biological.process.))
+t_BP_sorted <- arrange(t_BP, desc(Freq))
+t_BP_sorted_3 <- t_BP_sorted[c(1:20),]
+BP <- merge(t_BP_sorted_1, t_BP_sorted_2,
+            all = TRUE,
+            by = "Var1")
+BP <- merge(BP, t_BP_sorted_3, all = TRUE, by = "Var1")
+
+colnames(BP) <- c("Function", "D1","D2","D4")
+BP_4ggplot <- melt(BP)
+BP_4ggplot$Function_short <- substr(BP_4ggplot$Function,1,15)
+ggplot(BP_4ggplot, aes(x=Function_short, y=value, fill=variable)) +
+  geom_bar(stat='identity', position='dodge') +
+  theme_minimal() +
+  scale_fill_brewer(palette="Dark2") +
+  theme(legend.position="bottom") +
+  theme(legend.key.size = unit(0.15, 'cm')) +
+  guides(fill=guide_legend(nrow=2, byrow=TRUE)) +
+  ylab("Counts") +
+  labs(fill = "Proteins") +
+  ggtitle("Biological processes") +
+  coord_flip()
+
+
+################################# molecular function
+t_BP <- as.data.frame(table(GO_1$Gene.Ontology..molecular.function.))
+t_BP_sorted <- arrange(t_BP, desc(Freq))
+t_BP_sorted_1 <- t_BP_sorted[c(1:20),]
+t_BP <- as.data.frame(table(GO_2$Gene.Ontology..molecular.function.))
+t_BP_sorted <- arrange(t_BP, desc(Freq))
+t_BP_sorted_2 <- t_BP_sorted[c(1:20),]
+t_BP <- as.data.frame(table(GO_3$Gene.Ontology..molecular.function.))
+t_BP_sorted <- arrange(t_BP, desc(Freq))
+t_BP_sorted_3 <- t_BP_sorted[c(1:20),]
+BP <- merge(t_BP_sorted_1, t_BP_sorted_2,
+            all = TRUE,
+            by = "Var1")
+BP <- merge(BP, t_BP_sorted_3, all = TRUE, by = "Var1")
+
+colnames(BP) <- c("Function", "D1","D2","D4")
+BP_4ggplot <- melt(BP)
+BP_4ggplot$Function_short <- substr(BP_4ggplot$Function,1,15)
+ggplot(BP_4ggplot, aes(x=Function_short, y=value, fill=variable)) +
+  geom_bar(stat='identity', position='dodge') +
+  theme_minimal() +
+  scale_fill_brewer(palette="Dark2") +
+  theme(legend.position="bottom") +
+  theme(legend.key.size = unit(0.15, 'cm')) +
+  guides(fill=guide_legend(nrow=2, byrow=TRUE)) +
+  ylab("Counts") +
+  labs(fill = "Proteins") +
+  ggtitle("Molecular Function") +
+  coord_flip()
+
+################################# molecular function
+t_BP <- as.data.frame(table(GO_1$Gene.Ontology..cellular.component.))
+t_BP_sorted <- arrange(t_BP, desc(Freq))
+t_BP_sorted_1 <- t_BP_sorted[c(1:20),]
+t_BP <- as.data.frame(table(GO_2$Gene.Ontology..cellular.component.))
+t_BP_sorted <- arrange(t_BP, desc(Freq))
+t_BP_sorted_2 <- t_BP_sorted[c(1:20),]
+t_BP <- as.data.frame(table(GO_3$Gene.Ontology..cellular.component.))
+t_BP_sorted <- arrange(t_BP, desc(Freq))
+t_BP_sorted_3 <- t_BP_sorted[c(1:20),]
+BP <- merge(t_BP_sorted_1, t_BP_sorted_2,
+            all = TRUE,
+            by = "Var1")
+BP <- merge(BP, t_BP_sorted_3, all = TRUE, by = "Var1")
+
+colnames(BP) <- c("Function", "D1","D2","D4")
+BP_4ggplot <- melt(BP)
+BP_4ggplot$Function_short <- substr(BP_4ggplot$Function,1,15)
+ggplot(BP_4ggplot, aes(x=Function_short, y=value, fill=variable)) +
+  geom_bar(stat='identity', position='dodge') +
+  theme_minimal() +
+  scale_fill_brewer(palette="Dark2") +
+  theme(legend.position="bottom") +
+  theme(legend.key.size = unit(0.15, 'cm')) +
+  guides(fill=guide_legend(nrow=2, byrow=TRUE)) +
+  ylab("Counts") +
+  labs(fill = "Proteins") +
+  ggtitle("Cellular Compartment") +
+  coord_flip()
+
+```
+
+
+
+
+## C
+
+```{r, fig.width=8,fig.height=4,message=FALSE, warning=FALSE}
+# D1-D2 comparison
+D1_raw <- readRDS(file = "results_v002/results_run1_mqpar_extracts_2gether_E4_D1_a-j_LFQ_combined_txt_proteinGroups.txt_Unique.RDS")
+D1_raw <- D1_raw[[1]]
+D1 <- dplyr::select(D1_raw, contains("Pool"))
+D1 <- apply(D1, 1, any)
+#D1 <- as.data.frame(cbind(D1, D1_raw$FASTA))
+fasta <- c()
+for (i in 1:length(D1_raw$FASTA)){
+  tmp <- strsplit(D1_raw$FASTA[i],split='\\|')[[1]][2]
+  fasta <- c(fasta,tmp)
+}
+D1 <- as.data.frame(cbind(D1, fasta))
+D2_raw <- readRDS(file = "results_v002/results_run1_mqpar_extracts_2gether_D2_LFQ_combined_txt_proteinGroups.txt_Unique.RDS")
+D2_raw <- D2_raw[[1]]
+D2 <- dplyr::select(D2_raw, contains("Gesamt"))
+D2 <- apply(D2, 1, any)
+fasta <- c()
+for (i in 1:length(D2_raw$FASTA)){
+  tmp <- strsplit(D2_raw$FASTA[i],split='\\|')[[1]][2]
+  fasta <- c(fasta,tmp)
+}
+#D2 <- as.data.frame(cbind(D2, D2_raw$FASTA))
+D2 <- as.data.frame(cbind(D2, fasta))
+D1_D2_comparison  <- merge(D1, D2,
+                           all = TRUE,
+                           by = "fasta")
+D1_D2_comparison$comb <- apply(D1_D2_comparison[,c(2:3)], 1, any)
+#E5
+data <- readRDS("./27_20230201_FH/results/D5_extracts_Razor.RDS")
+data <- data[[1]]
+b <- dplyr::select(data, contains("_b"))
+b <- b[,-c(5:6)]
+b <- as.data.frame(apply(b, 1, any))
+fasta <- c()
+for (i in 1:length(data$FASTA)){
+  tmp <- strsplit(data$FASTA[i],split='\\|')[[1]][2]
+  fasta <- c(fasta,tmp)
+}
+b$fasta <- fasta
+colnames(b) <- c("b","fasta")
+
+#merge with D5
+D1_D2_D5_comparison  <- merge(D1_D2_comparison[,c(1,4)],b,
+                              all = TRUE,
+                              by = "fasta")
+colnames(D1_D2_D5_comparison) <- c("fasta","E4","E5")
+
+D1_D2_D5_comparison$D1 <- as.logical(D1_D2_D5_comparison$E4)
+D1_D2_D5_comparison$D2 <- as.logical(D1_D2_D5_comparison$E5)
+
+D1 <- D1_D2_D5_comparison$fasta[D1_D2_D5_comparison$D1]
+D1 <- D1[!is.na(D1)]
+D2 <- D1_D2_D5_comparison$fasta[D1_D2_D5_comparison$D2]
+D2 <- D2[!is.na(D2)]
+#D1_uni <- GetProteinGOInfo(D1)
+#saveRDS(D1_uni,"./go_terms/graph2_E4_uni.RDS")
+GO_1 <- readRDS("./go_terms/graph2_E4_uni.RDS")
+#D2_uni <- GetProteinGOInfo(D2)
+#saveRDS(D2_uni,"./go_terms/graph2_E5_uni.RDS")
+GO_2 <- readRDS("./go_terms/graph2_E5_uni.RDS")
+
+################################# Biological process
+t_BP <- as.data.frame(table(GO_1$Gene.Ontology..biological.process.))
+t_BP_sorted <- arrange(t_BP, desc(Freq))
+t_BP_sorted_1 <- t_BP_sorted[c(1:20),]
+t_BP <- as.data.frame(table(GO_2$Gene.Ontology..biological.process.))
+t_BP_sorted <- arrange(t_BP, desc(Freq))
+t_BP_sorted_2 <- t_BP_sorted[c(1:20),]
+#t_BP <- as.data.frame(table(GO[[3]]$Gene.ontology..biological.process.))
+#t_BP_sorted <- arrange(t_BP, desc(Freq))
+#t_BP_sorted_3 <- t_BP_sorted[c(1:20),]
+BP <- merge(t_BP_sorted_1, t_BP_sorted_2,
+            all = TRUE,
+            by = "Var1")
+#BP <- merge(BP, t_BP_sorted_3, all = TRUE, by = "Var1")
+
+colnames(BP) <- c("Function", "E4","E5")
+BP_4ggplot <- melt(BP)
+BP_4ggplot$Function_short <- substr(BP_4ggplot$Function,1,15)
+ggplot(BP_4ggplot, aes(x=Function_short, y=value, fill=variable)) +
+  geom_bar(stat='identity', position='dodge') +
+  theme_minimal() +
+  scale_fill_brewer(palette="Dark2") +
+  theme(legend.position="bottom") +
+  theme(legend.key.size = unit(0.15, 'cm')) +
+  guides(fill=guide_legend(nrow=2, byrow=TRUE)) +
+  ylab("Counts") +
+  labs(fill = "Proteins") +
+  ggtitle("Biological processes") +
+  coord_flip()
+
+
+################################# molecular function
+t_BP <- as.data.frame(table(GO_1$Gene.Ontology..molecular.function.))
+t_BP_sorted <- arrange(t_BP, desc(Freq))
+t_BP_sorted_1 <- t_BP_sorted[c(1:20),]
+t_BP <- as.data.frame(table(GO_2$Gene.Ontology..molecular.function.))
+t_BP_sorted <- arrange(t_BP, desc(Freq))
+t_BP_sorted_2 <- t_BP_sorted[c(1:20),]
+#t_BP <- as.data.frame(table(GO_3$Gene.Ontology..molecular.function.))
+#t_BP_sorted <- arrange(t_BP, desc(Freq))
+#t_BP_sorted_3 <- t_BP_sorted[c(1:20),]
+BP <- merge(t_BP_sorted_1, t_BP_sorted_2,
+            all = TRUE,
+            by = "Var1")
+#BP <- merge(BP, t_BP_sorted_3, all = TRUE, by = "Var1")
+
+colnames(BP) <- c("Function", "E4","E5")
+BP_4ggplot <- melt(BP)
+BP_4ggplot$Function_short <- substr(BP_4ggplot$Function,1,15)
+ggplot(BP_4ggplot, aes(x=Function_short, y=value, fill=variable)) +
+  geom_bar(stat='identity', position='dodge') +
+  theme_minimal() +
+  scale_fill_brewer(palette="Dark2") +
+  theme(legend.position="bottom") +
+  theme(legend.key.size = unit(0.15, 'cm')) +
+  guides(fill=guide_legend(nrow=2, byrow=TRUE)) +
+  ylab("Counts") +
+  labs(fill = "Proteins") +
+  ggtitle("Molecular Function") +
+  coord_flip()
+
+################################# molecular function
+t_BP <- as.data.frame(table(GO_1$Gene.Ontology..cellular.component.))
+t_BP_sorted <- arrange(t_BP, desc(Freq))
+t_BP_sorted_1 <- t_BP_sorted[c(1:20),]
+t_BP <- as.data.frame(table(GO_2$Gene.Ontology..cellular.component.))
+t_BP_sorted <- arrange(t_BP, desc(Freq))
+t_BP_sorted_2 <- t_BP_sorted[c(1:20),]
+#t_BP <- as.data.frame(table(GO_3$Gene.Ontology..cellular.component.))
+#t_BP_sorted <- arrange(t_BP, desc(Freq))
+#t_BP_sorted_3 <- t_BP_sorted[c(1:20),]
+BP <- merge(t_BP_sorted_1, t_BP_sorted_2,
+            all = TRUE,
+            by = "Var1")
+#BP <- merge(BP, t_BP_sorted_3, all = TRUE, by = "Var1")
+
+colnames(BP) <- c("Function", "E4","E5")
+BP_4ggplot <- melt(BP)
+BP_4ggplot$Function_short <- substr(BP_4ggplot$Function,1,15)
+ggplot(BP_4ggplot, aes(x=Function_short, y=value, fill=variable)) +
+  geom_bar(stat='identity', position='dodge') +
+  theme_minimal() +
+  scale_fill_brewer(palette="Dark2") +
+  theme(legend.position="bottom") +
+  theme(legend.key.size = unit(0.15, 'cm')) +
+  guides(fill=guide_legend(nrow=2, byrow=TRUE)) +
+  ylab("Counts") +
+  labs(fill = "Proteins") +
+  ggtitle("Cellular Compartment") +
+  coord_flip()
+
+
+       
+```
+
+
+
+
+# Grafik 3
+
+## A
+
+```{r, fig.width=4,fig.height=4}
+
+
+## B
+
+```{r}
+#compare B to pool from 0609 
+B_raw <- readRDS(file = "results_v002/results_run1_mqpar_extracts_2gether_E4_D1_B_LFQ_combined_txt_proteinGroups.txt_Unique.RDS")
+B_raw <- B_raw[[1]]
+B <- dplyr::select(B_raw, contains("Pool_G"))
+B <- apply(B, 1, any)
+fasta <- c()
+for (i in 1:length(B_raw$FASTA)){
+  tmp <- strsplit(B_raw$FASTA[i],split='\\|')[[1]][2]
+  fasta <- c(fasta,tmp)
+}
+B <- as.data.frame(cbind(B, fasta))
+aj_raw <- readRDS(file = "results_v002/results_run1_mqpar_extracts_2gether_E4_D1_a-j_LFQ_combined_txt_proteinGroups.txt_Unique.RDS")
+aj_raw <- aj_raw[[1]]
+aj <- dplyr::select(aj_raw, contains("Pool"))
+aj <- apply(aj, 1, any)
+fasta <- c()
+for (i in 1:length(aj_raw$FASTA)){
+  tmp <- strsplit(aj_raw$FASTA[i],split='\\|')[[1]][2]
+  fasta <- c(fasta,tmp)
+}
+aj <- as.data.frame(cbind(aj, fasta))
+B_aj_comparison  <- merge(B, aj,
+                          all = TRUE,
+                          by = "fasta")
+
+B_aj_comparison$B <- as.logical(B_aj_comparison$B)
+B_aj_comparison$aj <- as.logical(B_aj_comparison$aj)
+
+B <- B_aj_comparison$fasta[B_aj_comparison$B]
+B <- B[!is.na(B)]
+aj <- B_aj_comparison$fasta[B_aj_comparison$aj]
+aj <- aj[!is.na(aj)]
+#D1_uni <- GetProteinGOInfo(B)
+#saveRDS(D1_uni,"./go_terms/graph3_B_B_uni.RDS")
+GO_1 <- readRDS("./go_terms/graph3_B_B_uni.RDS")
+#aj <- GetProteinGOInfo(aj)
+#saveRDS(aj,"./go_terms/graph3_B_aj_uni.RDS")
+GO_2 <- readRDS("./go_terms/graph3_B_aj_uni.RDS")
+
+################################# Biological process
+t_BP <- as.data.frame(table(GO_1$Gene.Ontology..biological.process.))
+t_BP_sorted <- arrange(t_BP, desc(Freq))
+t_BP_sorted_1 <- t_BP_sorted[c(1:20),]
+t_BP <- as.data.frame(table(GO_2$Gene.Ontology..biological.process.))
+t_BP_sorted <- arrange(t_BP, desc(Freq))
+t_BP_sorted_2 <- t_BP_sorted[c(1:20),]
+#t_BP <- as.data.frame(table(GO[[3]]$Gene.ontology..biological.process.))
+#t_BP_sorted <- arrange(t_BP, desc(Freq))
+#t_BP_sorted_3 <- t_BP_sorted[c(1:20),]
+BP <- merge(t_BP_sorted_1, t_BP_sorted_2,
+            all = TRUE,
+            by = "Var1")
+#BP <- merge(BP, t_BP_sorted_3, all = TRUE, by = "Var1")
+
+colnames(BP) <- c("Function", "D1","D2")
+BP_4ggplot <- melt(BP)
+BP_4ggplot$Function_short <- substr(BP_4ggplot$Function,1,15)
+ggplot(BP_4ggplot, aes(x=Function_short, y=value, fill=variable)) +
+  geom_bar(stat='identity', position='dodge') +
+  theme_minimal() +
+  scale_fill_brewer(palette="Dark2") +
+  theme(legend.position="bottom") +
+  theme(legend.key.size = unit(0.15, 'cm')) +
+  guides(fill=guide_legend(nrow=2, byrow=TRUE)) +
+  ylab("Counts") +
+  labs(fill = "Proteins") +
+  ggtitle("Biological processes") +
+  coord_flip()
+
+
+################################# molecular function
+t_BP <- as.data.frame(table(GO_1$Gene.Ontology..molecular.function.))
+t_BP_sorted <- arrange(t_BP, desc(Freq))
+t_BP_sorted_1 <- t_BP_sorted[c(1:20),]
+t_BP <- as.data.frame(table(GO_2$Gene.Ontology..molecular.function.))
+t_BP_sorted <- arrange(t_BP, desc(Freq))
+t_BP_sorted_2 <- t_BP_sorted[c(1:20),]
+#t_BP <- as.data.frame(table(GO_3$Gene.Ontology..molecular.function.))
+#t_BP_sorted <- arrange(t_BP, desc(Freq))
+#t_BP_sorted_3 <- t_BP_sorted[c(1:20),]
+BP <- merge(t_BP_sorted_1, t_BP_sorted_2,
+            all = TRUE,
+            by = "Var1")
+#BP <- merge(BP, t_BP_sorted_3, all = TRUE, by = "Var1")
+
+colnames(BP) <- c("Function", "D1","D2")
+BP_4ggplot <- melt(BP)
+BP_4ggplot$Function_short <- substr(BP_4ggplot$Function,1,15)
+ggplot(BP_4ggplot, aes(x=Function_short, y=value, fill=variable)) +
+  geom_bar(stat='identity', position='dodge') +
+  theme_minimal() +
+  scale_fill_brewer(palette="Dark2") +
+  theme(legend.position="bottom") +
+  theme(legend.key.size = unit(0.15, 'cm')) +
+  guides(fill=guide_legend(nrow=2, byrow=TRUE)) +
+  ylab("Counts") +
+  labs(fill = "Proteins") +
+  ggtitle("Molecular Function") +
+  coord_flip()
+
+################################# molecular function
+t_BP <- as.data.frame(table(GO_1$Gene.Ontology..cellular.component.))
+t_BP_sorted <- arrange(t_BP, desc(Freq))
+t_BP_sorted_1 <- t_BP_sorted[c(1:20),]
+t_BP <- as.data.frame(table(GO_2$Gene.Ontology..cellular.component.))
+t_BP_sorted <- arrange(t_BP, desc(Freq))
+t_BP_sorted_2 <- t_BP_sorted[c(1:20),]
+#t_BP <- as.data.frame(table(GO_3$Gene.Ontology..cellular.component.))
+#t_BP_sorted <- arrange(t_BP, desc(Freq))
+#t_BP_sorted_3 <- t_BP_sorted[c(1:20),]
+BP <- merge(t_BP_sorted_1, t_BP_sorted_2,
+            all = TRUE,
+            by = "Var1")
+#BP <- merge(BP, t_BP_sorted_3, all = TRUE, by = "Var1")
+
+colnames(BP) <- c("Function", "D1","D2")
+BP_4ggplot <- melt(BP)
+BP_4ggplot$Function_short <- substr(BP_4ggplot$Function,1,15)
+ggplot(BP_4ggplot, aes(x=Function_short, y=value, fill=variable)) +
+  geom_bar(stat='identity', position='dodge') +
+  theme_minimal() +
+  scale_fill_brewer(palette="Dark2") +
+  theme(legend.position="bottom") +
+  theme(legend.key.size = unit(0.15, 'cm')) +
+  guides(fill=guide_legend(nrow=2, byrow=TRUE)) +
+  ylab("Counts") +
+  labs(fill = "Proteins") +
+  ggtitle("Cellular Compartment") +
+  coord_flip()
+
+
+```
+
+
+
+## B
+
+```{r}
+############## B
+data <- readRDS(file = "results_v002/results_run1_mqpar_extracts_2gether_E4_D1_B_LFQ_combined_txt_proteinGroups.txt_Unique.RDS")
+data <- data[[1]]
+data_sub <- dplyr::select(data, contains("Pool_G"))
+#get rid of FALSE values
+B <- data_sub*1
+B[B==0] <- NA
+ind <- apply(B, 1, function(x) all(is.na(x)))
+
+
+############AF
+data <- readRDS(file = "results_v002/results_run1_mqpar_extracts_2gether_E4_D1_AF_TF_LFQ_combined_txt_proteinGroups.txt_Unique.RDS")
+data <- data[[1]]
+data_sub <- dplyr::select(data, contains("Pool_AF"))
+#get rid of FALSE values
+AF <- data_sub*1
+AF[AF==0] <- NA
+ind <- apply(AF, 1, function(x) all(is.na(x)))
+
+############TF
+data <- readRDS(file = "results_v002/results_run1_mqpar_extracts_2gether_E4_D1_AF_TF_LFQ_combined_txt_proteinGroups.txt_Unique.RDS")
+data <- data[[1]]
+data_sub <- dplyr::select(data, contains("Pool_TF"))
+#get rid of FALSE values
+TF <- data_sub*1
+TF[TF==0] <- NA
+ind <- apply(TF, 1, function(x) all(is.na(x)))
+
+
+## compare AF TF B poster
+AF_TF_raw <- readRDS(file = "results_v002/results_run1_mqpar_extracts_2gether_E4_D1_AF_TF_LFQ_combined_txt_proteinGroups.txt_Unique.RDS")
+AF_TF_raw <- AF_TF_raw[[1]]
+AF <- dplyr::select(AF_TF_raw, contains("AF"))
+AF <- apply(AF, 1, any)
+fasta <- c()
+for (i in 1:length(AF_TF_raw$FASTA)){
+  tmp <- strsplit(AF_TF_raw$FASTA[i],split='\\|')[[1]][2]
+  fasta <- c(fasta,tmp)
+}
+AF <- as.data.frame(cbind(AF, fasta))
+TF <- dplyr::select(AF_TF_raw, contains("TF"))
+TF <- apply(TF, 1, any)
+TF <- as.data.frame(cbind(TF, fasta))
+B_raw <- readRDS(file = "results_v002/results_run1_mqpar_extracts_2gether_E4_D1_B_LFQ_combined_txt_proteinGroups.txt_Unique.RDS")
+B_raw <- B_raw[[1]]
+B <- dplyr::select(B_raw, contains("Pool_G"))
+B <- apply(B, 1, any)
+fasta <- c()
+for (i in 1:length(B_raw$FASTA)){
+  tmp <- strsplit(B_raw$FASTA[i],split='\\|')[[1]][2]
+  fasta <- c(fasta,tmp)
+}
+B <- as.data.frame(cbind(B, fasta))
+
+AF_TF_B_comparison  <- merge(B, AF,
+                             all = TRUE,
+                             by = "fasta")
+AF_TF_B_comparison <- merge(AF_TF_B_comparison, TF,
+                            all = TRUE,
+                            by = "fasta")
+
+AF_TF_B_comparison$B <- as.logical(AF_TF_B_comparison$B)
+AF_TF_B_comparison$AF <- as.logical(AF_TF_B_comparison$AF)
+AF_TF_B_comparison$TF <- as.logical(AF_TF_B_comparison$TF)
+
+B <- AF_TF_B_comparison$fasta[AF_TF_B_comparison$B]
+B <- B[!is.na(B)]
+AF <- AF_TF_B_comparison$fasta[AF_TF_B_comparison$AF]
+AF <- AF[!is.na(AF)]
+TF <- AF_TF_B_comparison$fasta[AF_TF_B_comparison$TF]
+TF <- TF[!is.na(TF)]
+
+#B <- GetProteinGOInfo(B)
+#saveRDS(B,"./go_terms/graph3_A_B_uni.RDS")
+GO_1 <- readRDS("./go_terms/graph3_A_B_uni.RDS")
+#AF <- GetProteinGOInfo(AF)
+#saveRDS(AF,"./go_terms/graph3_A_AF_uni.RDS")
+GO_2 <- readRDS("./go_terms/graph3_A_AF_uni.RDS")
+#TF <- GetProteinGOInfo(TF)
+#saveRDS(TF,"./go_terms/graph3_A_TF_uni.RDS")
+GO_3 <- readRDS("./go_terms/graph3_A_TF_uni.RDS")
+################################# Biological process
+t_BP <- as.data.frame(table(GO_1$Gene.Ontology..biological.process.))
+t_BP_sorted <- arrange(t_BP, desc(Freq))
+t_BP_sorted_1 <- t_BP_sorted[c(1:20),]
+t_BP <- as.data.frame(table(GO_2$Gene.Ontology..biological.process.))
+t_BP_sorted <- arrange(t_BP, desc(Freq))
+t_BP_sorted_2 <- t_BP_sorted[c(1:20),]
+t_BP <- as.data.frame(table(GO_3$Gene.Ontology..biological.process.))
+t_BP_sorted <- arrange(t_BP, desc(Freq))
+t_BP_sorted_3 <- t_BP_sorted[c(1:20),]
+BP <- merge(t_BP_sorted_1, t_BP_sorted_2,
+            all = TRUE,
+            by = "Var1")
+BP <- merge(BP, t_BP_sorted_3, all = TRUE, by = "Var1")
+
+colnames(BP) <- c("Function", "D1","D2","D4")
+BP_4ggplot <- melt(BP)
+BP_4ggplot$Function_short <- substr(BP_4ggplot$Function,1,15)
+ggplot(BP_4ggplot, aes(x=Function_short, y=value, fill=variable)) +
+  geom_bar(stat='identity', position='dodge') +
+  theme_minimal() +
+  scale_fill_brewer(palette="Dark2") +
+  theme(legend.position="bottom") +
+  theme(legend.key.size = unit(0.15, 'cm')) +
+  guides(fill=guide_legend(nrow=2, byrow=TRUE)) +
+  ylab("Counts") +
+  labs(fill = "Proteins") +
+  ggtitle("Biological processes") +
+  coord_flip()
+
+
+################################# molecular function
+t_BP <- as.data.frame(table(GO_1$Gene.Ontology..molecular.function.))
+t_BP_sorted <- arrange(t_BP, desc(Freq))
+t_BP_sorted_1 <- t_BP_sorted[c(1:20),]
+t_BP <- as.data.frame(table(GO_2$Gene.Ontology..molecular.function.))
+t_BP_sorted <- arrange(t_BP, desc(Freq))
+t_BP_sorted_2 <- t_BP_sorted[c(1:20),]
+t_BP <- as.data.frame(table(GO_3$Gene.Ontology..molecular.function.))
+t_BP_sorted <- arrange(t_BP, desc(Freq))
+t_BP_sorted_3 <- t_BP_sorted[c(1:20),]
+BP <- merge(t_BP_sorted_1, t_BP_sorted_2,
+            all = TRUE,
+            by = "Var1")
+BP <- merge(BP, t_BP_sorted_3, all = TRUE, by = "Var1")
+
+colnames(BP) <- c("Function", "D1","D2","D4")
+BP_4ggplot <- melt(BP)
+BP_4ggplot$Function_short <- substr(BP_4ggplot$Function,1,15)
+ggplot(BP_4ggplot, aes(x=Function_short, y=value, fill=variable)) +
+  geom_bar(stat='identity', position='dodge') +
+  theme_minimal() +
+  scale_fill_brewer(palette="Dark2") +
+  theme(legend.position="bottom") +
+  theme(legend.key.size = unit(0.15, 'cm')) +
+  guides(fill=guide_legend(nrow=2, byrow=TRUE)) +
+  ylab("Counts") +
+  labs(fill = "Proteins") +
+  ggtitle("Molecular Function") +
+  coord_flip()
+
+################################# molecular function
+t_BP <- as.data.frame(table(GO_1$Gene.Ontology..cellular.component.))
+t_BP_sorted <- arrange(t_BP, desc(Freq))
+t_BP_sorted_1 <- t_BP_sorted[c(1:20),]
+t_BP <- as.data.frame(table(GO_2$Gene.Ontology..cellular.component.))
+t_BP_sorted <- arrange(t_BP, desc(Freq))
+t_BP_sorted_2 <- t_BP_sorted[c(1:20),]
+t_BP <- as.data.frame(table(GO_3$Gene.Ontology..cellular.component.))
+t_BP_sorted <- arrange(t_BP, desc(Freq))
+t_BP_sorted_3 <- t_BP_sorted[c(1:20),]
+BP <- merge(t_BP_sorted_1, t_BP_sorted_2,
+            all = TRUE,
+            by = "Var1")
+BP <- merge(BP, t_BP_sorted_3, all = TRUE, by = "Var1")
+
+colnames(BP) <- c("Function", "D1","D2","D4")
+BP_4ggplot <- melt(BP)
+BP_4ggplot$Function_short <- substr(BP_4ggplot$Function,1,15)
+ggplot(BP_4ggplot, aes(x=Function_short, y=value, fill=variable)) +
+  geom_bar(stat='identity', position='dodge') +
+  theme_minimal() +
+  scale_fill_brewer(palette="Dark2") +
+  theme(legend.position="bottom") +
+  theme(legend.key.size = unit(0.15, 'cm')) +
+  guides(fill=guide_legend(nrow=2, byrow=TRUE)) +
+  ylab("Counts") +
+  labs(fill = "Proteins") +
+  ggtitle("Cellular Compartment") +
+  coord_flip()
+
+```
+
+
+
+
+
+## C
+
+```{r}
+#############################
+# D2
+###############################
+data <- readRDS(file = "results_v002/results_run1_mqpar_extracts_2gether_D2_LFQ_combined_txt_proteinGroups.txt_Unique.RDS")
+data <- data[[1]]
+
+data_D2_pool <- dplyr::select(data, contains("Gesamt"))
+data_D2_pool <- apply(data_D2_pool, 1, any)
+data_D2_fractions <- dplyr::select(data, contains("20"))
+data_D2_fractions <- apply(data_D2_fractions, 1, any)
+data_D2 <- as.data.frame(cbind(data_D2_pool,data_D2_fractions))
+
+fasta <- c()
+for (i in 1:length(data$FASTA)){
+  tmp <- strsplit(data$FASTA[i],split='\\|')[[1]][2]
+  fasta <- c(fasta,tmp)
+}
+
+pool <- as.logical(data_D2$data_D2_pool)
+fractions <- as.logical(data_D2$data_D2_fractions)
+
+pool <- fasta[pool]
+pool <- pool[!is.na(pool)]
+fractions <- fasta[fractions]
+fractions <- fractions[!is.na(fractions)]
+#pool <- GetProteinGOInfo(pool)
+#saveRDS(pool,"./go_terms/graph3_C_pool_uni.RDS")
+GO1<- readRDS("./go_terms/graph3_C_pool_uni.RDS")
+#fractions <- GetProteinGOInfo(fractions)
+#saveRDS(fractions,"./go_terms/graph3_C_fractions_uni.RDS")
+GO_2 <- readRDS("./go_terms/graph3_C_fractions_uni.RDS")
+
+################################# Biological process
+t_BP <- as.data.frame(table(GO_1$Gene.Ontology..biological.process.))
+t_BP_sorted <- arrange(t_BP, desc(Freq))
+t_BP_sorted_1 <- t_BP_sorted[c(1:20),]
+t_BP <- as.data.frame(table(GO_2$Gene.Ontology..biological.process.))
+t_BP_sorted <- arrange(t_BP, desc(Freq))
+t_BP_sorted_2 <- t_BP_sorted[c(1:20),]
+#t_BP <- as.data.frame(table(GO[[3]]$Gene.ontology..biological.process.))
+#t_BP_sorted <- arrange(t_BP, desc(Freq))
+#t_BP_sorted_3 <- t_BP_sorted[c(1:20),]
+BP <- merge(t_BP_sorted_1, t_BP_sorted_2,
+            all = TRUE,
+            by = "Var1")
+#BP <- merge(BP, t_BP_sorted_3, all = TRUE, by = "Var1")
+
+colnames(BP) <- c("Function", "D1","D2")
+BP_4ggplot <- melt(BP)
+BP_4ggplot$Function_short <- substr(BP_4ggplot$Function,1,15)
+ggplot(BP_4ggplot, aes(x=Function_short, y=value, fill=variable)) +
+  geom_bar(stat='identity', position='dodge') +
+  theme_minimal() +
+  scale_fill_brewer(palette="Dark2") +
+  theme(legend.position="bottom") +
+  theme(legend.key.size = unit(0.15, 'cm')) +
+  guides(fill=guide_legend(nrow=2, byrow=TRUE)) +
+  ylab("Counts") +
+  labs(fill = "Proteins") +
+  ggtitle("Biological processes") +
+  coord_flip()
+
+
+################################# molecular function
+t_BP <- as.data.frame(table(GO_1$Gene.Ontology..molecular.function.))
+t_BP_sorted <- arrange(t_BP, desc(Freq))
+t_BP_sorted_1 <- t_BP_sorted[c(1:20),]
+t_BP <- as.data.frame(table(GO_2$Gene.Ontology..molecular.function.))
+t_BP_sorted <- arrange(t_BP, desc(Freq))
+t_BP_sorted_2 <- t_BP_sorted[c(1:20),]
+#t_BP <- as.data.frame(table(GO_3$Gene.Ontology..molecular.function.))
+#t_BP_sorted <- arrange(t_BP, desc(Freq))
+#t_BP_sorted_3 <- t_BP_sorted[c(1:20),]
+BP <- merge(t_BP_sorted_1, t_BP_sorted_2,
+            all = TRUE,
+            by = "Var1")
+#BP <- merge(BP, t_BP_sorted_3, all = TRUE, by = "Var1")
+
+colnames(BP) <- c("Function", "D1","D2")
+BP_4ggplot <- melt(BP)
+BP_4ggplot$Function_short <- substr(BP_4ggplot$Function,1,15)
+ggplot(BP_4ggplot, aes(x=Function_short, y=value, fill=variable)) +
+  geom_bar(stat='identity', position='dodge') +
+  theme_minimal() +
+  scale_fill_brewer(palette="Dark2") +
+  theme(legend.position="bottom") +
+  theme(legend.key.size = unit(0.15, 'cm')) +
+  guides(fill=guide_legend(nrow=2, byrow=TRUE)) +
+  ylab("Counts") +
+  labs(fill = "Proteins") +
+  ggtitle("Molecular Function") +
+  coord_flip()
+
+################################# molecular function
+t_BP <- as.data.frame(table(GO_1$Gene.Ontology..cellular.component.))
+t_BP_sorted <- arrange(t_BP, desc(Freq))
+t_BP_sorted_1 <- t_BP_sorted[c(1:20),]
+t_BP <- as.data.frame(table(GO_2$Gene.Ontology..cellular.component.))
+t_BP_sorted <- arrange(t_BP, desc(Freq))
+t_BP_sorted_2 <- t_BP_sorted[c(1:20),]
+#t_BP <- as.data.frame(table(GO_3$Gene.Ontology..cellular.component.))
+#t_BP_sorted <- arrange(t_BP, desc(Freq))
+#t_BP_sorted_3 <- t_BP_sorted[c(1:20),]
+BP <- merge(t_BP_sorted_1, t_BP_sorted_2,
+            all = TRUE,
+            by = "Var1")
+#BP <- merge(BP, t_BP_sorted_3, all = TRUE, by = "Var1")
+
+colnames(BP) <- c("Function", "D1","D2")
+BP_4ggplot <- melt(BP)
+BP_4ggplot$Function_short <- substr(BP_4ggplot$Function,1,15)
+ggplot(BP_4ggplot, aes(x=Function_short, y=value, fill=variable)) +
+  geom_bar(stat='identity', position='dodge') +
+  theme_minimal() +
+  scale_fill_brewer(palette="Dark2") +
+  theme(legend.position="bottom") +
+  theme(legend.key.size = unit(0.15, 'cm')) +
+  guides(fill=guide_legend(nrow=2, byrow=TRUE)) +
+  ylab("Counts") +
+  labs(fill = "Proteins") +
+  ggtitle("Cellular Compartment") +
+  coord_flip()
+
+
+```
+
+
+
+# Grafik 4
+
+* nicht notwendig
