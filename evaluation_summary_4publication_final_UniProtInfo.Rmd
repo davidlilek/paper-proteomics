@@ -20,6 +20,11 @@ editor_options:
     wrap: 72
 ---
 
+```{r}
+results_comp <- c()
+length_comp <- c()
+```
+
 
 # Load Libraries & Plot function & Colors
 
@@ -38,71 +43,7 @@ library(UniprotR)
 #library(VennDiagram) 
 ```
 
-```{r}
-euler_venn_2comp <- function(lst, label_venn, color_venn, cex_venn, grid, gList, h_just, v_just) {
-  ######################################
-  #################plot 2 venn diagrams
-  ######################################
-  p<-plot(euler(lst),
-          input="union",
-          shape="ellipse",
-          quantities=list(type = c("percent", 'counts'),
-                          cex = cex_venn), #schriftgröße für A, B bzw intersection
-          key=TRUE,
-          labels=FALSE,
-          lty = c(1,1),
-          legend = list(labels = label_venn,
-                        side = "bottom",
-                        nrow = 1, ncol = 3),
-          edges=TRUE,
-          fills = color_venn, #color für A,B bzw intersection 
-          alpha=0.8)
-  # https://stackoverflow.com/questions/75177293/how-to-change-the-label-position-when-plotting-venn-diagram-from-eulerr-package
-  tags <- p$children[[2]]$children[[1]]$children$tags$children
-  tags <- do.call(grid::gList, lapply(tags, function(x) {
-    x$children[[2]]$label <- sub(" \\(", "\n(", x$children[[2]]$label)
-    x$children[[2]]$just <- NULL
-    x$children[[2]]$hjust <- h_just
-    x$children[[2]]$vjust <- v_just
-    x}))
-  
-  p$children[[2]]$children[[1]]$children$tags$children <- tags
-  print(p)
-}
 
-
-euler_venn_3comp <- function(lst, cex_venn, label_venn, color_venn, grid, gList, h_just, v_just) {
-  ##################################
-  ###### venn diagram 3 comparisons
-  ##################################
-  p<-plot(euler(lst),
-          input="union",
-          shape="ellipse",
-          quantities=list(type = c("percent", 'counts'),
-                          cex = cex_venn), #schriftgröße für A, B, C bzw intersection
-          key=TRUE,
-          labels=FALSE,
-          lty = c(1,1,1),
-          legend = list(labels = label_venn,
-                        side = "bottom",
-                        nrow = 1, ncol = 3),
-          edges=TRUE,
-          fills = color_venn, #color für A,B bzw intersection fills = grey[c(10,18,25)]
-          alpha=0.8)
-  # https://stackoverflow.com/questions/75177293/how-to-change-the-label-position-when-plotting-venn-diagram-from-eulerr-packages
-  tags <- p$children[[2]]$children[[1]]$children$tags$children
-  tags <- do.call(grid::gList, lapply(tags, function(x) {
-    x$children[[2]]$label <- sub(" \\(", "\n(", x$children[[2]]$label)
-    x$children[[2]]$just <- NULL
-    x$children[[2]]$hjust <- h_just
-    x$children[[2]]$vjust <- v_just
-    x}))
-  
-  p$children[[2]]$children[[1]]$children$tags$children <- tags
-  print(p)
-}
-
-```
 
 ```{r}
 #get colors
@@ -190,8 +131,11 @@ BP <- merge(t_BP_sorted_1, t_BP_sorted_2,
             all = TRUE,
             by = "Var1")
 #BP <- merge(BP, t_BP_sorted_3, all = TRUE, by = "Var1")
-
 colnames(BP) <- c("Function", "D1","D2")
+kable(BP)
+kable(BP[is.na(BP[,3])==TRUE,1])
+kable(BP[is.na(BP[,2])==TRUE,1])
+BP[is.na(BP[,3])==TRUE,1]
 BP_4ggplot <- melt(BP)
 BP_4ggplot$Function_short <- substr(BP_4ggplot$Function,1,15)
 ggplot(BP_4ggplot, aes(x=Function_short, y=value, fill=variable)) +
@@ -221,8 +165,12 @@ BP <- merge(t_BP_sorted_1, t_BP_sorted_2,
             all = TRUE,
             by = "Var1")
 #BP <- merge(BP, t_BP_sorted_3, all = TRUE, by = "Var1")
-
+results_comp <- sum(is.na(BP[2]))
+length_comp <- length(BP[,1])
 colnames(BP) <- c("Function", "D1","D2")
+kable(BP)
+kable(BP[is.na(BP[,3])==TRUE,1])
+kable(BP[is.na(BP[,2])==TRUE,1])
 BP_4ggplot <- melt(BP)
 BP_4ggplot$Function_short <- substr(BP_4ggplot$Function,1,15)
 ggplot(BP_4ggplot, aes(x=Function_short, y=value, fill=variable)) +
@@ -237,7 +185,7 @@ ggplot(BP_4ggplot, aes(x=Function_short, y=value, fill=variable)) +
   ggtitle("Molecular Function") +
   coord_flip()
 
-################################# molecular function
+################################# cellular.component
 t_BP <- as.data.frame(table(GO_1$Gene.Ontology..cellular.component.))
 t_BP_sorted <- arrange(t_BP, desc(Freq))
 t_BP_sorted_1 <- t_BP_sorted[c(1:20),]
@@ -251,8 +199,10 @@ BP <- merge(t_BP_sorted_1, t_BP_sorted_2,
             all = TRUE,
             by = "Var1")
 #BP <- merge(BP, t_BP_sorted_3, all = TRUE, by = "Var1")
-
 colnames(BP) <- c("Function", "D1","D2")
+kable(BP)
+kable(BP[is.na(BP[,3])==TRUE,1])
+kable(BP[is.na(BP[,2])==TRUE,1])
 BP_4ggplot <- melt(BP)
 BP_4ggplot$Function_short <- substr(BP_4ggplot$Function,1,15)
 ggplot(BP_4ggplot, aes(x=Function_short, y=value, fill=variable)) +
@@ -320,8 +270,13 @@ BP <- merge(t_BP_sorted_1, t_BP_sorted_2,
             all = TRUE,
             by = "Var1")
 BP <- merge(BP, t_BP_sorted_3, all = TRUE, by = "Var1")
-
 colnames(BP) <- c("Function", "D1","D2","D4")
+kable(BP)
+kable(subset(BP[,1], is.na(BP[,3]) == TRUE & !is.na(BP[,2]) == TRUE))
+kable(subset(BP[,1], is.na(BP[,2]) == TRUE & !is.na(BP[,3]) == TRUE))
+kable(subset(BP[,1], is.na(BP[,4]) == TRUE & !is.na(BP[,3]) == TRUE))
+kable(subset(BP[,1], is.na(BP[,3]) == TRUE & !is.na(BP[,4]) == TRUE))
+
 BP_4ggplot <- melt(BP)
 BP_4ggplot$Function_short <- substr(BP_4ggplot$Function,1,15)
 ggplot(BP_4ggplot, aes(x=Function_short, y=value, fill=variable)) +
@@ -351,8 +306,15 @@ BP <- merge(t_BP_sorted_1, t_BP_sorted_2,
             all = TRUE,
             by = "Var1")
 BP <- merge(BP, t_BP_sorted_3, all = TRUE, by = "Var1")
-
+results_comp <- c(results_comp,sum(is.na(BP[2])))
+results_comp <- c(results_comp,sum(rowSums(is.na(BP[2:3]))>1,na.rm = TRUE))
+length_comp <- c(length_comp,length(BP[,1]),length(BP[,1]))
 colnames(BP) <- c("Function", "D1","D2","D4")
+kable(BP)
+kable(subset(BP[,1], is.na(BP[,3]) == TRUE & !is.na(BP[,2]) == TRUE))
+kable(subset(BP[,1], is.na(BP[,2]) == TRUE & !is.na(BP[,3]) == TRUE))
+kable(subset(BP[,1], is.na(BP[,4]) == TRUE & !is.na(BP[,3]) == TRUE))
+kable(subset(BP[,1], is.na(BP[,3]) == TRUE & !is.na(BP[,4]) == TRUE))
 BP_4ggplot <- melt(BP)
 BP_4ggplot$Function_short <- substr(BP_4ggplot$Function,1,15)
 ggplot(BP_4ggplot, aes(x=Function_short, y=value, fill=variable)) +
@@ -367,7 +329,7 @@ ggplot(BP_4ggplot, aes(x=Function_short, y=value, fill=variable)) +
   ggtitle("Molecular Function") +
   coord_flip()
 
-################################# molecular function
+################################# cellular.component
 t_BP <- as.data.frame(table(GO_1$Gene.Ontology..cellular.component.))
 t_BP_sorted <- arrange(t_BP, desc(Freq))
 t_BP_sorted_1 <- t_BP_sorted[c(1:20),]
@@ -381,8 +343,12 @@ BP <- merge(t_BP_sorted_1, t_BP_sorted_2,
             all = TRUE,
             by = "Var1")
 BP <- merge(BP, t_BP_sorted_3, all = TRUE, by = "Var1")
-
 colnames(BP) <- c("Function", "D1","D2","D4")
+kable(BP)
+kable(subset(BP[,1], is.na(BP[,3]) == TRUE & !is.na(BP[,2]) == TRUE))
+kable(subset(BP[,1], is.na(BP[,2]) == TRUE & !is.na(BP[,3]) == TRUE))
+kable(subset(BP[,1], is.na(BP[,4]) == TRUE & !is.na(BP[,3]) == TRUE))
+kable(subset(BP[,1], is.na(BP[,3]) == TRUE & !is.na(BP[,4]) == TRUE))
 BP_4ggplot <- melt(BP)
 BP_4ggplot$Function_short <- substr(BP_4ggplot$Function,1,15)
 ggplot(BP_4ggplot, aes(x=Function_short, y=value, fill=variable)) +
@@ -481,7 +447,12 @@ BP <- merge(t_BP_sorted_1, t_BP_sorted_2,
             by = "Var1")
 #BP <- merge(BP, t_BP_sorted_3, all = TRUE, by = "Var1")
 
+
 colnames(BP) <- c("Function", "E4","E5")
+
+kable(BP)
+kable(BP[is.na(BP[,3])==TRUE,1])
+kable(BP[is.na(BP[,2])==TRUE,1])
 BP_4ggplot <- melt(BP)
 BP_4ggplot$Function_short <- substr(BP_4ggplot$Function,1,15)
 ggplot(BP_4ggplot, aes(x=Function_short, y=value, fill=variable)) +
@@ -511,8 +482,12 @@ BP <- merge(t_BP_sorted_1, t_BP_sorted_2,
             all = TRUE,
             by = "Var1")
 #BP <- merge(BP, t_BP_sorted_3, all = TRUE, by = "Var1")
-
+results_comp <- c(results_comp,sum(is.na(BP[2])))
+length_comp <- c(length_comp, length(BP[,1]))
 colnames(BP) <- c("Function", "E4","E5")
+kable(BP)
+kable(BP[is.na(BP[,3])==TRUE,1])
+kable(BP[is.na(BP[,2])==TRUE,1])
 BP_4ggplot <- melt(BP)
 BP_4ggplot$Function_short <- substr(BP_4ggplot$Function,1,15)
 ggplot(BP_4ggplot, aes(x=Function_short, y=value, fill=variable)) +
@@ -527,7 +502,7 @@ ggplot(BP_4ggplot, aes(x=Function_short, y=value, fill=variable)) +
   ggtitle("Molecular Function") +
   coord_flip()
 
-################################# molecular function
+################################# cellular.component
 t_BP <- as.data.frame(table(GO_1$Gene.Ontology..cellular.component.))
 t_BP_sorted <- arrange(t_BP, desc(Freq))
 t_BP_sorted_1 <- t_BP_sorted[c(1:20),]
@@ -543,6 +518,9 @@ BP <- merge(t_BP_sorted_1, t_BP_sorted_2,
 #BP <- merge(BP, t_BP_sorted_3, all = TRUE, by = "Var1")
 
 colnames(BP) <- c("Function", "E4","E5")
+kable(BP)
+kable(BP[is.na(BP[,3])==TRUE,1])
+kable(BP[is.na(BP[,2])==TRUE,1])
 BP_4ggplot <- melt(BP)
 BP_4ggplot$Function_short <- substr(BP_4ggplot$Function,1,15)
 ggplot(BP_4ggplot, aes(x=Function_short, y=value, fill=variable)) +
@@ -566,150 +544,11 @@ ggplot(BP_4ggplot, aes(x=Function_short, y=value, fill=variable)) +
 
 # Grafik 3
 
+
+
+
+
 ## A
-
-```{r, fig.width=4,fig.height=4}
-
-
-## B
-
-```{r}
-#compare B to pool from 0609 
-B_raw <- readRDS(file = "results_v002/results_run1_mqpar_extracts_2gether_E4_D1_B_LFQ_combined_txt_proteinGroups.txt_Unique.RDS")
-B_raw <- B_raw[[1]]
-B <- dplyr::select(B_raw, contains("Pool_G"))
-B <- apply(B, 1, any)
-fasta <- c()
-for (i in 1:length(B_raw$FASTA)){
-  tmp <- strsplit(B_raw$FASTA[i],split='\\|')[[1]][2]
-  fasta <- c(fasta,tmp)
-}
-B <- as.data.frame(cbind(B, fasta))
-aj_raw <- readRDS(file = "results_v002/results_run1_mqpar_extracts_2gether_E4_D1_a-j_LFQ_combined_txt_proteinGroups.txt_Unique.RDS")
-aj_raw <- aj_raw[[1]]
-aj <- dplyr::select(aj_raw, contains("Pool"))
-aj <- apply(aj, 1, any)
-fasta <- c()
-for (i in 1:length(aj_raw$FASTA)){
-  tmp <- strsplit(aj_raw$FASTA[i],split='\\|')[[1]][2]
-  fasta <- c(fasta,tmp)
-}
-aj <- as.data.frame(cbind(aj, fasta))
-B_aj_comparison  <- merge(B, aj,
-                          all = TRUE,
-                          by = "fasta")
-
-B_aj_comparison$B <- as.logical(B_aj_comparison$B)
-B_aj_comparison$aj <- as.logical(B_aj_comparison$aj)
-
-B <- B_aj_comparison$fasta[B_aj_comparison$B]
-B <- B[!is.na(B)]
-aj <- B_aj_comparison$fasta[B_aj_comparison$aj]
-aj <- aj[!is.na(aj)]
-#D1_uni <- GetProteinGOInfo(B)
-#saveRDS(D1_uni,"./go_terms/graph3_B_B_uni.RDS")
-GO_1 <- readRDS("./go_terms/graph3_B_B_uni.RDS")
-#aj <- GetProteinGOInfo(aj)
-#saveRDS(aj,"./go_terms/graph3_B_aj_uni.RDS")
-GO_2 <- readRDS("./go_terms/graph3_B_aj_uni.RDS")
-
-################################# Biological process
-t_BP <- as.data.frame(table(GO_1$Gene.Ontology..biological.process.))
-t_BP_sorted <- arrange(t_BP, desc(Freq))
-t_BP_sorted_1 <- t_BP_sorted[c(1:20),]
-t_BP <- as.data.frame(table(GO_2$Gene.Ontology..biological.process.))
-t_BP_sorted <- arrange(t_BP, desc(Freq))
-t_BP_sorted_2 <- t_BP_sorted[c(1:20),]
-#t_BP <- as.data.frame(table(GO[[3]]$Gene.ontology..biological.process.))
-#t_BP_sorted <- arrange(t_BP, desc(Freq))
-#t_BP_sorted_3 <- t_BP_sorted[c(1:20),]
-BP <- merge(t_BP_sorted_1, t_BP_sorted_2,
-            all = TRUE,
-            by = "Var1")
-#BP <- merge(BP, t_BP_sorted_3, all = TRUE, by = "Var1")
-
-colnames(BP) <- c("Function", "D1","D2")
-BP_4ggplot <- melt(BP)
-BP_4ggplot$Function_short <- substr(BP_4ggplot$Function,1,15)
-ggplot(BP_4ggplot, aes(x=Function_short, y=value, fill=variable)) +
-  geom_bar(stat='identity', position='dodge') +
-  theme_minimal() +
-  scale_fill_brewer(palette="Dark2") +
-  theme(legend.position="bottom") +
-  theme(legend.key.size = unit(0.15, 'cm')) +
-  guides(fill=guide_legend(nrow=2, byrow=TRUE)) +
-  ylab("Counts") +
-  labs(fill = "Proteins") +
-  ggtitle("Biological processes") +
-  coord_flip()
-
-
-################################# molecular function
-t_BP <- as.data.frame(table(GO_1$Gene.Ontology..molecular.function.))
-t_BP_sorted <- arrange(t_BP, desc(Freq))
-t_BP_sorted_1 <- t_BP_sorted[c(1:20),]
-t_BP <- as.data.frame(table(GO_2$Gene.Ontology..molecular.function.))
-t_BP_sorted <- arrange(t_BP, desc(Freq))
-t_BP_sorted_2 <- t_BP_sorted[c(1:20),]
-#t_BP <- as.data.frame(table(GO_3$Gene.Ontology..molecular.function.))
-#t_BP_sorted <- arrange(t_BP, desc(Freq))
-#t_BP_sorted_3 <- t_BP_sorted[c(1:20),]
-BP <- merge(t_BP_sorted_1, t_BP_sorted_2,
-            all = TRUE,
-            by = "Var1")
-#BP <- merge(BP, t_BP_sorted_3, all = TRUE, by = "Var1")
-
-colnames(BP) <- c("Function", "D1","D2")
-BP_4ggplot <- melt(BP)
-BP_4ggplot$Function_short <- substr(BP_4ggplot$Function,1,15)
-ggplot(BP_4ggplot, aes(x=Function_short, y=value, fill=variable)) +
-  geom_bar(stat='identity', position='dodge') +
-  theme_minimal() +
-  scale_fill_brewer(palette="Dark2") +
-  theme(legend.position="bottom") +
-  theme(legend.key.size = unit(0.15, 'cm')) +
-  guides(fill=guide_legend(nrow=2, byrow=TRUE)) +
-  ylab("Counts") +
-  labs(fill = "Proteins") +
-  ggtitle("Molecular Function") +
-  coord_flip()
-
-################################# molecular function
-t_BP <- as.data.frame(table(GO_1$Gene.Ontology..cellular.component.))
-t_BP_sorted <- arrange(t_BP, desc(Freq))
-t_BP_sorted_1 <- t_BP_sorted[c(1:20),]
-t_BP <- as.data.frame(table(GO_2$Gene.Ontology..cellular.component.))
-t_BP_sorted <- arrange(t_BP, desc(Freq))
-t_BP_sorted_2 <- t_BP_sorted[c(1:20),]
-#t_BP <- as.data.frame(table(GO_3$Gene.Ontology..cellular.component.))
-#t_BP_sorted <- arrange(t_BP, desc(Freq))
-#t_BP_sorted_3 <- t_BP_sorted[c(1:20),]
-BP <- merge(t_BP_sorted_1, t_BP_sorted_2,
-            all = TRUE,
-            by = "Var1")
-#BP <- merge(BP, t_BP_sorted_3, all = TRUE, by = "Var1")
-
-colnames(BP) <- c("Function", "D1","D2")
-BP_4ggplot <- melt(BP)
-BP_4ggplot$Function_short <- substr(BP_4ggplot$Function,1,15)
-ggplot(BP_4ggplot, aes(x=Function_short, y=value, fill=variable)) +
-  geom_bar(stat='identity', position='dodge') +
-  theme_minimal() +
-  scale_fill_brewer(palette="Dark2") +
-  theme(legend.position="bottom") +
-  theme(legend.key.size = unit(0.15, 'cm')) +
-  guides(fill=guide_legend(nrow=2, byrow=TRUE)) +
-  ylab("Counts") +
-  labs(fill = "Proteins") +
-  ggtitle("Cellular Compartment") +
-  coord_flip()
-
-
-```
-
-
-
-## B
 
 ```{r}
 ############## B
@@ -808,7 +647,13 @@ BP <- merge(t_BP_sorted_1, t_BP_sorted_2,
             by = "Var1")
 BP <- merge(BP, t_BP_sorted_3, all = TRUE, by = "Var1")
 
-colnames(BP) <- c("Function", "D1","D2","D4")
+
+colnames(BP) <- c("Function", "B","AF","TF")
+kable(BP)
+kable(subset(BP[,1], is.na(BP[,3]) == TRUE & !is.na(BP[,2]) == TRUE))
+kable(subset(BP[,1], is.na(BP[,2]) == TRUE & !is.na(BP[,3]) == TRUE))
+kable(subset(BP[,1], is.na(BP[,4]) == TRUE & !is.na(BP[,3]) == TRUE))
+kable(subset(BP[,1], is.na(BP[,3]) == TRUE & !is.na(BP[,4]) == TRUE))
 BP_4ggplot <- melt(BP)
 BP_4ggplot$Function_short <- substr(BP_4ggplot$Function,1,15)
 ggplot(BP_4ggplot, aes(x=Function_short, y=value, fill=variable)) +
@@ -838,8 +683,167 @@ BP <- merge(t_BP_sorted_1, t_BP_sorted_2,
             all = TRUE,
             by = "Var1")
 BP <- merge(BP, t_BP_sorted_3, all = TRUE, by = "Var1")
+results_comp <- c(results_comp,sum(is.na(BP[2])))
+results_comp <- c(results_comp,sum(rowSums(is.na(BP[2:3]))>1,na.rm = TRUE))
+length_comp <- c(length_comp, length(BP[,1]), length(BP[,1]))
 
-colnames(BP) <- c("Function", "D1","D2","D4")
+colnames(BP) <- c("Function", "B","AF","TF")
+kable(BP)
+kable(subset(BP[,1], is.na(BP[,3]) == TRUE & !is.na(BP[,2]) == TRUE))
+kable(subset(BP[,1], is.na(BP[,2]) == TRUE & !is.na(BP[,3]) == TRUE))
+kable(subset(BP[,1], is.na(BP[,4]) == TRUE & !is.na(BP[,3]) == TRUE))
+kable(subset(BP[,1], is.na(BP[,3]) == TRUE & !is.na(BP[,4]) == TRUE))
+BP_4ggplot <- melt(BP)
+BP_4ggplot$Function_short <- substr(BP_4ggplot$Function,1,15)
+ggplot(BP_4ggplot, aes(x=Function_short, y=value, fill=variable)) +
+  geom_bar(stat='identity', position='dodge') +
+  theme_minimal() +
+  scale_fill_brewer(palette="Dark2") +
+  theme(legend.position="bottom") +
+  theme(legend.key.size = unit(0.15, 'cm')) +
+  guides(fill=guide_legend(nrow=2, byrow=TRUE)) +
+  ylab("Counts") +
+  labs(fill = "Proteins") +
+  ggtitle("Molecular Function") +
+  coord_flip()
+
+################################# cellular.component
+t_BP <- as.data.frame(table(GO_1$Gene.Ontology..cellular.component.))
+t_BP_sorted <- arrange(t_BP, desc(Freq))
+t_BP_sorted_1 <- t_BP_sorted[c(1:20),]
+t_BP <- as.data.frame(table(GO_2$Gene.Ontology..cellular.component.))
+t_BP_sorted <- arrange(t_BP, desc(Freq))
+t_BP_sorted_2 <- t_BP_sorted[c(1:20),]
+t_BP <- as.data.frame(table(GO_3$Gene.Ontology..cellular.component.))
+t_BP_sorted <- arrange(t_BP, desc(Freq))
+t_BP_sorted_3 <- t_BP_sorted[c(1:20),]
+BP <- merge(t_BP_sorted_1, t_BP_sorted_2,
+            all = TRUE,
+            by = "Var1")
+BP <- merge(BP, t_BP_sorted_3, all = TRUE, by = "Var1")
+
+colnames(BP) <- c("Function", "B","AF","TF")
+kable(BP)
+kable(subset(BP[,1], is.na(BP[,3]) == TRUE & !is.na(BP[,2]) == TRUE))
+kable(subset(BP[,1], is.na(BP[,2]) == TRUE & !is.na(BP[,3]) == TRUE))
+kable(subset(BP[,1], is.na(BP[,4]) == TRUE & !is.na(BP[,3]) == TRUE))
+kable(subset(BP[,1], is.na(BP[,3]) == TRUE & !is.na(BP[,4]) == TRUE))
+BP_4ggplot <- melt(BP)
+BP_4ggplot$Function_short <- substr(BP_4ggplot$Function,1,15)
+ggplot(BP_4ggplot, aes(x=Function_short, y=value, fill=variable)) +
+  geom_bar(stat='identity', position='dodge') +
+  theme_minimal() +
+  scale_fill_brewer(palette="Dark2") +
+  theme(legend.position="bottom") +
+  theme(legend.key.size = unit(0.15, 'cm')) +
+  guides(fill=guide_legend(nrow=2, byrow=TRUE)) +
+  ylab("Counts") +
+  labs(fill = "Proteins") +
+  ggtitle("Cellular Compartment") +
+  coord_flip()
+
+```
+
+
+## B
+
+```{r, fig.width=4,fig.height=4}
+
+
+#compare B to pool from 0609 
+B_raw <- readRDS(file = "results_v002/results_run1_mqpar_extracts_2gether_E4_D1_B_LFQ_combined_txt_proteinGroups.txt_Unique.RDS")
+B_raw <- B_raw[[1]]
+B <- dplyr::select(B_raw, contains("Pool_G"))
+B <- apply(B, 1, any)
+fasta <- c()
+for (i in 1:length(B_raw$FASTA)){
+  tmp <- strsplit(B_raw$FASTA[i],split='\\|')[[1]][2]
+  fasta <- c(fasta,tmp)
+}
+B <- as.data.frame(cbind(B, fasta))
+aj_raw <- readRDS(file = "results_v002/results_run1_mqpar_extracts_2gether_E4_D1_a-j_LFQ_combined_txt_proteinGroups.txt_Unique.RDS")
+aj_raw <- aj_raw[[1]]
+aj <- dplyr::select(aj_raw, contains("Pool"))
+aj <- apply(aj, 1, any)
+fasta <- c()
+for (i in 1:length(aj_raw$FASTA)){
+  tmp <- strsplit(aj_raw$FASTA[i],split='\\|')[[1]][2]
+  fasta <- c(fasta,tmp)
+}
+aj <- as.data.frame(cbind(aj, fasta))
+B_aj_comparison  <- merge(B, aj,
+                          all = TRUE,
+                          by = "fasta")
+
+B_aj_comparison$B <- as.logical(B_aj_comparison$B)
+B_aj_comparison$aj <- as.logical(B_aj_comparison$aj)
+
+B <- B_aj_comparison$fasta[B_aj_comparison$B]
+B <- B[!is.na(B)]
+aj <- B_aj_comparison$fasta[B_aj_comparison$aj]
+aj <- aj[!is.na(aj)]
+#D1_uni <- GetProteinGOInfo(B)
+#saveRDS(D1_uni,"./go_terms/graph3_B_B_uni.RDS")
+GO_1 <- readRDS("./go_terms/graph3_B_B_uni.RDS")
+#aj <- GetProteinGOInfo(aj)
+#saveRDS(aj,"./go_terms/graph3_B_aj_uni.RDS")
+GO_2 <- readRDS("./go_terms/graph3_B_aj_uni.RDS")
+
+################################# Biological process
+t_BP <- as.data.frame(table(GO_1$Gene.Ontology..biological.process.))
+t_BP_sorted <- arrange(t_BP, desc(Freq))
+t_BP_sorted_1 <- t_BP_sorted[c(1:20),]
+t_BP <- as.data.frame(table(GO_2$Gene.Ontology..biological.process.))
+t_BP_sorted <- arrange(t_BP, desc(Freq))
+t_BP_sorted_2 <- t_BP_sorted[c(1:20),]
+#t_BP <- as.data.frame(table(GO[[3]]$Gene.ontology..biological.process.))
+#t_BP_sorted <- arrange(t_BP, desc(Freq))
+#t_BP_sorted_3 <- t_BP_sorted[c(1:20),]
+BP <- merge(t_BP_sorted_1, t_BP_sorted_2,
+            all = TRUE,
+            by = "Var1")
+#BP <- merge(BP, t_BP_sorted_3, all = TRUE, by = "Var1")
+
+
+colnames(BP) <- c("Function", "D1","D2")
+kable(BP)
+kable(BP[is.na(BP[,3])==TRUE,1])
+kable(BP[is.na(BP[,2])==TRUE,1])
+BP_4ggplot <- melt(BP)
+BP_4ggplot$Function_short <- substr(BP_4ggplot$Function,1,15)
+ggplot(BP_4ggplot, aes(x=Function_short, y=value, fill=variable)) +
+  geom_bar(stat='identity', position='dodge') +
+  theme_minimal() +
+  scale_fill_brewer(palette="Dark2") +
+  theme(legend.position="bottom") +
+  theme(legend.key.size = unit(0.15, 'cm')) +
+  guides(fill=guide_legend(nrow=2, byrow=TRUE)) +
+  ylab("Counts") +
+  labs(fill = "Proteins") +
+  ggtitle("Biological processes") +
+  coord_flip()
+
+
+################################# molecular function
+t_BP <- as.data.frame(table(GO_1$Gene.Ontology..molecular.function.))
+t_BP_sorted <- arrange(t_BP, desc(Freq))
+t_BP_sorted_1 <- t_BP_sorted[c(1:20),]
+t_BP <- as.data.frame(table(GO_2$Gene.Ontology..molecular.function.))
+t_BP_sorted <- arrange(t_BP, desc(Freq))
+t_BP_sorted_2 <- t_BP_sorted[c(1:20),]
+#t_BP <- as.data.frame(table(GO_3$Gene.Ontology..molecular.function.))
+#t_BP_sorted <- arrange(t_BP, desc(Freq))
+#t_BP_sorted_3 <- t_BP_sorted[c(1:20),]
+BP <- merge(t_BP_sorted_1, t_BP_sorted_2,
+            all = TRUE,
+            by = "Var1")
+#BP <- merge(BP, t_BP_sorted_3, all = TRUE, by = "Var1")
+results_comp <- c(results_comp,sum(is.na(BP[2])))
+length_comp <- c(length_comp, length(BP[,1]))
+colnames(BP) <- c("Function", "D1","D2")
+kable(BP)
+kable(BP[is.na(BP[,3])==TRUE,1])
+kable(BP[is.na(BP[,2])==TRUE,1])
 BP_4ggplot <- melt(BP)
 BP_4ggplot$Function_short <- substr(BP_4ggplot$Function,1,15)
 ggplot(BP_4ggplot, aes(x=Function_short, y=value, fill=variable)) +
@@ -861,15 +865,18 @@ t_BP_sorted_1 <- t_BP_sorted[c(1:20),]
 t_BP <- as.data.frame(table(GO_2$Gene.Ontology..cellular.component.))
 t_BP_sorted <- arrange(t_BP, desc(Freq))
 t_BP_sorted_2 <- t_BP_sorted[c(1:20),]
-t_BP <- as.data.frame(table(GO_3$Gene.Ontology..cellular.component.))
-t_BP_sorted <- arrange(t_BP, desc(Freq))
-t_BP_sorted_3 <- t_BP_sorted[c(1:20),]
+#t_BP <- as.data.frame(table(GO_3$Gene.Ontology..cellular.component.))
+#t_BP_sorted <- arrange(t_BP, desc(Freq))
+#t_BP_sorted_3 <- t_BP_sorted[c(1:20),]
 BP <- merge(t_BP_sorted_1, t_BP_sorted_2,
             all = TRUE,
             by = "Var1")
-BP <- merge(BP, t_BP_sorted_3, all = TRUE, by = "Var1")
+#BP <- merge(BP, t_BP_sorted_3, all = TRUE, by = "Var1")
 
-colnames(BP) <- c("Function", "D1","D2","D4")
+colnames(BP) <- c("Function", "D1","D2")
+kable(BP)
+kable(BP[is.na(BP[,3])==TRUE,1])
+kable(BP[is.na(BP[,2])==TRUE,1])
 BP_4ggplot <- melt(BP)
 BP_4ggplot$Function_short <- substr(BP_4ggplot$Function,1,15)
 ggplot(BP_4ggplot, aes(x=Function_short, y=value, fill=variable)) +
@@ -884,10 +891,8 @@ ggplot(BP_4ggplot, aes(x=Function_short, y=value, fill=variable)) +
   ggtitle("Cellular Compartment") +
   coord_flip()
 
+
 ```
-
-
-
 
 
 ## C
@@ -941,6 +946,9 @@ BP <- merge(t_BP_sorted_1, t_BP_sorted_2,
 #BP <- merge(BP, t_BP_sorted_3, all = TRUE, by = "Var1")
 
 colnames(BP) <- c("Function", "D1","D2")
+kable(BP)
+kable(BP[is.na(BP[,3])==TRUE,1])
+kable(BP[is.na(BP[,2])==TRUE,1])
 BP_4ggplot <- melt(BP)
 BP_4ggplot$Function_short <- substr(BP_4ggplot$Function,1,15)
 ggplot(BP_4ggplot, aes(x=Function_short, y=value, fill=variable)) +
@@ -970,8 +978,12 @@ BP <- merge(t_BP_sorted_1, t_BP_sorted_2,
             all = TRUE,
             by = "Var1")
 #BP <- merge(BP, t_BP_sorted_3, all = TRUE, by = "Var1")
-
+results_comp <- c(results_comp,sum(is.na(BP[2])))
+length_comp <- c(length_comp,length(BP[,1]))
 colnames(BP) <- c("Function", "D1","D2")
+kable(BP)
+kable(BP[is.na(BP[,3])==TRUE,1])
+kable(BP[is.na(BP[,2])==TRUE,1])
 BP_4ggplot <- melt(BP)
 BP_4ggplot$Function_short <- substr(BP_4ggplot$Function,1,15)
 ggplot(BP_4ggplot, aes(x=Function_short, y=value, fill=variable)) +
@@ -986,7 +998,7 @@ ggplot(BP_4ggplot, aes(x=Function_short, y=value, fill=variable)) +
   ggtitle("Molecular Function") +
   coord_flip()
 
-################################# molecular function
+################################# cellular.component
 t_BP <- as.data.frame(table(GO_1$Gene.Ontology..cellular.component.))
 t_BP_sorted <- arrange(t_BP, desc(Freq))
 t_BP_sorted_1 <- t_BP_sorted[c(1:20),]
@@ -1002,6 +1014,9 @@ BP <- merge(t_BP_sorted_1, t_BP_sorted_2,
 #BP <- merge(BP, t_BP_sorted_3, all = TRUE, by = "Var1")
 
 colnames(BP) <- c("Function", "D1","D2")
+kable(BP)
+kable(BP[is.na(BP[,3])==TRUE,1])
+kable(BP[is.na(BP[,2])==TRUE,1])
 BP_4ggplot <- melt(BP)
 BP_4ggplot$Function_short <- substr(BP_4ggplot$Function,1,15)
 ggplot(BP_4ggplot, aes(x=Function_short, y=value, fill=variable)) +
@@ -1024,3 +1039,16 @@ ggplot(BP_4ggplot, aes(x=Function_short, y=value, fill=variable)) +
 # Grafik 4
 
 * nicht notwendig
+
+# Results comparison
+
+```{r}
+print(results_comp)
+print(length_comp)
+print("Graph2")
+print(c("A","B","B","C"))
+print("Graph3")
+print(c("A","A","B","C"))
+results_comp/length_comp*100
+```
+

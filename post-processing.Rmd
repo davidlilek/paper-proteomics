@@ -21,10 +21,10 @@ params:
     value: ""
   path:
     label: "File path"
-    value: "X:/wissenschaftliche Veröffentlichungen/Publikationen/2022/Proteomics_JRS_DL/data/proteinGroups/2gether_D2_ta_yeast_proteinGroups.txt"
+    value: "X:/wissenschaftliche Veröffentlichungen/Publikationen/2022/Proteomics_JRS_DL/data/proteinGroups_v002/results_run1_mqpar_extracts_2gether_200520_reanalysisCM_secondpeptides_pooled_proteinGroups.txt"
   pathRDS:
     label: "File path RDS file"
-    value: "X:/wissenschaftliche Veröffentlichungen/Publikationen/2022/Proteomics_JRS_DL/data/"
+    value: "X:/wissenschaftliche Veröffentlichungen/Publikationen/2022/Proteomics_JRS_DL/data/results_v002/"
   unique: 
     label: "Number of unique peptides for identification"
     value: 2

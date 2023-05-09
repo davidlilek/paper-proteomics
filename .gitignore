@@ -10,6 +10,8 @@ R.Rproj
 *.rds
 *.xlsx
 *.txt
+*.fasta
+*.xml
 
 proteinGroups/
 results/
