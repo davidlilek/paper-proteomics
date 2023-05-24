@@ -38,13 +38,13 @@ data <- read.csv("Extraktionen_gesamt_V2_DL.csv", sep=";")
 MBR <- (data$Razor.MBR.2.peptides/data$Unique.MBR.2.peptides)*100
 noMBR <- (data$Razor.noMBR.2.peptides/data$Unique.no.MBR.2.peptides)*100
 
-boxplot(MBR, noMBR, main = "Abweichung Razor vs Unique [%]", names = c("MBR", "noMBR"))
+boxplot(MBR, noMBR, ylab = "Deviation Razor vs. Unique peptides [%]", names = c("MBR", "noMBR"))
 
 mean_MBR <- (data$Razor.MBR.2.peptides+data$Unique.MBR.2.peptide)/2
 mean_noMBR <- (data$Razor.noMBR.2.peptides+data$Unique.no.MBR.2.peptides)/2
 
-plot(mean_MBR,MBR, xlab= "Number proteins", ylab="Abweichung Razor vs. Unique", main = "MBR")
-plot(mean_noMBR,noMBR, xlab= "Number proteins", ylab="Abweichung Razor vs. Unique", main = "noMBR")
+plot(mean_MBR,MBR, xlab= "Number of identified proteins", ylab="Deviation Razor vs. Unique peptides [%]")
+plot(mean_noMBR,noMBR, xlab= "Number of identified proteins", ylab="Deviation Razor vs. Unique peptides [%]")
 
 #t.test(data$Razor.noMBR.2.peptides,data$Unique.no.MBR.2.peptides,paired = TRUE)
 #t.test(data$Razor.MBR.2.peptides,data$Unique.MBR.2.peptides,paired = TRUE)
@@ -69,8 +69,8 @@ boxplot(unique,razor, main = "Abweichung MBR", names = c("Unique", "Razor"))
 mean_unique <- (data$Unique.MBR.2.peptides+data$Unique.no.MBR.2.peptides)/2
 mean_razor <- (data$Razor.noMBR.2.peptides+data$Razor.MBR.2.peptides)/2
 
-plot(mean_razor,razor, xlab= "Number proteins", ylab="Abweichung MBR", main = "Razor")
-plot(mean_unique,unique, xlab= "Number proteins", ylab="Abweichung MBR", main="Unique")
+plot(mean_razor,razor, xlab= "Number of identified proteins", ylab="Deviation MBR [%]", main = "Razor")
+plot(mean_unique,unique, xlab= "Number of identified proteins", ylab="Deviation MBR [%]", main="Unique")
 
 ```
 
