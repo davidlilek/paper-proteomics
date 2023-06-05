@@ -238,7 +238,7 @@ data <- data[[1]]
 b <- dplyr::select(data, contains("_b"))
 D1_b <- b$Razor...unique.peptides.1_b_01+ b$Razor...unique.peptides.1_b_02
 D2_b <- b$Razor...unique.peptides.2_b_01 + b$Razor...unique.peptides.2_b_02
-D4_b <- b$Razor...unique.peptides.3_b_01 + b$Razor...unique.peptides.4_b_02
+D4_b <- b$Razor...unique.peptides.4_b_01 + b$Razor...unique.peptides.4_b_02
 b <- as.data.frame(cbind(D1_b,D2_b,D4_b))
 b[b==0] <- NA
 b[b==2] <- 1
@@ -256,6 +256,11 @@ lst <- list(E5_D1_b = as.double(D1_b[,1]),
 
 
 euler_venn_3comp(lst, label_venn = c("E5_D1_b","E5_D2_b","E5_D4_b"), color_venn = c(IG,highMW,lowMW), cex_venn = c(1,1,1), h_just = 0.5, v_just = 0.5)
+
+print(c("E5_D1_b","E5_D2_b","E5_D4_b"))
+sum(b$Razor...unique.peptides.1_b_01,na.rm = TRUE)
+sum(b$Razor...unique.peptides.2_b_01,na.rm = TRUE)
+sum(b$Razor...unique.peptides.4_b_01,na.rm = TRUE)
 ```
 
 
