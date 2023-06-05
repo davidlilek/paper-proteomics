@@ -4,7 +4,7 @@
 .Ruserdata
 R.Rproj
 
-*.html
+
 *.csv
 *.png
 *.rds
