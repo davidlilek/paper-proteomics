@@ -115,6 +115,83 @@ lowMW <- rgb(255,217,102, maxColorValue = 255)
 IG <- rgb(180,198,231,maxColorValue = 255)
 ```
 
+# Grafik 0 - Puffervergleich
+
+```{r message=FALSE, warning=FALSE}
+# Siehe Proteinquanti_Puffervergleich.xlsx -> Teams 
+values <- c(6.39,
+            6.09,
+            12.33,
+            10.68,
+            15.1,
+            14.12)
+puffer <- c("Citrate","Citrate","Phosphate","Phosphate","Carbonate","Carbonate")
+data <- as.data.frame(cbind(values,puffer))
+
+res <- aov(values ~ puffer, data = data)
+summary(res)
+TukeyHSD(res)
+
+#puffer <- factor(puffer, levels = c("Citrat", "Phosphate", "Carbonate"))
+data_4plot <- as.data.frame(cbind(values, factor(puffer)))
+ggplot(data_4plot, aes(x=reorder(puffer,values), y=values)) + 
+  geom_boxplot() + 
+  labs(x = "",
+       y = "Protein concentration mg/mL") +
+  scale_x_discrete(labels = c("Citrate" = "Citrate", "Phosphate" = "Phosphate", "Carbonate" = "Carbonate"))
+
+res_raw <- readRDS(file = "results_v002/mqpar_extracts_2gether_reanalysisCM_extraktejakob_proteinGroups.txt_Unique.RDS")
+res_raw <- res_raw[[1]]
+
+
+res <- res_raw[,-ncol(res_raw)]
+res <- res*1
+
+CAR <- apply(res[,c(1:2)], 1, any)
+CIT <- apply(res[,c(3:4)],1,any)
+PHOS <- apply(res[,c(5:6)],1,any)
+
+fasta <- c()
+for (i in 1:length(res_raw$FASTA)){
+  tmp <- strsplit(res_raw$FASTA[i],split='\\|')[[1]][2]
+  fasta <- c(fasta,tmp)
+}
+
+res_clear <- as.data.frame(cbind(CAR,CIT,PHOS,fasta))
+
+res_clear$CAR <- as.logical(res_clear$CAR)
+res_clear$CIT <- as.logical(res_clear$CIT)
+res_clear$PHOS <- as.logical(res_clear$PHOS)
+res_clear <- res_clear[,-4]*1
+res_clear[res_clear==0] <- NA
+
+
+
+proteins <- as.data.frame(which(!is.na(res_clear), arr.ind=TRUE))
+
+CAR <- proteins %>% dplyr::filter(col == 1)
+CIT <- proteins %>% dplyr::filter(col == 2)
+PHOS <- proteins %>% dplyr::filter(col == 3)
+
+# combine to list
+lst <- list("CAR"=as.double(CAR[,1]),
+            "CIT"=as.double(CIT[,1]),
+            "PHOS"=as.double(PHOS[,1]))
+
+
+
+#venn digarams
+#get colors
+col1 <- rgb(255,93,93, maxColorValue = 255)
+#fractions high MW SEC
+col2 <- rgb(169,208,142,maxColorValue = 255)
+#fractions low MW SEC
+col3 <- rgb(255,217,102, maxColorValue = 255)
+
+euler_venn_3comp(lst, label_venn = c("CAR","CIT","PHOS"), color_venn = c(col1,col2,col3), cex_venn = c(1,1), h_just = 0.5, v_just = 0.5)
+```
+
+
 # Grafik 1 - Comparison E3_D1 - noTreatment, Heatshock, ProteaseInhibitor
 
 The results show that the significant highest number of protein identifications (median=586) could be achieved using protease inhibitor. The significant lowest number of proteins was determined using heatshock (median=315). No treatment resulted in 491 identified proteins. (p value ANOVA 1.43e-09; p value Tukey HSD test below 0.0003). All measurement were performed in using 6 technical replicates.
