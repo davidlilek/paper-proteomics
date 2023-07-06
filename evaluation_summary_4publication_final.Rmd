@@ -226,12 +226,15 @@ data_sub$group <- c(rep("noTreatment",6),
                    rep("Heatshock",6),
                    rep("ProteaseInhibitor",6))
 colnames(data_sub) <- c("number","group")
-print("Median no Treatment")
+print("Median and sd no Treatment")
 median(subset(data_sub,group=="noTreatment")[,1])
-print("Median Heatshock")
+sd(subset(data_sub,group=="noTreatment")[,1])
+print("Median and sd Heatshock")
 median(subset(data_sub,group=="Heatshock")[,1])
-print("Median ProteaseInhibitor")
+sd(subset(data_sub,group=="Heatshock")[,1])
+print("Median and sd ProteaseInhibitor")
 median(subset(data_sub,group=="ProteaseInhibitor")[,1])
+sd(subset(data_sub,group=="ProteaseInhibitor")[,1])
 ggplot(data_sub, aes(x=group, y=number)) + 
   geom_boxplot()
 anova <- aov(number ~ group, data=data_sub)
@@ -653,8 +656,8 @@ D2_pool_inter <- proteins %>% dplyr::filter(col == 1)
 D2_fractions_inter <- proteins %>% dplyr::filter(col == 2)
 
 # combine to list
-lst <- list(D2_pool=as.double(D2_pool_inter[,1]),
-            D2_fractions=as.double(D2_fractions_inter[,1]))
+lst <- list(D2_fractions=as.double(D2_fractions_inter[,1]),
+            D2_pool=as.double(D2_pool_inter[,1]))
 
 #venn digarams
 #get colors
@@ -663,7 +666,7 @@ D2_ingel_col <- rgb(169,208,142,maxColorValue = 255)
 #E4_D1_pool_col <- rgb(255,217,102, maxColorValue = 255)
 
 
-euler_venn_2comp(lst, label_venn = c("D2_pool","D2_fractions"), color_venn = c(D2_pool_col,D2_ingel_col), cex_venn = c(1,1), h_just = 0.5, v_just = 0.5)
+euler_venn_2comp(lst, label_venn = c("D2_fractions","D2_pool"), color_venn = c(D2_pool_col,D2_ingel_col), cex_venn = c(1,1), h_just = 0.5, v_just = 0.5)
 
 ```
 
