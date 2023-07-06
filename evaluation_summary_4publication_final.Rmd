@@ -174,10 +174,10 @@ CIT <- proteins %>% dplyr::filter(col == 2)
 PHOS <- proteins %>% dplyr::filter(col == 3)
 
 # combine to list
-lst <- list("CAR"=as.double(CAR[,1]),
-            "CIT"=as.double(CIT[,1]),
-            "PHOS"=as.double(PHOS[,1]))
-
+lst <- list("CIT"=as.double(CIT[,1]),
+            "PHOS"=as.double(PHOS[,1]),
+            "CAR"=as.double(CAR[,1]))
+            
 
 
 #venn digarams
@@ -188,7 +188,7 @@ col2 <- rgb(169,208,142,maxColorValue = 255)
 #fractions low MW SEC
 col3 <- rgb(255,217,102, maxColorValue = 255)
 
-euler_venn_3comp(lst, label_venn = c("CAR","CIT","PHOS"), color_venn = c(col1,col2,col3), cex_venn = c(1,1), h_just = 0.5, v_just = 0.5)
+euler_venn_3comp(lst, label_venn = c("CIT","PHOS","CAR"), color_venn = c(col1,col2,col3), cex_venn = c(1,1,0.70,0.9,0,1,1), h_just = 0.5, v_just = 0.5)
 ```
 
 
@@ -335,7 +335,8 @@ lst <- list(E5_D1_b = as.double(D1_b[,1]),
             E5_D4_b = as.double(D4_b[,1]))
 
 
-euler_venn_3comp(lst, label_venn = c("E5_D1_b","E5_D2_b","E5_D4_b"), color_venn = c(IG,highMW,lowMW), cex_venn = c(1,1,1), h_just = 0.5, v_just = 0.5)
+euler_venn_3comp(lst, label_venn = c("E5_D1_b","E5_D2_b","E5_D4_b"), color_venn = c(IG,highMW,lowMW), cex_venn = c(1,1,1,1,0,1,1),
+                 h_just = 0.5, v_just = 0.5)
 
 print(c("E5_D1_b","E5_D2_b","E5_D4_b"))
 sum(b$Razor...unique.peptides.1_b_01,na.rm = TRUE)
@@ -533,7 +534,18 @@ lowMW <- rgb(255,217,102, maxColorValue = 255)
 IG <- rgb(180,198,231,maxColorValue = 255)
 
 
-euler_venn_3comp(lst, label_venn = c("E4_D1_B","E4_D1_AF","E4_D1_TF"), color_venn = c(IG,lowMW,highMW), cex_venn = c(1,1,1), h_just = 0.5, v_just = 0.5)
+euler_venn_3comp(lst, 
+                 label_venn = c("E4_D1_B","E4_D1_AF","E4_D1_TF"),
+                 color_venn = c(IG,lowMW,highMW), 
+                 cex_venn = c(1,
+                              0.7,
+                              0.5,
+                              0.8,
+                              0.8,
+                              0.6,
+                              1),
+                 h_just = 0.5,
+                 v_just = 0.5)
 
 print(c("E4_D1_B","E4_D1_AF","E4_D1_TF"))
 sum(AF_TF_B_comparison$B,na.rm = TRUE)
@@ -591,7 +603,7 @@ lst <- list("E4_D1_B_fractions"=as.double(B_inter[,1]),
 
 
 
-euler_venn_2comp(lst, label_venn = c("E4_D1_B_fractions","E4_D1"), color_venn = c(IG,total), cex_venn = c(1,1), h_just = 0.5, v_just = 0.5)
+euler_venn_2comp(lst, label_venn = c("E4_D1_B_fractions","E4_D1"), color_venn = c(IG,total), cex_venn = c(1,0.6,1), h_just = 0.5, v_just = 0.5)
 
 print(c("B","E4_D1_pool"))
 sum(B_aj_comparison$B,na.rm = TRUE)
@@ -666,7 +678,7 @@ D2_ingel_col <- rgb(169,208,142,maxColorValue = 255)
 #E4_D1_pool_col <- rgb(255,217,102, maxColorValue = 255)
 
 
-euler_venn_2comp(lst, label_venn = c("D2_fractions","D2_pool"), color_venn = c(D2_pool_col,D2_ingel_col), cex_venn = c(1,1), h_just = 0.5, v_just = 0.5)
+euler_venn_2comp(lst, label_venn = c("D2_fractions","D2_pool"), color_venn = c(D2_pool_col,D2_ingel_col), cex_venn = c(1,0.6,1), h_just = 0.5, v_just = 0.5)
 
 ```
 
