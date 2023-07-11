@@ -21,6 +21,7 @@ editor_options:
 ---
 
 
+
 # Load Libraries & Plot function & Colors
 
 ```{r message=FALSE, warning=FALSE}
@@ -52,7 +53,7 @@ euler_venn_2comp <- function(lst, label_venn, color_venn, cex_venn, grid, gList,
           lty = c(1,1),
           legend = list(labels = label_venn,
                         side = "bottom",
-                        nrow = 1, ncol = 3),
+                        nrow = 3, ncol = 1),
           edges=TRUE,
           fills = color_venn, #color für A,B bzw intersection 
           alpha=0.8)
@@ -84,7 +85,7 @@ euler_venn_3comp <- function(lst, cex_venn, label_venn, color_venn, grid, gList,
           lty = c(1,1,1),
           legend = list(labels = label_venn,
                         side = "bottom",
-                        nrow = 1, ncol = 3),
+                        nrow = 3, ncol = 1),
           edges=TRUE,
           fills = color_venn, #color für A,B bzw intersection fills = grey[c(10,18,25)]
           alpha=0.8)
@@ -103,6 +104,8 @@ euler_venn_3comp <- function(lst, cex_venn, label_venn, color_venn, grid, gList,
 
 ```
 
+## colors
+
 ```{r}
 #get colors
 #total protein extract
@@ -113,7 +116,62 @@ highMW <- rgb(169,208,142,maxColorValue = 255)
 lowMW <- rgb(255,217,102, maxColorValue = 255)
 #in-gel digest
 IG <- rgb(180,198,231,maxColorValue = 255)
+
+
+
 ```
+
+```{r eval=FALSE, warning=FALSE, include=FALSE}
+#v001
+
+
+#col X - D1
+#dark: total protein extract
+#light: fractionation
+col_X_dark <- rgb(255,0,0, maxColorValue = 255)
+col_X_light <- rgb(255,102,102,maxColorValue = 255)
+#fractions high MW SEC
+col_X_lowMW  <- rgb(255,153,153,maxColorValue = 255)
+#fractions low MW SEC
+col_X_highMW <- rgb(255,204,204, maxColorValue = 255)
+col_X_carbonate <- rgb(255,170,170, maxColorValue = 255)
+# D2
+col_Y_light <- rgb(102,102,255, maxColorValue = 255)
+col_Y_dark <- rgb(0,0,255, maxColorValue = 255)
+
+```
+
+```{r eval=FALSE, include=FALSE}
+#v002
+
+
+#col X - D1
+#dark: total protein extract
+#light: fractionation
+col_X_dark <- rgb(204,0,0, maxColorValue = 255)
+col_X_light <- rgb(255,70,70,maxColorValue = 255)
+#fractions high MW SEC
+col_X_lowMW  <- rgb(255,150,150,maxColorValue = 255)
+#fractions low MW SEC
+col_X_highMW <- rgb(255,230,230, maxColorValue = 255)
+col_X_carbonate <- rgb(255,170,170, maxColorValue = 255)
+# D2
+col_Y_dark <- rgb(0,0,204, maxColorValue = 255)
+col_Y_light <- rgb(70,70,255, maxColorValue = 255)
+
+```
+
+```{r}
+#v003 chat gpt
+col_X_dark <- rgb(204,0,0,maxColorValue = 255)
+col_X_light <- rgb(255,70,70,maxColorValue = 255)
+col_Y_dark <- rgb(0,0,204,maxColorValue = 255)
+col_X_lowMW <- rgb(255,150,150,maxColorValue = 255)
+col_X_highMW <- rgb(255,230,230,maxColorValue = 255)
+col_X_carbonate <- rgb(255,170,170,maxColorValue = 255)
+col_Y_light <- rgb(70,70,255,maxColorValue = 255)
+```
+
 
 # Grafik 0 - Puffervergleich
 
@@ -188,7 +246,7 @@ col2 <- rgb(169,208,142,maxColorValue = 255)
 #fractions low MW SEC
 col3 <- rgb(255,217,102, maxColorValue = 255)
 
-euler_venn_3comp(lst, label_venn = c("CIT","PHOS","CAR"), color_venn = c(col1,col2,col3), cex_venn = c(1,1,0.70,0.9,0,1,1), h_just = 0.5, v_just = 0.5)
+euler_venn_3comp(lst, label_venn = c("Citrate","Phosphate","Carbonate"), color_venn = c(col2,col_X_dark,col3), cex_venn = c(1,1,0.70,0.9,0,1,1), h_just = 0.5, v_just = 0.5)
 ```
 
 
@@ -222,21 +280,22 @@ sum(PI*1)
 data <- read.csv("Extraktionen_gesamt_V2_DL.csv", sep=";")
 data_sub <- as.data.frame(data$Unique.no.MBR.2.peptides)
 data_sub <- as.data.frame(data_sub[c(1:18),])
-data_sub$group <- c(rep("noTreatment",6),
+data_sub$group <- c(rep("No treatment",6),
                    rep("Heatshock",6),
-                   rep("ProteaseInhibitor",6))
+                   rep("Protease inhibitor",6))
 colnames(data_sub) <- c("number","group")
 print("Median and sd no Treatment")
-median(subset(data_sub,group=="noTreatment")[,1])
-sd(subset(data_sub,group=="noTreatment")[,1])
+median(subset(data_sub,group=="No treatment")[,1])
+sd(subset(data_sub,group=="No treatment")[,1])
 print("Median and sd Heatshock")
 median(subset(data_sub,group=="Heatshock")[,1])
 sd(subset(data_sub,group=="Heatshock")[,1])
 print("Median and sd ProteaseInhibitor")
-median(subset(data_sub,group=="ProteaseInhibitor")[,1])
-sd(subset(data_sub,group=="ProteaseInhibitor")[,1])
+median(subset(data_sub,group=="Protease inhibitor")[,1])
+sd(subset(data_sub,group=="Protease inhibitor")[,1])
 ggplot(data_sub, aes(x=group, y=number)) + 
-  geom_boxplot()
+  geom_boxplot() +
+  theme(axis.title.x = element_blank())
 anova <- aov(number ~ group, data=data_sub)
 summary(anova)
 Tukey <- TukeyHSD(anova)
@@ -295,13 +354,10 @@ lst <- list("E4_D1"=as.double(D1_inter[,1]),
 
 
 
-#venn digarams
-#get colors
-D1_col <- rgb(255,93,93, maxColorValue = 255)
-D2_col <- rgb(169,208,142,maxColorValue = 255)
 
 
-euler_venn_2comp(lst, label_venn = c("E4_D1","E4_D2"), color_venn = c(D1_col,D2_col), cex_venn = c(1,1), h_just = 0.5, v_just = 0.5)
+
+euler_venn_2comp(lst, label_venn = c("D1: Phosphate buffer", "D2: Phosphate buffer with urea-triton X"), color_venn = c(col_X_dark, col_Y_dark), cex_venn = c(1,1), h_just = 0.5, v_just = 0.5)
 
 
 print(c("E4_D1","E4_D2"))
@@ -335,7 +391,13 @@ lst <- list(E5_D1_b = as.double(D1_b[,1]),
             E5_D4_b = as.double(D4_b[,1]))
 
 
-euler_venn_3comp(lst, label_venn = c("E5_D1_b","E5_D2_b","E5_D4_b"), color_venn = c(IG,highMW,lowMW), cex_venn = c(1,1,1,1,0,1,1),
+euler_venn_3comp(lst, label_venn = c("D1: Phosphate buffer",
+                                     "D1b: Carbonate buffer",
+                                     "D2: Phosphate buffer with urea-triton X"), 
+                 color_venn = c(col_X_dark,
+                                col_X_carbonate,
+                                col_Y_dark), 
+                 cex_venn = c(1,1,1,1,0,1,1),
                  h_just = 0.5, v_just = 0.5)
 
 print(c("E5_D1_b","E5_D2_b","E5_D4_b"))
@@ -411,15 +473,15 @@ E5_inter <- proteins %>% dplyr::filter(col == 2)
 
 
 # combine to list
-lst <- list("E4_D1_D2"=as.double(E4_inter[,1]),
-            "E5_D1_D2_D4"=as.double(E5_inter[,1]))
+lst <- list("2D"=as.double(E4_inter[,1]),
+            "3D"=as.double(E5_inter[,1]))
 
 upset(fromList(lst), 
       order.by = "freq",
       nsets = 10,
       nintersects = 15,
       keep.order = TRUE,
-      sets=c("E4_D1_D2", "E5_D1_D2_D4"),
+      sets=c("2D", "3D"),
       mainbar.y.label = "Number of shared proteins",
       sets.x.label = "Number of proteins per fraction",
       set_size.show = TRUE,
@@ -523,20 +585,14 @@ lst <- list("E4_D1_B"=as.double(B[,1]),
             "E4_D1_TF"=as.double(TF[,1]))
 
 
-#get colors
-#total protein extract
-total <- rgb(255,93,93, maxColorValue = 255)
-#fractions high MW SEC
-highMW <- rgb(169,208,142,maxColorValue = 255)
-#fractions low MW SEC
-lowMW <- rgb(255,217,102, maxColorValue = 255)
-#in-gel digest
-IG <- rgb(180,198,231,maxColorValue = 255)
+
+
+
 
 
 euler_venn_3comp(lst, 
-                 label_venn = c("E4_D1_B","E4_D1_AF","E4_D1_TF"),
-                 color_venn = c(IG,lowMW,highMW), 
+                 label_venn = c("D1-electrophoretic fractionation","D1-low MW SEC fractionation","D1-high MW SEC fractionation"),
+                 color_venn = c(col_X_light, col_X_lowMW, col_X_highMW), 
                  cex_venn = c(1,
                               0.7,
                               0.5,
@@ -603,7 +659,7 @@ lst <- list("E4_D1_B_fractions"=as.double(B_inter[,1]),
 
 
 
-euler_venn_2comp(lst, label_venn = c("E4_D1_B_fractions","E4_D1"), color_venn = c(IG,total), cex_venn = c(1,0.6,1), h_just = 0.5, v_just = 0.5)
+euler_venn_2comp(lst, label_venn = c("D1-electrophoretic fractionation","D1-total protein extract"), color_venn = c(col_X_light, col_X_dark), cex_venn = c(1,0.6,1), h_just = 0.5, v_just = 0.5)
 
 print(c("B","E4_D1_pool"))
 sum(B_aj_comparison$B,na.rm = TRUE)
@@ -678,7 +734,7 @@ D2_ingel_col <- rgb(169,208,142,maxColorValue = 255)
 #E4_D1_pool_col <- rgb(255,217,102, maxColorValue = 255)
 
 
-euler_venn_2comp(lst, label_venn = c("D2_fractions","D2_pool"), color_venn = c(D2_pool_col,D2_ingel_col), cex_venn = c(1,0.6,1), h_just = 0.5, v_just = 0.5)
+euler_venn_2comp(lst, label_venn = c("D2-electrophoretic fractionation","D2-total protein extract"), color_venn = c( col_Y_light,col_Y_dark), cex_venn = c(1,0.6,1), h_just = 0.5, v_just = 0.5)
 
 ```
 
