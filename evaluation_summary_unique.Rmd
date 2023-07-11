@@ -71,7 +71,8 @@ mean_razor <- (data$Razor.noMBR.2.peptides+data$Razor.MBR.2.peptides)/2
 
 plot(mean_razor,razor, xlab= "Number of identified proteins", ylab="Deviation MBR [%]", main = "Razor")
 plot(mean_unique,unique, xlab= "Number of identified proteins", ylab="Deviation MBR [%]", main="Unique")
-
+median(unique[which(mean_unique>=200)])
+median(unique[which(mean_unique<200)])
 ```
 
 

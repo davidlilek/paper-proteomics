@@ -133,7 +133,7 @@ for (i in 1:length(sample_group)){
 }
 
 plot(sd_samples[-31]/mean_samples[-31]*100,main="relative standard deviation",ylab="rel sd [%]",xlab="sample number")
-plot(mean_samples[-31],sd_samples[-31]/mean_samples[-31]*100,main="relative standard deviation vs. protein number",ylab="rel sd [%]",xlab="number proteins")
+plot(mean_samples[-31],sd_samples[-31]/mean_samples[-31]*100,ylab="rel. sd [%]",xlab="number of identified proteins")
 
 rel_sd <- sd_samples/mean_samples*100
 median(rel_sd[which(mean_samples<200)])
