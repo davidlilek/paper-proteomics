@@ -56,7 +56,7 @@ euler_venn_2comp <- function(lst, label_venn, color_venn, cex_venn, grid, gList,
                         nrow = 3, ncol = 1),
           edges=TRUE,
           fills = color_venn, #color für A,B bzw intersection 
-          alpha=0.8)
+          alpha=1)
   # https://stackoverflow.com/questions/75177293/how-to-change-the-label-position-when-plotting-venn-diagram-from-eulerr-package
   tags <- p$children[[2]]$children[[1]]$children$tags$children
   tags <- do.call(grid::gList, lapply(tags, function(x) {
@@ -88,7 +88,7 @@ euler_venn_3comp <- function(lst, cex_venn, label_venn, color_venn, grid, gList,
                         nrow = 3, ncol = 1),
           edges=TRUE,
           fills = color_venn, #color für A,B bzw intersection fills = grey[c(10,18,25)]
-          alpha=0.8)
+          alpha=1)
   # https://stackoverflow.com/questions/75177293/how-to-change-the-label-position-when-plotting-venn-diagram-from-eulerr-packages
   tags <- p$children[[2]]$children[[1]]$children$tags$children
   tags <- do.call(grid::gList, lapply(tags, function(x) {
@@ -141,7 +141,7 @@ col_Y_dark <- rgb(0,0,255, maxColorValue = 255)
 
 ```
 
-```{r eval=FALSE, include=FALSE}
+```{r}
 #v002
 
 
@@ -161,21 +161,51 @@ col_Y_light <- rgb(70,70,255, maxColorValue = 255)
 
 ```
 
+
 ```{r}
-#v003 chat gpt
-col_X_dark <- rgb(204,0,0,maxColorValue = 255)
-col_X_light <- rgb(255,70,70,maxColorValue = 255)
-col_Y_dark <- rgb(0,0,204,maxColorValue = 255)
-col_X_lowMW <- rgb(255,150,150,maxColorValue = 255)
-col_X_highMW <- rgb(255,230,230,maxColorValue = 255)
-col_X_carbonate <- rgb(255,170,170,maxColorValue = 255)
-col_Y_light <- rgb(70,70,255,maxColorValue = 255)
+#v003
+
+
+#col X - D1
+#dark: total protein extract
+#light: fractionation
+col_X_dark <- rgb(204,0,0, maxColorValue = 255)
+col_X_light <- rgb(255,100,100,maxColorValue = 255)
+#fractions high MW SEC
+col_X_lowMW  <- rgb(255,150,150,maxColorValue = 255)
+#fractions low MW SEC
+col_X_highMW <- rgb(255,230,230, maxColorValue = 255)
+col_X_carbonate <- rgb(255,170,170, maxColorValue = 255)
+# D2
+col_Y_dark <- rgb(0,0,204, maxColorValue = 255)
+col_Y_light <- rgb(100,100,255, maxColorValue = 255)
+
 ```
 
+```{r eval=FALSE, include=FALSE}
+#v004
+
+#https://r-charts.com/color-palettes/
+#paletteer_c("ggthemes::Red-Blue Diverging", 30)
+#col X - D1
+#dark: total protein extract
+#light: fractionation
+col_X_dark <- "#A90C38"
+col_X_light <- "#EB5C52"
+#fractions high MW SEC
+col_X_lowMW  <- "#ECBBB0"
+#fractions low MW SEC
+col_X_highMW <- "#E4CCC6"
+col_X_carbonate <- rgb(255,170,170, maxColorValue = 255)
+# D2
+col_Y_dark <- "#2E7A85"
+col_Y_light <- "#78A8CE"
+
+```
 
 # Grafik 0 - Puffervergleich
 
-```{r message=FALSE, warning=FALSE}
+```{r message=FALSE, warning=FALSE, fig.width=4,fig.height=4}
 # Siehe Proteinquanti_Puffervergleich.xlsx -> Teams 
 values <- c(6.39,
             6.09,
@@ -246,7 +276,8 @@ col2 <- rgb(169,208,142,maxColorValue = 255)
 #fractions low MW SEC
 col3 <- rgb(255,217,102, maxColorValue = 255)
 
-euler_venn_3comp(lst, label_venn = c("Citrate","Phosphate","Carbonate"), color_venn = c(col2,col_X_dark,col3), cex_venn = c(1,1,0.70,0.9,0,1,1), h_just = 0.5, v_just = 0.5)
+euler_venn_3comp(lst, label_venn = c("Citrate buffer pH 4.8", "Phosphate buffer pH 8","Carbonate buffer pH 10.8"),
+                 color_venn = c(col2,col_X_dark,col3), cex_venn = c(1,1,0.70,0.9,0,1,1), h_just = 0.5, v_just = 0.5)
 ```
 
 
@@ -257,7 +288,7 @@ The results show that the significant highest number of protein identifications 
 
 ACHTUNG: Die Anzahl der oben genannten Proteine beziehen sich auf die Bildung des einfachen Mittelwertes. Hier wenn man merged und die "wirkliche" Anzahl an Proteinen gibt.
 
-```{r message=FALSE, warning=FALSE}
+```{r message=FALSE, warning=FALSE, fig.width=4,fig.height=4}
 #E3_D1
 D1_raw <- readRDS(file = "results_v002/results_run1_mqpar_extracts_2gether_E3_D1_LFQ_combined_txt_proteinGroups.txt_Unique.RDS")
 D1_raw <- D1_raw[[1]]
@@ -276,7 +307,7 @@ print("Protease Inhibitor")
 sum(PI*1)
 ```
 
-```{r}
+```{r, fig.width=4,fig.height=4}
 data <- read.csv("Extraktionen_gesamt_V2_DL.csv", sep=";")
 data_sub <- as.data.frame(data$Unique.no.MBR.2.peptides)
 data_sub <- as.data.frame(data_sub[c(1:18),])
@@ -395,7 +426,7 @@ euler_venn_3comp(lst, label_venn = c("D1: Phosphate buffer",
                                      "D1b: Carbonate buffer",
                                      "D2: Phosphate buffer with urea-triton X"), 
                  color_venn = c(col_X_dark,
-                                col_X_carbonate,
+                                col3,
                                 col_Y_dark), 
                  cex_venn = c(1,1,1,1,0,1,1),
                  h_just = 0.5, v_just = 0.5)
