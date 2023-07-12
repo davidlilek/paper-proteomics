@@ -162,9 +162,10 @@ ggplot(BP_4ggplot, aes(x=Function_short, y=value, fill=variable)) +
   theme(legend.key.size = unit(0.15, 'cm')) +
   guides(fill=guide_legend(nrow=2, byrow=TRUE)) +
   ylab("Counts") +
-  labs(fill = "Proteins") +
-  ggtitle("Biological processes") +
-  coord_flip()
+  xlab("GO Term") +
+  labs(fill = "") +
+  coord_flip() +
+  theme(legend.title = element_blank())
 
 
 ################################# molecular function
@@ -183,7 +184,7 @@ BP <- merge(t_BP_sorted_1, t_BP_sorted_2,
 #BP <- merge(BP, t_BP_sorted_3, all = TRUE, by = "Var1")
 results_comp <- sum(is.na(BP[2]))
 length_comp <- length(BP[,1])
-colnames(BP) <- c("Function", "D1","D2")
+colnames(BP) <- c("Function", "D1: Phosphate buffer", "D2: Phosphate buffer with urea-triton X")
 kable(BP)
 kable(BP[is.na(BP[,3])==TRUE,1])
 kable(BP[is.na(BP[,2])==TRUE,1])
@@ -199,9 +200,10 @@ ggplot(BP_4ggplot, aes(x=Function_short, y=value, fill=variable)) +
   theme(legend.key.size = unit(0.15, 'cm')) +
   guides(fill=guide_legend(nrow=2, byrow=TRUE)) +
   ylab("Counts") +
-  labs(fill = "Proteins") +
-  ggtitle("Molecular Function") +
-  coord_flip()
+  xlab("GO Term") +
+  labs(fill = "") +
+  coord_flip() +
+  theme(legend.title = element_blank())
 
 ################################# cellular.component
 t_BP <- as.data.frame(table(GO_1$Gene.Ontology..cellular.component.))
@@ -233,9 +235,10 @@ ggplot(BP_4ggplot, aes(x=Function_short, y=value, fill=variable)) +
   theme(legend.key.size = unit(0.15, 'cm')) +
   guides(fill=guide_legend(nrow=2, byrow=TRUE)) +
   ylab("Counts") +
-  labs(fill = "Proteins") +
-  ggtitle("Cellular Compartment") +
-  coord_flip()
+  xlab("GO Term") +
+  labs(fill = "") +
+  coord_flip() +
+  theme(legend.title = element_blank())
 ```
 
 
@@ -309,9 +312,10 @@ ggplot(BP_4ggplot, aes(x=Function_short, y=value, fill=variable)) +
   theme(legend.key.size = unit(0.15, 'cm')) +
   guides(fill=guide_legend(nrow=2, byrow=TRUE)) +
   ylab("Counts") +
-  labs(fill = "Proteins") +
-  ggtitle("Biological processes") +
-  coord_flip()
+  xlab("GO Term") +
+  labs(fill = "") +
+  coord_flip() +
+  theme(legend.title = element_blank())
 
 
 ################################# molecular function
@@ -331,7 +335,8 @@ BP <- merge(BP, t_BP_sorted_3, all = TRUE, by = "Var1")
 results_comp <- c(results_comp,sum(is.na(BP[2])))
 results_comp <- c(results_comp,sum(rowSums(is.na(BP[2:3]))>1,na.rm = TRUE))
 length_comp <- c(length_comp,length(BP[,1]),length(BP[,1]))
-colnames(BP) <- c("Function", "D1","D2","D4")
+colnames(BP) <- c("Function", "D1: Phosphate buffer", "D1b: Carbonate buffer", "D2: Phosphate buffer with urea-triton X")
+
 kable(BP)
 kable(subset(BP[,1], is.na(BP[,3]) == TRUE & !is.na(BP[,2]) == TRUE))
 kable(subset(BP[,1], is.na(BP[,2]) == TRUE & !is.na(BP[,3]) == TRUE))
@@ -347,11 +352,12 @@ ggplot(BP_4ggplot, aes(x=Function_short, y=value, fill=variable)) +
   scale_fill_brewer(palette="Dark2") +
   theme(legend.position="bottom") +
   theme(legend.key.size = unit(0.15, 'cm')) +
-  guides(fill=guide_legend(nrow=2, byrow=TRUE)) +
+  guides(fill=guide_legend(nrow=3, byrow=TRUE)) +
   ylab("Counts") +
-  labs(fill = "Proteins") +
-  ggtitle("Molecular Function") +
-  coord_flip()
+  xlab("GO Term") +
+  labs(fill = "") +
+  coord_flip() +
+  theme(legend.title = element_blank())
 
 ################################# cellular.component
 t_BP <- as.data.frame(table(GO_1$Gene.Ontology..cellular.component.))
@@ -385,9 +391,10 @@ ggplot(BP_4ggplot, aes(x=Function_short, y=value, fill=variable)) +
   theme(legend.key.size = unit(0.15, 'cm')) +
   guides(fill=guide_legend(nrow=2, byrow=TRUE)) +
   ylab("Counts") +
-  labs(fill = "Proteins") +
-  ggtitle("Cellular Compartment") +
-  coord_flip()
+  xlab("GO Term") +
+  labs(fill = "") +
+  coord_flip() +
+  theme(legend.title = element_blank())
 
 ```
 
@@ -396,7 +403,7 @@ ggplot(BP_4ggplot, aes(x=Function_short, y=value, fill=variable)) +
 
 ## C
 
-```{r, fig.width=8,fig.height=4,message=FALSE, warning=FALSE}
+```{r, fig.width=4,fig.height=4}
 # D1-D2 comparison
 D1_raw <- readRDS(file = "results_v002/results_run1_mqpar_extracts_2gether_E4_D1_a-j_LFQ_combined_txt_proteinGroups.txt_Unique.RDS")
 D1_raw <- D1_raw[[1]]
@@ -491,9 +498,10 @@ ggplot(BP_4ggplot, aes(x=Function_short, y=value, fill=variable)) +
   theme(legend.key.size = unit(0.15, 'cm')) +
   guides(fill=guide_legend(nrow=2, byrow=TRUE)) +
   ylab("Counts") +
-  labs(fill = "Proteins") +
-  ggtitle("Biological processes") +
-  coord_flip()
+  xlab("GO Term") +
+  labs(fill = "") +
+  coord_flip() +
+  theme(legend.title = element_blank())
 
 
 ################################# molecular function
@@ -512,7 +520,7 @@ BP <- merge(t_BP_sorted_1, t_BP_sorted_2,
 #BP <- merge(BP, t_BP_sorted_3, all = TRUE, by = "Var1")
 results_comp <- c(results_comp,sum(is.na(BP[2])))
 length_comp <- c(length_comp, length(BP[,1]))
-colnames(BP) <- c("Function", "E4","E5")
+colnames(BP) <- c("Function", "2D","3D")
 kable(BP)
 kable(BP[is.na(BP[,3])==TRUE,1])
 kable(BP[is.na(BP[,2])==TRUE,1])
@@ -528,9 +536,10 @@ ggplot(BP_4ggplot, aes(x=Function_short, y=value, fill=variable)) +
   theme(legend.key.size = unit(0.15, 'cm')) +
   guides(fill=guide_legend(nrow=2, byrow=TRUE)) +
   ylab("Counts") +
-  labs(fill = "Proteins") +
-  ggtitle("Molecular Function") +
-  coord_flip()
+  xlab("GO Term") +
+  labs(fill = "") +
+  coord_flip() +
+  theme(legend.title = element_blank())
 
 ################################# cellular.component
 t_BP <- as.data.frame(table(GO_1$Gene.Ontology..cellular.component.))
@@ -563,9 +572,10 @@ ggplot(BP_4ggplot, aes(x=Function_short, y=value, fill=variable)) +
   theme(legend.key.size = unit(0.15, 'cm')) +
   guides(fill=guide_legend(nrow=2, byrow=TRUE)) +
   ylab("Counts") +
-  labs(fill = "Proteins") +
-  ggtitle("Cellular Compartment") +
-  coord_flip()
+  xlab("GO Term") +
+  labs(fill = "") +
+  coord_flip() +
+  theme(legend.title = element_blank())
 
 
        
@@ -582,7 +592,7 @@ ggplot(BP_4ggplot, aes(x=Function_short, y=value, fill=variable)) +
 
 ## A
 
-```{r}
+```{r, fig.width=4,fig.height=4}
 ############## B
 data <- readRDS(file = "results_v002/results_run1_mqpar_extracts_2gether_E4_D1_B_LFQ_combined_txt_proteinGroups.txt_Unique.RDS")
 data <- data[[1]]
@@ -698,9 +708,10 @@ ggplot(BP_4ggplot, aes(x=Function_short, y=value, fill=variable)) +
   theme(legend.key.size = unit(0.15, 'cm')) +
   guides(fill=guide_legend(nrow=2, byrow=TRUE)) +
   ylab("Counts") +
-  labs(fill = "Proteins") +
-  ggtitle("Biological processes") +
-  coord_flip()
+  xlab("GO Term") +
+  labs(fill = "") +
+  coord_flip() +
+  theme(legend.title = element_blank())
 
 
 ################################# molecular function
@@ -721,7 +732,7 @@ results_comp <- c(results_comp,sum(is.na(BP[2])))
 results_comp <- c(results_comp,sum(rowSums(is.na(BP[2:3]))>1,na.rm = TRUE))
 length_comp <- c(length_comp, length(BP[,1]), length(BP[,1]))
 
-colnames(BP) <- c("Function", "B","AF","TF")
+colnames(BP) <- c("Function", "D1-electrophoretic fractionation","D1-low MW SEC fractionation","D1-high MW SEC fractionation")
 kable(BP)
 kable(subset(BP[,1], is.na(BP[,3]) == TRUE & !is.na(BP[,2]) == TRUE))
 kable(subset(BP[,1], is.na(BP[,2]) == TRUE & !is.na(BP[,3]) == TRUE))
@@ -737,11 +748,12 @@ ggplot(BP_4ggplot, aes(x=Function_short, y=value, fill=variable)) +
   scale_fill_brewer(palette="Dark2") +
   theme(legend.position="bottom") +
   theme(legend.key.size = unit(0.15, 'cm')) +
-  guides(fill=guide_legend(nrow=2, byrow=TRUE)) +
+  guides(fill=guide_legend(nrow=3, byrow=TRUE)) +
   ylab("Counts") +
-  labs(fill = "Proteins") +
-  ggtitle("Molecular Function") +
-  coord_flip()
+  xlab("GO Term") +
+  labs(fill = "") +
+  coord_flip() +
+  theme(legend.title = element_blank()) 
 
 ################################# cellular.component
 t_BP <- as.data.frame(table(GO_1$Gene.Ontology..cellular.component.))
@@ -776,9 +788,10 @@ ggplot(BP_4ggplot, aes(x=Function_short, y=value, fill=variable)) +
   theme(legend.key.size = unit(0.15, 'cm')) +
   guides(fill=guide_legend(nrow=2, byrow=TRUE)) +
   ylab("Counts") +
-  labs(fill = "Proteins") +
-  ggtitle("Cellular Compartment") +
-  coord_flip()
+  xlab("GO Term") +
+  labs(fill = "") +
+  coord_flip() +
+  theme(legend.title = element_blank())
 
 ```
 
@@ -859,9 +872,10 @@ ggplot(BP_4ggplot, aes(x=Function_short, y=value, fill=variable)) +
   theme(legend.key.size = unit(0.15, 'cm')) +
   guides(fill=guide_legend(nrow=2, byrow=TRUE)) +
   ylab("Counts") +
-  labs(fill = "Proteins") +
-  ggtitle("Biological processes") +
-  coord_flip()
+  xlab("GO Term") +
+  labs(fill = "") +
+  coord_flip() +
+  theme(legend.title = element_blank())
 
 
 ################################# molecular function
@@ -896,10 +910,10 @@ ggplot(BP_4ggplot, aes(x=Function_short, y=value, fill=variable)) +
   theme(legend.key.size = unit(0.15, 'cm')) +
   guides(fill=guide_legend(nrow=2, byrow=TRUE)) +
   ylab("Counts") +
-  labs(fill = "Proteins") +
-  ggtitle("Molecular Function") +
-  coord_flip()
-
+  xlab("GO Term") +
+  labs(fill = "") +
+  coord_flip() +
+  theme(legend.title = element_blank())
 ################################# molecular function
 t_BP <- as.data.frame(table(GO_1$Gene.Ontology..cellular.component.))
 t_BP_sorted <- arrange(t_BP, desc(Freq))
@@ -931,9 +945,10 @@ ggplot(BP_4ggplot, aes(x=Function_short, y=value, fill=variable)) +
   theme(legend.key.size = unit(0.15, 'cm')) +
   guides(fill=guide_legend(nrow=2, byrow=TRUE)) +
   ylab("Counts") +
-  labs(fill = "Proteins") +
-  ggtitle("Cellular Compartment") +
-  coord_flip()
+  xlab("GO Term") +
+  labs(fill = "") +
+  coord_flip() +
+  theme(legend.title = element_blank())
 
 
 ```
@@ -941,7 +956,7 @@ ggplot(BP_4ggplot, aes(x=Function_short, y=value, fill=variable)) +
 
 ## C
 
-```{r}
+```{r, fig.width=4,fig.height=4}
 #############################
 # D2
 ###############################
@@ -1005,9 +1020,10 @@ ggplot(BP_4ggplot, aes(x=Function_short, y=value, fill=variable)) +
   theme(legend.key.size = unit(0.15, 'cm')) +
   guides(fill=guide_legend(nrow=2, byrow=TRUE)) +
   ylab("Counts") +
-  labs(fill = "Proteins") +
-  ggtitle("Biological processes") +
-  coord_flip()
+  xlab("GO Term") +
+  labs(fill = "") +
+  coord_flip() +
+  theme(legend.title = element_blank())
 
 
 ################################# molecular function
@@ -1042,9 +1058,10 @@ ggplot(BP_4ggplot, aes(x=Function_short, y=value, fill=variable)) +
   theme(legend.key.size = unit(0.15, 'cm')) +
   guides(fill=guide_legend(nrow=2, byrow=TRUE)) +
   ylab("Counts") +
-  labs(fill = "Proteins") +
-  ggtitle("Molecular Function") +
-  coord_flip()
+  xlab("GO Term") +
+  labs(fill = "") +
+  coord_flip() +
+  theme(legend.title = element_blank())
 
 ################################# cellular.component
 t_BP <- as.data.frame(table(GO_1$Gene.Ontology..cellular.component.))
@@ -1077,9 +1094,10 @@ ggplot(BP_4ggplot, aes(x=Function_short, y=value, fill=variable)) +
   theme(legend.key.size = unit(0.15, 'cm')) +
   guides(fill=guide_legend(nrow=2, byrow=TRUE)) +
   ylab("Counts") +
-  labs(fill = "Proteins") +
-  ggtitle("Cellular Compartment") +
-  coord_flip()
+  xlab("GO Term") +
+  labs(fill = "") +
+  coord_flip() +
+  theme(legend.title = element_blank())
 
 
 ```

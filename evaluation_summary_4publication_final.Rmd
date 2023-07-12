@@ -277,7 +277,7 @@ col2 <- rgb(169,208,142,maxColorValue = 255)
 col3 <- rgb(255,217,102, maxColorValue = 255)
 
 euler_venn_3comp(lst, label_venn = c("Citrate buffer pH 4.8", "Phosphate buffer pH 8","Carbonate buffer pH 10.8"),
-                 color_venn = c(col2,col_X_dark,col3), cex_venn = c(1,1,0.70,0.9,0,1,1), h_just = 0.5, v_just = 0.5)
+                 color_venn = c(col2,col_X_dark,col3), cex_venn = c(0.85,1,0.5,0.75,0,1,1), h_just = 0.5, v_just = 0.5)
 ```
 
 
