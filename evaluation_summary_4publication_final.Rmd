@@ -278,6 +278,10 @@ col3 <- rgb(255,217,102, maxColorValue = 255)
 
 euler_venn_3comp(lst, label_venn = c("Citrate buffer pH 4.8", "Phosphate buffer pH 8","Carbonate buffer pH 10.8"),
                  color_venn = c(col2,col_X_dark,col3), cex_venn = c(0.85,1,0.5,0.75,0,1,1), h_just = 0.5, v_just = 0.5)
+print(c("car","cit","phos"))
+sum(res_clear$CAR, na.rm = TRUE)
+sum(res_clear$CIT,na.rm = TRUE)
+sum(res_clear$PHOS,na.rm = TRUE)
 ```
 
 
@@ -771,7 +775,7 @@ euler_venn_2comp(lst, label_venn = c("D2-electrophoretic fractionation","D2-tota
 
 
 
-# Grafik 4
+# Grafik 4 - SDS Page Identifiaktionen
 
 ## E4_D1
 
@@ -825,4 +829,81 @@ ggplot(data=dat, aes(x=fraction,y=no))+
 ```
 
 
+# Grafik 5 - Bioinformatic Data Analysis
 
+## A
+
+```{r, fig.width=4,fig.height=4}
+
+# von hier file:///X:/wissenschaftliche%20Ver%C3%B6ffentlichungen/Publikationen/2022/Proteomics_JRS_DL_stillgelegt%20und%20transferiert%20auf%20Teams_230605/Data/evaluation_summary_unique.html
+data <- read.csv("Extraktionen_gesamt_V2_DL.csv", sep=";")
+# unique vs razor
+MBR <- (data$Razor.MBR.2.peptides/data$Unique.MBR.2.peptides)*100
+noMBR <- (data$Razor.noMBR.2.peptides/data$Unique.no.MBR.2.peptides)*100
+par(mar = c(3.9,4, 1, 1))
+boxplot(MBR, noMBR, ylab = "Deviation Razor-Unique [%]", names = c("MBR", "noMBR"))
+
+
+```
+
+
+## B
+
+```{r, fig.width=4,fig.height=4}
+# von hier file:///X:/wissenschaftliche%20Ver%C3%B6ffentlichungen/Publikationen/2022/Proteomics_JRS_DL_stillgelegt%20und%20transferiert%20auf%20Teams_230605/Data/evaluation_summary_unique.html
+
+#MBR evaluation
+unique <- (data$Unique.MBR.2.peptides/data$Unique.no.MBR.2.peptides)*100
+mean_unique <- (data$Unique.MBR.2.peptides+data$Unique.no.MBR.2.peptides)/2
+par(mar = c(3.9,4, 1, 1))
+plot(mean_unique,unique, xlab= "Number of identified proteins", ylab="Deviation MBR [%]")
+
+
+```
+
+## C
+
+```{r, fig.width=4,fig.height=4}
+# von hier file:///X:/wissenschaftliche%20Ver%C3%B6ffentlichungen/Publikationen/2022/Proteomics_JRS_DL_stillgelegt%20und%20transferiert%20auf%20Teams_230605/Data/evaluation_summary_unique.html
+data <- read.csv("Extraktionen_gesamt_V2_DL.csv", sep=";")
+# unique vs razor
+MBR <- (data$Razor.MBR.2.peptides/data$Unique.MBR.2.peptides)*100
+noMBR <- (data$Razor.noMBR.2.peptides/data$Unique.no.MBR.2.peptides)*100
+
+mean_MBR <- (data$Razor.MBR.2.peptides+data$Unique.MBR.2.peptide)/2
+mean_noMBR <- (data$Razor.noMBR.2.peptides+data$Unique.no.MBR.2.peptides)/2
+par(mar = c(3.9,4, 1, 1))
+plot(mean_noMBR,noMBR, xlab= "Number of identified proteins", ylab="Deviation Razor vs. Unique peptides [%]")
+
+```
+
+## D
+
+```{r, fig.width=4,fig.height=4}
+# aus file:///X:/wissenschaftliche%20Ver%C3%B6ffentlichungen/Publikationen/2022/Proteomics_JRS_DL_stillgelegt%20und%20transferiert%20auf%20Teams_230605/Data/evaluation_summary_4publication.html
+data <- read.csv("Extraktionen_gesamt_V2_DL.csv", sep=";")
+sample_group <- c(seq(1,18,by=3),seq(19,162,by=2))
+sd_samples <- c()
+mean_samples <- c()
+for (i in 1:length(sample_group)){
+  if (i<78){
+  tmp <- sd(data$Unique.no.MBR.2.peptides[sample_group[i]:(sample_group[i+1]-1)])
+  sd_samples <- c(sd_samples, tmp)
+  tmp <- mean(data$Unique.no.MBR.2.peptides[sample_group[i]:(sample_group[i+1]-1)])
+  mean_samples <- c(mean_samples,tmp)
+  } else {
+    tmp <- sd(data$Unique.no.MBR.2.peptides[sample_group[i]:length(data$Unique.no.MBR.2.peptides)])
+    sd_samples <- c(sd_samples, tmp)
+    tmp <- mean(data$Unique.no.MBR.2.peptides[sample_group[i]:length(data$Unique.no.MBR.2.peptides)])
+    mean_samples <- c(mean_samples,tmp)
+  }
+}
+par(mar = c(3.9,4, 1, 1))
+plot(mean_samples[-31],sd_samples[-31]/mean_samples[-31]*100,ylab="rel. sd [%]",xlab="Number of identified proteins")
+
+rel_sd <- sd_samples/mean_samples*100
+median(rel_sd[which(mean_samples<200)])
+median(rel_sd[which(mean_samples>200)])
+#t test rel sd <200 with rel sd >200
+t.test(rel_sd[which(mean_samples<200)],rel_sd[which(mean_samples>200)])
+```

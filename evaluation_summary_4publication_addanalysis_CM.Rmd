@@ -119,7 +119,7 @@ IG <- rgb(180,198,231,maxColorValue = 255)
 # AIO - PHO-P - PHO-P-U
 
 * hier wurde die all in one extraktion mit D1 (PHO-P) und D2 (PHO-P-U) verglichen
-* D1 und D2 wurden gemerged und sind im Diagramm als PHO bezeichnet dargestellt
+* D1 und D2 wurden gemerged und sind im Diagramm als PHO bzw 2D bezeichnet dargestellt
 
 
 ```{r message=FALSE, warning=FALSE}
@@ -152,8 +152,9 @@ AIO <- proteins %>% dplyr::filter(col == 1)
 PHO <- proteins %>% dplyr::filter(col == 2)
 
 # combine to list
-lst <- list("AIO"=as.double(AIO[,1]),
-            "PHO"=as.double(PHO[,1]))
+lst <- list("2D"=as.double(PHO[,1]),
+            "AIO"=as.double(AIO[,1]))
+
 
 
 
@@ -163,7 +164,7 @@ AIO_col <- rgb(255,93,93, maxColorValue = 255)
 PHO_col <- rgb(169,208,142,maxColorValue = 255)
 
 
-euler_venn_2comp(lst, label_venn = c("AIO","PHO"), color_venn = c(AIO_col,PHO_col), cex_venn = c(1,1), h_just = 0.5, v_just = 0.5)
+euler_venn_2comp(lst, label_venn = c("2D","AIO"), color_venn = c(PHO_col,AIO_col), cex_venn = c(1,0.8,1), h_just = 0.5, v_just = 0.5)
 
 
 print(c("AIO","PHO"))
