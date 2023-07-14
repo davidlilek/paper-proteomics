@@ -25,7 +25,6 @@ results_comp <- c()
 length_comp <- c()
 ```
 
-
 # Load Libraries & Plot function & Colors
 
 ```{r message=FALSE, warning=FALSE}
@@ -58,7 +57,6 @@ extract_goterm <- function(input_string) {
 }
 ```
 
-
 ```{r}
 #get colors
 #total protein extract
@@ -71,18 +69,58 @@ lowMW <- rgb(255,217,102, maxColorValue = 255)
 IG <- rgb(180,198,231,maxColorValue = 255)
 ```
 
-# Überblick 
+# Überblick
 
-* für die ausgewählten Grafiken des Papers wurden die Proteine (und zwar nur das erste einer Proteingruppe) mittels des Packages `UniprotR` einer molekularen, biologischen Funktion bzw einem zellulärem Compartment zugeordnet
-* [UniprotR](https://github.com/Proteomicslab57357/UniprotR)
-* Ablauf: einlesen der Daten und extrahieren der Accesion Number und mittels Funktion `GetProteinGOInfo` die Daten vom UniProt Server gelesen
-* diese GO Terms dann je Extraktion zb E4_D1_pool und absteigender Frequenz sortiert und die besten 20 geplottet wobei dabei nicht zuordenbare Accessionnumbers ignoriert wurden (bei ein paar habe ich es mir angeschaut und es sind so 10-20% die nicht zuordenbar sind)
-* [Zusatzinfo GO Terms Uniprot](http://geneontology.org/docs/ontology-documentation/)
-* [Zusatzinfo Panther DB](http://www.pantherdb.org/about.jsp)
+-   für die ausgewählten Grafiken des Papers wurden die Proteine (und
+    zwar nur das erste einer Proteingruppe) mittels des Packages
+    `UniprotR` einer molekularen, biologischen Funktion bzw einem
+    zellulärem Compartment zugeordnet
+-   [UniprotR](https://github.com/Proteomicslab57357/UniprotR)
+-   Ablauf: einlesen der Daten und extrahieren der Accesion Number und
+    mittels Funktion `GetProteinGOInfo` die Daten vom UniProt Server
+    gelesen
+-   diese GO Terms dann je Extraktion zb E4_D1_pool und absteigender
+    Frequenz sortiert und die besten 20 geplottet wobei dabei nicht
+    zuordenbare Accessionnumbers ignoriert wurden (bei ein paar habe ich
+    es mir angeschaut und es sind so 10-20% die nicht zuordenbar sind)
+-   zuerst von allen functionen die besten 20 auswählen
+-   die werden dann gemerged
+-   dann eben geschaut wieviel NA im Vergleich in Probe A (spalte 2) sind; das sind dann die proteine die mehr in Probe B sind; wenn man dann schaut wieviele in Summe gefunden wurden kriegt man die %
+
+`results_comp <- c(results_comp,sum(is.na(BP[2])))`
+`rength_comp <- c(length_comp, length(BP[,1]))`
+
+-   [Zusatzinfo GO Terms
+    Uniprot](http://geneontology.org/docs/ontology-documentation/)
+-   [Zusatzinfo Panther DB](http://www.pantherdb.org/about.jsp)
+## Erklärung Judith
+WIE KOMME ICH AUF DIE MOLEKULAREN FUNKTIONEN DIE WIR MEHR ODER WENIGER FINDEN?
+
+
+
+
+Ich habe zb zwei Proben X und Y. Bei beiden ordne ich die molekularen Funktionen über die FASTA identifier zu. Das geht indem man automatisch auf Uniprot zugreift und es gibt dafür ein Package in R.
+
+Ich sortiere dann die molekularen Funktionen nach Häufigkeit - es kann ja sein, dass mehrere Proteine der Gruppe Oxidoreductase Aktivität haben - und zwar für X und Y. Dann merge ich die beiden und das Ergebnis sieht so aus...
+
+In Spalte Var1 steht eben die molecular function. In Spalte Freq.X bzw Freq.Y wie oft diese Molecular Function vorgekommen ist. 
+
+Wie komme ich jetzt auf die neuen Molecular Functions die ich in Y mehr finde als in X? Ich schaue einfach in der Spalte Freq.X wie oft durch NA steht weil diese Funktion eben nur in Y vorkommt. Da kommt dann in diesem Beispiel 3 NA values. Wenn in Summe 19 Zeilen sind, dann habe ich 3/19=15,8% neue molekulare Funktionen in Y.
+
+## am 13.07 geprüft
+
+* Grafik2A: v13 paper - das stimmt "In the two-dimensional extraction approach 31 % new molecular functional terms could be assigned to proteins of second extractions dimension (Fig. 4A – suppl. material)."
+* Grafik2B: In the three-dimensional approach 39 % additional molecular functional terms could be achieved using carbonate buffer (dimension 1b) and extended to further 24 % in the final dimension (urea plus Triton-X) (Fig. 4B – suppl. material), 
+  + das stimmt so nicht: in 1 5NA die auch in 1b vorkommen; also 5/33=15%
+  + habe ich im Code mit dem `sum(is.na(BP$Freq.x) & !is.na(BP$Freq.y))` korrigiert
+* Grafik2C: v13 paper - das stimmt "The difference in the assignment of identified proteins to molecular functions between the total two- respectively three-dimensional approach was only 13 % (Fig. 4C – suppl. Material), "
+
+* Grafik 3A: v13 paper while the comparison of fractionation approaches resulted in a plus of xx % for the GeLC-MS/MS approach versus the SEC-HPLC-method (Fig. 4D – suppl. Material)
+
 
 # Grafik 1
 
-* fehlt weil ja uninteressant für diesen Vergleich
+-   fehlt weil ja uninteressant für diesen Vergleich
 
 # Grafik 2
 
@@ -241,7 +279,6 @@ ggplot(BP_4ggplot, aes(x=Function_short, y=value, fill=variable)) +
   theme(legend.title = element_blank())
 ```
 
-
 ## B
 
 ```{r, fig.width=4,fig.height=4}
@@ -332,7 +369,7 @@ BP <- merge(t_BP_sorted_1, t_BP_sorted_2,
             all = TRUE,
             by = "Var1")
 BP <- merge(BP, t_BP_sorted_3, all = TRUE, by = "Var1")
-results_comp <- c(results_comp,sum(is.na(BP[2])))
+results_comp <- c(results_comp,sum(is.na(BP$Freq.x) & !is.na(BP$Freq.y)))
 results_comp <- c(results_comp,sum(rowSums(is.na(BP[2:3]))>1,na.rm = TRUE))
 length_comp <- c(length_comp,length(BP[,1]),length(BP[,1]))
 colnames(BP) <- c("Function", "D1: Phosphate buffer", "D1b: Carbonate buffer", "D2: Phosphate buffer with urea-triton X")
@@ -397,9 +434,6 @@ ggplot(BP_4ggplot, aes(x=Function_short, y=value, fill=variable)) +
   theme(legend.title = element_blank())
 
 ```
-
-
-
 
 ## C
 
@@ -581,14 +615,7 @@ ggplot(BP_4ggplot, aes(x=Function_short, y=value, fill=variable)) +
        
 ```
 
-
-
-
 # Grafik 3
-
-
-
-
 
 ## A
 
@@ -795,7 +822,6 @@ ggplot(BP_4ggplot, aes(x=Function_short, y=value, fill=variable)) +
 
 ```
 
-
 ## B
 
 ```{r, fig.width=4,fig.height=4}
@@ -953,7 +979,6 @@ ggplot(BP_4ggplot, aes(x=Function_short, y=value, fill=variable)) +
 
 ```
 
-
 ## C
 
 ```{r, fig.width=4,fig.height=4}
@@ -1102,11 +1127,9 @@ ggplot(BP_4ggplot, aes(x=Function_short, y=value, fill=variable)) +
 
 ```
 
-
-
 # Grafik 4
 
-* nicht notwendig
+-   nicht notwendig
 
 # Results comparison
 
@@ -1120,3 +1143,49 @@ print(c("A","A","B","C"))
 results_comp/length_comp*100
 ```
 
+# Versuche für Paper
+
+## versuch von B,AF,TF
+
+* wenn ich alle verfügbaren GO Terms nehme bekomme ich...
+	+ bei B 21NA = 2.8%
+	+ bei AF 363 NA = 48,7%
+	+ bei TF 372 NA = 49,9%
+	+ in Summe 745 GO Terms wenn man es prozentuell rechnen will
+* wenn ich alle verfügbaren GO Terme die mehr als 1x vorkommen bekomme ich
+	+ bei B 21NA = 11,41%
+	+ bei AF 69NA = 37,5%
+	+ bei TF 65NA = 35,32%
+	+ bei einer Summe von 184 GO Terms
+* wenn ich nur die ersten 100 nehme
+	+ bei B 52NA =  50,48%
+	+ bei AF 52NA = 50,48%
+	+ bei TF 52NA = 50,48%
+	+ bei einer Summe von 103 GO Terms
+* wenn ich nur die ersten 20 nehme
+	+ bei B 9 NA = 31% 
+	+ bei AF 9 NA = 31%
+	+ bei TF 9 NA = 31%
+	+ bei einer Summe von 29 GO Terms
+
+
+## versuch von 2D und 3D
+* wenn ich alle verfügbaren GO Terms nehme bekomme ich...
+	+ bei 2D 96NA = 16,63%
+	+ bei 3D 36NA = 6,23%
+	+ in Summe 577 GO Terme wenn mans es prozentuell berechnen will
+* wenn ich alle verfügbaren GO Terme die mehr als 1x vorkommen bekomme ich
+	+ bei 2D 96NA=49,48%
+	+ bei 3D 96NA=49,48%
+	+ in Summe 194 GO Terme
+* wenn ich nur die ersten 100 nehme bekomme ich...
+	+ bei 2D 18NA = 15,25%
+	+ bei 3D 18NA = 15,25%
+	+ bei 118 GO Termen
+* wenn ich nur die ersten 20 nehme bekomme ich...
+	+ bei 2D 3 NA = 13,04%
+	+ bei 3D 3 NA = 13,04%
+	+ bei 23 GO Termen
+
+
+	

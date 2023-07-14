@@ -833,15 +833,28 @@ ggplot(data=dat, aes(x=fraction,y=no))+
 
 ## A
 
-```{r, fig.width=4,fig.height=4}
+```{r, fig.width=4,fig.height=3}
 
 # von hier file:///X:/wissenschaftliche%20Ver%C3%B6ffentlichungen/Publikationen/2022/Proteomics_JRS_DL_stillgelegt%20und%20transferiert%20auf%20Teams_230605/Data/evaluation_summary_unique.html
+library(ggplot2)
+
 data <- read.csv("Extraktionen_gesamt_V2_DL.csv", sep=";")
-# unique vs razor
-MBR <- (data$Razor.MBR.2.peptides/data$Unique.MBR.2.peptides)*100
-noMBR <- (data$Razor.noMBR.2.peptides/data$Unique.no.MBR.2.peptides)*100
-par(mar = c(3.9,4, 1, 1))
-boxplot(MBR, noMBR, ylab = "Deviation Razor-Unique [%]", names = c("MBR", "noMBR"))
+
+# Calculate ratios
+MBR <- (data$Razor.MBR.2.peptides / data$Unique.MBR.2.peptides) * 100
+noMBR <- (data$Razor.noMBR.2.peptides / data$Unique.no.MBR.2.peptides) * 100
+
+# Create a data frame for plotting
+df <- data.frame(Group = c(rep("MBR", length(MBR)), rep("noMBR", length(noMBR))),
+                 Deviation = c(MBR, noMBR))
+
+# Create the boxplot using ggplot
+ggplot(df, aes(x = Group, y = Deviation)) +
+  geom_boxplot() +
+  labs(y = "Deviation Razor-Unique [%]") +
+  scale_x_discrete(labels = c("MBR", "noMBR")) +
+  theme_minimal() 
+
 
 
 ```
@@ -849,61 +862,108 @@ boxplot(MBR, noMBR, ylab = "Deviation Razor-Unique [%]", names = c("MBR", "noMBR
 
 ## B
 
-```{r, fig.width=4,fig.height=4}
+```{r, fig.width=4,fig.height=3}
 # von hier file:///X:/wissenschaftliche%20Ver%C3%B6ffentlichungen/Publikationen/2022/Proteomics_JRS_DL_stillgelegt%20und%20transferiert%20auf%20Teams_230605/Data/evaluation_summary_unique.html
+# Calculate ratios and mean
+unique <- (data$Unique.MBR.2.peptides / data$Unique.no.MBR.2.peptides) * 100
+mean_unique <- (data$Unique.MBR.2.peptides + data$Unique.no.MBR.2.peptides) / 2
 
-#MBR evaluation
-unique <- (data$Unique.MBR.2.peptides/data$Unique.no.MBR.2.peptides)*100
-mean_unique <- (data$Unique.MBR.2.peptides+data$Unique.no.MBR.2.peptides)/2
-par(mar = c(3.9,4, 1, 1))
-plot(mean_unique,unique, xlab= "Number of identified proteins", ylab="Deviation MBR [%]")
+# Create a data frame for plotting
+df <- data.frame(
+  MeanUnique = mean_unique,
+  Deviation = unique
+)
+
+# Create the scatter plot using ggplot
+ggplot(df, aes(x = MeanUnique, y = Deviation)) +
+  geom_point() +
+  labs(x = "Number of identified proteins", y = "Deviation MBR [%]") +
+  theme_minimal() +
+  scale_x_continuous(limits = c(0, 800)) 
 
 
 ```
 
 ## C
 
-```{r, fig.width=4,fig.height=4}
+```{r, fig.width=4,fig.height=3}
 # von hier file:///X:/wissenschaftliche%20Ver%C3%B6ffentlichungen/Publikationen/2022/Proteomics_JRS_DL_stillgelegt%20und%20transferiert%20auf%20Teams_230605/Data/evaluation_summary_unique.html
 data <- read.csv("Extraktionen_gesamt_V2_DL.csv", sep=";")
-# unique vs razor
-MBR <- (data$Razor.MBR.2.peptides/data$Unique.MBR.2.peptides)*100
-noMBR <- (data$Razor.noMBR.2.peptides/data$Unique.no.MBR.2.peptides)*100
 
-mean_MBR <- (data$Razor.MBR.2.peptides+data$Unique.MBR.2.peptide)/2
-mean_noMBR <- (data$Razor.noMBR.2.peptides+data$Unique.no.MBR.2.peptides)/2
-par(mar = c(3.9,4, 1, 1))
-plot(mean_noMBR,noMBR, xlab= "Number of identified proteins", ylab="Deviation Razor vs. Unique peptides [%]")
+# Calculate ratios
+MBR <- (data$Razor.MBR.2.peptides / data$Unique.MBR.2.peptides) * 100
+noMBR <- (data$Razor.noMBR.2.peptides / data$Unique.no.MBR.2.peptides) * 100
 
+# Calculate means
+mean_MBR <- (data$Razor.MBR.2.peptides + data$Unique.MBR.2.peptide) / 2
+mean_noMBR <- (data$Razor.noMBR.2.peptides + data$Unique.no.MBR.2.peptides) / 2
+
+# Create a data frame for plotting
+df <- data.frame(
+  MeanNoMBR = mean_noMBR,
+  Deviation = noMBR
+)
+
+# Create the scatter plot using ggplot
+ggplot(df, aes(x = MeanNoMBR, y = Deviation)) +
+  geom_point() +
+  labs(x = "Number of identified proteins", y = "Deviation Razor-Unique [%]") +
+  theme_minimal()+
+  scale_x_continuous(limits = c(0, 800)) 
 ```
 
 ## D
 
-```{r, fig.width=4,fig.height=4}
+```{r, fig.width=4,fig.height=3}
 # aus file:///X:/wissenschaftliche%20Ver%C3%B6ffentlichungen/Publikationen/2022/Proteomics_JRS_DL_stillgelegt%20und%20transferiert%20auf%20Teams_230605/Data/evaluation_summary_4publication.html
+
 data <- read.csv("Extraktionen_gesamt_V2_DL.csv", sep=";")
 sample_group <- c(seq(1,18,by=3),seq(19,162,by=2))
 sd_samples <- c()
 mean_samples <- c()
-for (i in 1:length(sample_group)){
-  if (i<78){
-  tmp <- sd(data$Unique.no.MBR.2.peptides[sample_group[i]:(sample_group[i+1]-1)])
-  sd_samples <- c(sd_samples, tmp)
-  tmp <- mean(data$Unique.no.MBR.2.peptides[sample_group[i]:(sample_group[i+1]-1)])
-  mean_samples <- c(mean_samples,tmp)
+
+for (i in 1:length(sample_group)) {
+  if (i < 78) {
+    tmp <- sd(data$Unique.no.MBR.2.peptides[sample_group[i]:(sample_group[i+1]-1)])
+    sd_samples <- c(sd_samples, tmp)
+    tmp <- mean(data$Unique.no.MBR.2.peptides[sample_group[i]:(sample_group[i+1]-1)])
+    mean_samples <- c(mean_samples, tmp)
   } else {
     tmp <- sd(data$Unique.no.MBR.2.peptides[sample_group[i]:length(data$Unique.no.MBR.2.peptides)])
     sd_samples <- c(sd_samples, tmp)
     tmp <- mean(data$Unique.no.MBR.2.peptides[sample_group[i]:length(data$Unique.no.MBR.2.peptides)])
-    mean_samples <- c(mean_samples,tmp)
+    mean_samples <- c(mean_samples, tmp)
   }
 }
-par(mar = c(3.9,4, 1, 1))
-plot(mean_samples[-31],sd_samples[-31]/mean_samples[-31]*100,ylab="rel. sd [%]",xlab="Number of identified proteins")
 
-rel_sd <- sd_samples/mean_samples*100
-median(rel_sd[which(mean_samples<200)])
-median(rel_sd[which(mean_samples>200)])
-#t test rel sd <200 with rel sd >200
-t.test(rel_sd[which(mean_samples<200)],rel_sd[which(mean_samples>200)])
+# Calculate relative standard deviation
+rel_sd <- sd_samples / mean_samples * 100
+
+# Calculate medians
+median_below_200 <- median(rel_sd[which(mean_samples < 200)])
+median_above_200 <- median(rel_sd[which(mean_samples > 200)])
+
+# Perform t-test
+t_test_result <- t.test(rel_sd[which(mean_samples < 200)], rel_sd[which(mean_samples > 200)])
+
+# Create a data frame for plotting
+df <- data.frame(
+  MeanSamples = mean_samples[-31],
+  RelSD = sd_samples[-31] / mean_samples[-31] * 100
+)
+
+# Create the scatter plot using ggplot
+ggplot(df, aes(x = MeanSamples, y = RelSD)) +
+  geom_point() +
+  labs(x = "Number of identified proteins", y = "rel. sd [%]") +
+  theme_minimal() +
+  scale_x_continuous(limits = c(0, 800)) 
+
+# Output median values
+print(paste("Median below 200:", median_below_200))
+print(paste("Median above 200:", median_above_200))
+
+# Output t-test result
+print(t_test_result)
+
 ```

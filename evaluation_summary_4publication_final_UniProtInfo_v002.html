@@ -2845,7 +2845,7 @@ border-radius: 0px;
 
 <h1 class="title toc-ignore">Auswertung TC Daten</h1>
 <h4 class="author">David Lilek</h4>
-<h4 class="date">12 Juli 2023, 14:23:07</h4>
+<h4 class="date">14 Juli 2023, 12:59:01</h4>
 
 </div>
 
@@ -2904,11 +2904,62 @@ Server gelesen</li>
 Frequenz sortiert und die besten 20 geplottet wobei dabei nicht
 zuordenbare Accessionnumbers ignoriert wurden (bei ein paar habe ich es
 mir angeschaut und es sind so 10-20% die nicht zuordenbar sind)</li>
+<li>zuerst von allen functionen die besten 20 auswählen</li>
+<li>die werden dann gemerged</li>
+<li>dann eben geschaut wieviel NA im Vergleich in Probe A (spalte 2)
+sind; das sind dann die proteine die mehr in Probe B sind; wenn man dann
+schaut wieviele in Summe gefunden wurden kriegt man die %</li>
+</ul>
+<p><code>results_comp &lt;- c(results_comp,sum(is.na(BP[2])))</code>
+<code>rength_comp &lt;- c(length_comp, length(BP[,1]))</code></p>
+<ul>
 <li><a href="http://geneontology.org/docs/ontology-documentation/">Zusatzinfo
 GO Terms Uniprot</a></li>
 <li><a href="http://www.pantherdb.org/about.jsp">Zusatzinfo Panther
-DB</a></li>
+DB</a> ## Erklärung Judith WIE KOMME ICH AUF DIE MOLEKULAREN FUNKTIONEN
+DIE WIR MEHR ODER WENIGER FINDEN?</li>
 </ul>
+<p>Ich habe zb zwei Proben X und Y. Bei beiden ordne ich die molekularen
+Funktionen über die FASTA identifier zu. Das geht indem man automatisch
+auf Uniprot zugreift und es gibt dafür ein Package in R.</p>
+<p>Ich sortiere dann die molekularen Funktionen nach Häufigkeit - es
+kann ja sein, dass mehrere Proteine der Gruppe Oxidoreductase Aktivität
+haben - und zwar für X und Y. Dann merge ich die beiden und das Ergebnis
+sieht so aus…</p>
+<p>In Spalte Var1 steht eben die molecular function. In Spalte Freq.X
+bzw Freq.Y wie oft diese Molecular Function vorgekommen ist.</p>
+<p>Wie komme ich jetzt auf die neuen Molecular Functions die ich in Y
+mehr finde als in X? Ich schaue einfach in der Spalte Freq.X wie oft
+durch NA steht weil diese Funktion eben nur in Y vorkommt. Da kommt dann
+in diesem Beispiel 3 NA values. Wenn in Summe 19 Zeilen sind, dann habe
+ich 3/19=15,8% neue molekulare Funktionen in Y.</p>
+<div id="am-13.07-geprüft" class="section level2" number="2.1">
+<h2><span class="header-section-number">2.1</span> am 13.07 geprüft</h2>
+<ul>
+<li><p>Grafik2A: v13 paper - das stimmt “In the two-dimensional
+extraction approach 31 % new molecular functional terms could be
+assigned to proteins of second extractions dimension (Fig. 4A – suppl.
+material).”</p></li>
+<li><p>Grafik2B: In the three-dimensional approach 39 % additional
+molecular functional terms could be achieved using carbonate buffer
+(dimension 1b) and extended to further 24 % in the final dimension (urea
+plus Triton-X) (Fig. 4B – suppl. material),</p>
+<ul>
+<li>das stimmt so nicht: in 1 5NA die auch in 1b vorkommen; also
+5/33=15%</li>
+<li>habe ich im Code mit dem
+<code>sum(is.na(BP$Freq.x) &amp; !is.na(BP$Freq.y))</code>
+korrigiert</li>
+</ul></li>
+<li><p>Grafik2C: v13 paper - das stimmt “The difference in the
+assignment of identified proteins to molecular functions between the
+total two- respectively three-dimensional approach was only 13 % (Fig.
+4C – suppl. Material),”</p></li>
+<li><p>Grafik 3A: v13 paper while the comparison of fractionation
+approaches resulted in a plus of xx % for the GeLC-MS/MS approach versus
+the SEC-HPLC-method (Fig. 4D – suppl. Material)</p></li>
+</ul>
+</div>
 </div>
 <div id="grafik-1" class="section level1" number="3">
 <h1><span class="header-section-number">3</span> Grafik 1</h1>
@@ -4273,7 +4324,7 @@ BP &lt;- merge(t_BP_sorted_1, t_BP_sorted_2,
             all = TRUE,
             by = &quot;Var1&quot;)
 BP &lt;- merge(BP, t_BP_sorted_3, all = TRUE, by = &quot;Var1&quot;)
-results_comp &lt;- c(results_comp,sum(is.na(BP[2])))
+results_comp &lt;- c(results_comp,sum(is.na(BP$Freq.x) &amp; !is.na(BP$Freq.y)))
 results_comp &lt;- c(results_comp,sum(rowSums(is.na(BP[2:3]))&gt;1,na.rm = TRUE))
 length_comp &lt;- c(length_comp,length(BP[,1]),length(BP[,1]))
 colnames(BP) &lt;- c(&quot;Function&quot;, &quot;D1: Phosphate buffer&quot;, &quot;D1b: Carbonate buffer&quot;, &quot;D2: Phosphate buffer with urea-triton X&quot;)
@@ -13843,7 +13894,7 @@ ggplot(BP_4ggplot, aes(x=Function_short, y=value, fill=variable)) +
 <div id="results-comparison" class="section level1" number="7">
 <h1><span class="header-section-number">7</span> Results comparison</h1>
 <pre class="r"><code>print(results_comp)</code></pre>
-<pre><code>## [1]  9 13  8  3  9  2  6  4</code></pre>
+<pre><code>## [1] 9 5 8 3 9 2 6 4</code></pre>
 <pre class="r"><code>print(length_comp)</code></pre>
 <pre><code>## [1] 29 33 33 23 29 29 26 24</code></pre>
 <pre class="r"><code>print(&quot;Graph2&quot;)</code></pre>
@@ -13855,8 +13906,77 @@ ggplot(BP_4ggplot, aes(x=Function_short, y=value, fill=variable)) +
 <pre class="r"><code>print(c(&quot;A&quot;,&quot;A&quot;,&quot;B&quot;,&quot;C&quot;))</code></pre>
 <pre><code>## [1] &quot;A&quot; &quot;A&quot; &quot;B&quot; &quot;C&quot;</code></pre>
 <pre class="r"><code>results_comp/length_comp*100</code></pre>
-<pre><code>## [1] 31.034483 39.393939 24.242424 13.043478 31.034483  6.896552 23.076923
+<pre><code>## [1] 31.034483 15.151515 24.242424 13.043478 31.034483  6.896552 23.076923
 ## [8] 16.666667</code></pre>
+</div>
+<div id="versuche-für-paper" class="section level1" number="8">
+<h1><span class="header-section-number">8</span> Versuche für Paper</h1>
+<div id="versuch-von-baftf" class="section level2" number="8.1">
+<h2><span class="header-section-number">8.1</span> versuch von
+B,AF,TF</h2>
+<ul>
+<li>wenn ich alle verfügbaren GO Terms nehme bekomme ich…
+<ul>
+<li>bei B 21NA = 2.8%</li>
+<li>bei AF 363 NA = 48,7%</li>
+<li>bei TF 372 NA = 49,9%</li>
+<li>in Summe 745 GO Terms wenn man es prozentuell rechnen will</li>
+</ul></li>
+<li>wenn ich alle verfügbaren GO Terme die mehr als 1x vorkommen bekomme
+ich
+<ul>
+<li>bei B 21NA = 11,41%</li>
+<li>bei AF 69NA = 37,5%</li>
+<li>bei TF 65NA = 35,32%</li>
+<li>bei einer Summe von 184 GO Terms</li>
+</ul></li>
+<li>wenn ich nur die ersten 100 nehme
+<ul>
+<li>bei B 52NA = 50,48%</li>
+<li>bei AF 52NA = 50,48%</li>
+<li>bei TF 52NA = 50,48%</li>
+<li>bei einer Summe von 103 GO Terms</li>
+</ul></li>
+<li>wenn ich nur die ersten 20 nehme
+<ul>
+<li>bei B 9 NA = 31%</li>
+<li>bei AF 9 NA = 31%</li>
+<li>bei TF 9 NA = 31%</li>
+<li>bei einer Summe von 29 GO Terms</li>
+</ul></li>
+</ul>
+</div>
+<div id="versuch-von-2d-und-3d" class="section level2" number="8.2">
+<h2><span class="header-section-number">8.2</span> versuch von 2D und
+3D</h2>
+<ul>
+<li>wenn ich alle verfügbaren GO Terms nehme bekomme ich…
+<ul>
+<li>bei 2D 96NA = 16,63%</li>
+<li>bei 3D 36NA = 6,23%</li>
+<li>in Summe 577 GO Terme wenn mans es prozentuell berechnen will</li>
+</ul></li>
+<li>wenn ich alle verfügbaren GO Terme die mehr als 1x vorkommen bekomme
+ich
+<ul>
+<li>bei 2D 96NA=49,48%</li>
+<li>bei 3D 96NA=49,48%</li>
+<li>in Summe 194 GO Terme</li>
+</ul></li>
+<li>wenn ich nur die ersten 100 nehme bekomme ich…
+<ul>
+<li>bei 2D 18NA = 15,25%</li>
+<li>bei 3D 18NA = 15,25%</li>
+<li>bei 118 GO Termen</li>
+</ul></li>
+<li>wenn ich nur die ersten 20 nehme bekomme ich…
+<ul>
+<li>bei 2D 3 NA = 13,04%</li>
+<li>bei 3D 3 NA = 13,04%</li>
+<li>bei 23 GO Termen</li>
+</ul></li>
+</ul>
+</div>
 </div>
 
 
