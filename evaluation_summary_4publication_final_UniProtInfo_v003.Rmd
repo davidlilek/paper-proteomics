@@ -1,0 +1,740 @@
+---
+output:
+  html_document:
+    df_print: paged
+    fig.align: center
+    self_contained: yes 
+    fig.height: 4
+    fig.width: 8
+    theme: united
+    toc: yes
+    toc_depth: 4
+    toc_float: yes
+    number_sections: yes
+    code_folding: hide
+title: "Auswertung TC Daten"
+author: "David Lilek"
+date: "`r format(Sys.time(), '%d %B %Y, %X')`"
+editor_options: 
+  markdown: 
+    wrap: 72
+---
+
+```{r}
+results_comp <- c()
+length_comp <- c()
+results_comp_cc <- c()
+length_comp_cc <- c()
+name_comp <- c()
+```
+
+# Load Libraries & Plot function & Colors
+
+```{r message=FALSE, warning=FALSE}
+library(ggplot2)
+library(tidyverse)
+library(dplyr)
+library(UpSetR)
+library(pheatmap)
+library(ggvenn)
+library(knitr)
+library(reshape2)
+library(eulerr)
+library(UniprotR)
+library(stringr)
+#library(venneuler)
+#library(VennDiagram) 
+```
+
+```{r}
+# Function to extract and remove square brackets from a string
+extract_goterm <- function(input_string) {
+  # Extract the first string between square brackets
+  extracted_string <- str_extract(input_string, "\\[(.*?)\\]")
+  
+  # Remove the square brackets
+  extracted_string <- str_remove_all(extracted_string, "\\[|\\]")
+  
+  # Return the extracted string
+  return(extracted_string)
+}
+```
+
+# Überblick
+
+-   für die ausgewählten Grafiken des Papers wurden die Proteine (und
+    zwar nur das erste einer Proteingruppe) mittels des Packages
+    `UniprotR` einer molekularen, biologischen Funktion bzw einem
+    zellulärem Compartment zugeordnet
+-   [UniprotR](https://github.com/Proteomicslab57357/UniprotR)
+-   Ablauf: einlesen der Daten und extrahieren der Accesion Number und
+    mittels Funktion `GetProteinGOInfo` die Daten vom UniProt Server
+    gelesen
+-   diese GO Terms dann je Extraktion zb E4_D1_pool und absteigender
+    Frequenz sortiert und die besten 20 geplottet wobei dabei nicht
+    zuordenbare Accessionnumbers ignoriert wurden (bei ein paar habe ich
+    es mir angeschaut und es sind so 10-20% die nicht zuordenbar sind)
+-   zuerst von allen functionen die besten 20 auswählen
+-   die werden dann gemerged
+-   dann eben geschaut wieviel NA im Vergleich in Probe A (spalte 2) sind; das sind dann die proteine die mehr in Probe B sind; wenn man dann schaut wieviele in Summe gefunden wurden kriegt man die %
+
+`results_comp <- c(results_comp,sum(is.na(BP[2])))`
+`rength_comp <- c(length_comp, length(BP[,1]))`
+
+-   [Zusatzinfo GO Terms
+    Uniprot](http://geneontology.org/docs/ontology-documentation/)
+-   [Zusatzinfo Panther DB](http://www.pantherdb.org/about.jsp)
+
+## Erklärung Judith
+WIE KOMME ICH AUF DIE MOLEKULAREN FUNKTIONEN DIE WIR MEHR ODER WENIGER FINDEN?
+
+
+
+
+Ich habe zb zwei Proben X und Y. Bei beiden ordne ich die molekularen Funktionen über die FASTA identifier zu. Das geht indem man automatisch auf Uniprot zugreift und es gibt dafür ein Package in R.
+
+Ich sortiere dann die molekularen Funktionen nach Häufigkeit - es kann ja sein, dass mehrere Proteine der Gruppe Oxidoreductase Aktivität haben - und zwar für X und Y. Dann merge ich die beiden und das Ergebnis sieht so aus...
+
+In Spalte Var1 steht eben die molecular function. In Spalte Freq.X bzw Freq.Y wie oft diese Molecular Function vorgekommen ist. 
+
+Wie komme ich jetzt auf die neuen Molecular Functions die ich in Y mehr finde als in X? Ich schaue einfach in der Spalte Freq.X wie oft durch NA steht weil diese Funktion eben nur in Y vorkommt. Da kommt dann in diesem Beispiel 3 NA values. Wenn in Summe 19 Zeilen sind, dann habe ich 3/19=15,8% neue molekulare Funktionen in Y.
+
+## am 13.07 geprüft
+
+* Grafik2A: v13 paper - das stimmt "In the two-dimensional extraction approach 31 % new molecular functional terms could be assigned to proteins of second extractions dimension (Fig. 4A – suppl. material)."
+* Grafik2B: In the three-dimensional approach 39 % additional molecular functional terms could be achieved using carbonate buffer (dimension 1b) and extended to further 24 % in the final dimension (urea plus Triton-X) (Fig. 4B – suppl. material), 
+  + das stimmt so nicht: in 1 5NA die auch in 1b vorkommen; also 5/33=15%
+  + habe ich im Code mit dem `sum(is.na(BP$Freq.x) & !is.na(BP$Freq.y))` korrigiert
+* Grafik2C: v13 paper - das stimmt "The difference in the assignment of identified proteins to molecular functions between the total two- respectively three-dimensional approach was only 13 % (Fig. 4C – suppl. Material), "
+
+* Grafik 3A: v13 paper while the comparison of fractionation approaches resulted in a plus of xx % for the GeLC-MS/MS approach versus the SEC-HPLC-method (Fig. 4D – suppl. Material)
+
+
+# Grafik 1
+
+-   fehlt weil ja uninteressant für diesen Vergleich
+
+# Grafik 2
+
+## A
+
+```{r eval=FALSE, include=FALSE}
+# preparation; needs to be run only if the rds file is not available
+# D1-D2 comparison
+
+D1_raw <- readRDS(file = "results_v002/results_run1_mqpar_extracts_2gether_E4_D1_a-j_LFQ_combined_txt_proteinGroups.txt_Unique.RDS")
+D1_raw <- D1_raw[[1]]
+D1 <- dplyr::select(D1_raw, contains("Pool"))
+D1 <- apply(D1, 1, any)
+#D1 <- as.data.frame(cbind(D1, D1_raw$FASTA))
+fasta <- c()
+for (i in 1:length(D1_raw$FASTA)){
+  tmp <- strsplit(D1_raw$FASTA[i],split='\\|')[[1]][2]
+  fasta <- c(fasta,tmp)
+}
+D1 <- as.data.frame(cbind(D1, fasta))
+D2_raw <- readRDS(file = "results_v002/results_run1_mqpar_extracts_2gether_D2_LFQ_combined_txt_proteinGroups.txt_Unique.RDS")
+D2_raw <- D2_raw[[1]]
+D2 <- dplyr::select(D2_raw, contains("Gesamt"))
+D2 <- apply(D2, 1, any)
+fasta <- c()
+for (i in 1:length(D2_raw$FASTA)){
+  tmp <- strsplit(D2_raw$FASTA[i],split='\\|')[[1]][2]
+  fasta <- c(fasta,tmp)
+}
+#D2 <- as.data.frame(cbind(D2, D2_raw$FASTA))
+D2 <- as.data.frame(cbind(D2, fasta))
+D1_D2_comparison  <- merge(D1, D2,
+                           all = TRUE,
+                           by = "fasta")
+
+D1_D2_comparison$D1 <- as.logical(D1_D2_comparison$D1)
+D1_D2_comparison$D2 <- as.logical(D1_D2_comparison$D2)
+
+D1 <- D1_D2_comparison$fasta[D1_D2_comparison$D1]
+D1 <- D1[!is.na(D1)]
+D2 <- D1_D2_comparison$fasta[D1_D2_comparison$D2]
+D2 <- D2[!is.na(D2)]
+```
+
+```{r, fig.width=4,fig.height=4}
+
+#D1_uni <- GetProteinGOInfo(D1)
+#saveRDS(D1_uni,"./go_terms/graph2_D1_uni.RDS")
+GO_1 <- readRDS("./go_terms/graph2_D1_uni.RDS")
+#D2_uni <- G1 <- t_BP_sorted[c(1:20),]etProteinGOInfo(D2)
+#saveRDS(D2_uni,"./go_terms/graph2_D2_uni.RDS")
+GO_2 <- readRDS("./go_terms/graph2_D2_uni.RDS")
+
+################################# molecular function
+t_BP <- as.data.frame(table(GO_1$Gene.Ontology..molecular.function.))
+t_BP_sorted_1 <- arrange(t_BP, desc(Freq))
+#t_BP_sorted_1 <- t_BP_sorted[c(1:20),]
+t_BP <- as.data.frame(table(GO_2$Gene.Ontology..molecular.function.))
+t_BP_sorted_2 <- arrange(t_BP, desc(Freq))
+#t_BP_sorted_2 <- t_BP_sorted[c(1:20),]
+#t_BP <- as.data.frame(table(GO_3$Gene.Ontology..molecular.function.))
+#t_BP_sorted <- arrange(t_BP, desc(Freq))
+#t_BP_sorted_3 <- t_BP_sorted[c(1:20),]
+BP <- merge(t_BP_sorted_1, t_BP_sorted_2,
+            all = TRUE,
+            by = "Var1")
+#BP <- merge(BP, t_BP_sorted_3, all = TRUE, by = "Var1")
+results_comp <- sum(is.na(BP[,2]))
+length_comp <- length(BP[,1])
+name_comp <- c("graph2A-D1-to-D2")
+
+colnames(BP) <- c("Function", "D1: Phosphate buffer", "D2: Phosphate buffer with urea-triton X")
+kable(BP)
+kable(BP[is.na(BP[,3])==TRUE,1])
+kable(BP[is.na(BP[,2])==TRUE,1])
+
+################################# cellular.component
+t_BP <- as.data.frame(table(GO_1$Gene.Ontology..cellular.component.))
+t_BP_sorted_1 <- arrange(t_BP, desc(Freq))
+t_BP <- as.data.frame(table(GO_2$Gene.Ontology..cellular.component.))
+t_BP_sorted_2 <- arrange(t_BP, desc(Freq))
+BP <- merge(t_BP_sorted_1, t_BP_sorted_2,
+            all = TRUE,
+            by = "Var1")
+colnames(BP) <- c("Function", "D1","D2")
+kable(BP)
+kable(BP[is.na(BP[,3])==TRUE,1])
+kable(BP[is.na(BP[,2])==TRUE,1])
+results_comp_cc <- sum(is.na(BP[,2]))
+length_comp_cc <- length(BP[,1])
+
+```
+
+## B
+
+```{r eval=FALSE, include=FALSE}
+data <- readRDS("./27_20230201_FH/results/D5_extracts_Razor.RDS")
+data <- data[[1]]
+b <- dplyr::select(data, contains("_b"))
+D1_b <- b$Razor...unique.peptides.1_b_01+ b$Razor...unique.peptides.1_b_02
+D2_b <- b$Razor...unique.peptides.2_b_01 + b$Razor...unique.peptides.2_b_02
+D4_b <- b$Razor...unique.peptides.3_b_01 + b$Razor...unique.peptides.4_b_02
+b <- as.data.frame(cbind(D1_b,D2_b,D4_b))
+b[b==0] <- NA
+b[b==2] <- 1
+
+fasta <- c()
+for (i in 1:length(data$FASTA)){
+  tmp <- strsplit(data$FASTA[i],split='\\|')[[1]][2]
+  fasta <- c(fasta,tmp)
+}
+
+E5_D1_b <- fasta[as.logical(b$Razor...unique.peptides.1_b_01)]
+E5_D1_b <- E5_D1_b[!is.na(E5_D1_b)]
+E5_D2_b <- fasta[as.logical(b$Razor...unique.peptides.2_b_01)]
+E5_D2_b <- E5_D2_b[!is.na(E5_D2_b)]
+E5_D4_b <- fasta[as.logical(b$Razor...unique.peptides.3_b_01)]
+E5_D4_b <- E5_D4_b[!is.na(E5_D4_b)]
+
+
+```
+
+
+```{r, fig.width=4,fig.height=4}
+
+  
+#D1_uni <- GetProteinGOInfo(E5_D1_b)
+#saveRDS(D1_uni,"./go_terms/graph2_E5_D1_uni.RDS")
+GO_1 <- readRDS("./go_terms/graph2_E5_D1_uni.RDS")
+#D2_uni <- GetProteinGOInfo(E5_D2_b)
+#saveRDS(D2_uni,"./go_terms/graph2_E5_D2_uni.RDS")
+GO_2 <- readRDS("./go_terms/graph2_E5_D2_uni.RDS")
+#D4_uni <- GetProteinGOInfo(E5_D4_b)
+#saveRDS(D4_uni,"./go_terms/graph2_E5_D4_uni.RDS")
+GO_3 <- readRDS("./go_terms/graph2_E5_D4_uni.RDS")
+################################# molecular function
+t_BP <- as.data.frame(table(GO_1$Gene.Ontology..molecular.function.))
+t_BP_sorted_1 <- arrange(t_BP, desc(Freq))
+t_BP <- as.data.frame(table(GO_2$Gene.Ontology..molecular.function.))
+t_BP_sorted_2 <- arrange(t_BP, desc(Freq))
+t_BP <- as.data.frame(table(GO_3$Gene.Ontology..molecular.function.))
+t_BP_sorted_3 <- arrange(t_BP, desc(Freq))
+BP <- merge(t_BP_sorted_1, t_BP_sorted_2,
+            all = TRUE,
+            by = "Var1")
+BP <- merge(BP, t_BP_sorted_3, all = TRUE, by = "Var1")
+# schauen wo 
+results_comp <- c(results_comp,sum(is.na(BP$Freq.x) & !is.na(BP$Freq.y)))
+results_comp <- c(results_comp,sum(is.na(BP$Freq.y) & !is.na(BP$Freq)))
+length_comp <- c(length_comp,length(BP[,1]),length(BP[,1]))
+name_comp <- c(name_comp, "graph-2B-D1 to D1b", "graph-2B D1b to D2")
+colnames(BP) <- c("Function", "D1: Phosphate buffer", "D1b: Carbonate buffer", "D2: Phosphate buffer with urea-triton X")
+
+kable(BP)
+kable(subset(BP[,1], is.na(BP[,3]) == TRUE & !is.na(BP[,2]) == TRUE))
+kable(subset(BP[,1], is.na(BP[,2]) == TRUE & !is.na(BP[,3]) == TRUE))
+kable(subset(BP[,1], is.na(BP[,4]) == TRUE & !is.na(BP[,3]) == TRUE))
+kable(subset(BP[,1], is.na(BP[,3]) == TRUE & !is.na(BP[,4]) == TRUE))
+
+################################# cellular.component
+t_BP <- as.data.frame(table(GO_1$Gene.Ontology..cellular.component.))
+t_BP_sorted_1 <- arrange(t_BP, desc(Freq))
+t_BP <- as.data.frame(table(GO_2$Gene.Ontology..cellular.component.))
+t_BP_sorted_2 <- arrange(t_BP, desc(Freq))
+t_BP <- as.data.frame(table(GO_3$Gene.Ontology..cellular.component.))
+t_BP_sorted_3 <- arrange(t_BP, desc(Freq))
+BP <- merge(t_BP_sorted_1, t_BP_sorted_2,
+            all = TRUE,
+            by = "Var1")
+BP <- merge(BP, t_BP_sorted_3, all = TRUE, by = "Var1")
+results_comp_cc <- c(results_comp_cc,sum(is.na(BP$Freq.x) & !is.na(BP$Freq.y)))
+results_comp_cc <- c(results_comp_cc,sum(is.na(BP$Freq.y) & !is.na(BP$Freq)))
+length_comp_cc <- c(length_comp_cc,length(BP[,1]),length(BP[,1]))
+colnames(BP) <- c("Function", "D1","D2","D4")
+kable(BP)
+kable(subset(BP[,1], is.na(BP[,3]) == TRUE & !is.na(BP[,2]) == TRUE))
+kable(subset(BP[,1], is.na(BP[,2]) == TRUE & !is.na(BP[,3]) == TRUE))
+kable(subset(BP[,1], is.na(BP[,4]) == TRUE & !is.na(BP[,3]) == TRUE))
+kable(subset(BP[,1], is.na(BP[,3]) == TRUE & !is.na(BP[,4]) == TRUE))
+
+```
+
+## C
+
+```{r eval=FALSE, include=FALSE}
+# D1-D2 comparison
+D1_raw <- readRDS(file = "results_v002/results_run1_mqpar_extracts_2gether_E4_D1_a-j_LFQ_combined_txt_proteinGroups.txt_Unique.RDS")
+D1_raw <- D1_raw[[1]]
+D1 <- dplyr::select(D1_raw, contains("Pool"))
+D1 <- apply(D1, 1, any)
+#D1 <- as.data.frame(cbind(D1, D1_raw$FASTA))
+fasta <- c()
+for (i in 1:length(D1_raw$FASTA)){
+  tmp <- strsplit(D1_raw$FASTA[i],split='\\|')[[1]][2]
+  fasta <- c(fasta,tmp)
+}
+D1 <- as.data.frame(cbind(D1, fasta))
+D2_raw <- readRDS(file = "results_v002/results_run1_mqpar_extracts_2gether_D2_LFQ_combined_txt_proteinGroups.txt_Unique.RDS")
+D2_raw <- D2_raw[[1]]
+D2 <- dplyr::select(D2_raw, contains("Gesamt"))
+D2 <- apply(D2, 1, any)
+fasta <- c()
+for (i in 1:length(D2_raw$FASTA)){
+  tmp <- strsplit(D2_raw$FASTA[i],split='\\|')[[1]][2]
+  fasta <- c(fasta,tmp)
+}
+#D2 <- as.data.frame(cbind(D2, D2_raw$FASTA))
+D2 <- as.data.frame(cbind(D2, fasta))
+D1_D2_comparison  <- merge(D1, D2,
+                           all = TRUE,
+                           by = "fasta")
+D1_D2_comparison$comb <- apply(D1_D2_comparison[,c(2:3)], 1, any)
+#E5
+data <- readRDS("./27_20230201_FH/results/D5_extracts_Razor.RDS")
+data <- data[[1]]
+b <- dplyr::select(data, contains("_b"))
+b <- b[,-c(5:6)]
+b <- as.data.frame(apply(b, 1, any))
+fasta <- c()
+for (i in 1:length(data$FASTA)){
+  tmp <- strsplit(data$FASTA[i],split='\\|')[[1]][2]
+  fasta <- c(fasta,tmp)
+}
+b$fasta <- fasta
+colnames(b) <- c("b","fasta")
+
+#merge with D5
+D1_D2_D5_comparison  <- merge(D1_D2_comparison[,c(1,4)],b,
+                              all = TRUE,
+                              by = "fasta")
+colnames(D1_D2_D5_comparison) <- c("fasta","E4","E5")
+
+D1_D2_D5_comparison$D1 <- as.logical(D1_D2_D5_comparison$E4)
+D1_D2_D5_comparison$D2 <- as.logical(D1_D2_D5_comparison$E5)
+
+D1 <- D1_D2_D5_comparison$fasta[D1_D2_D5_comparison$D1]
+D1 <- D1[!is.na(D1)]
+D2 <- D1_D2_D5_comparison$fasta[D1_D2_D5_comparison$D2]
+D2 <- D2[!is.na(D2)]
+
+```
+
+
+```{r, fig.width=4,fig.height=4}
+#D1_uni <- GetProteinGOInfo(D1)
+#saveRDS(D1_uni,"./go_terms/graph2_E4_uni.RDS")
+GO_1 <- readRDS("./go_terms/graph2_E4_uni.RDS")
+#D2_uni <- GetProteinGOInfo(D2)
+#saveRDS(D2_uni,"./go_terms/graph2_E5_uni.RDS")
+GO_2 <- readRDS("./go_terms/graph2_E5_uni.RDS")
+
+################################# molecular function
+t_BP <- as.data.frame(table(GO_1$Gene.Ontology..molecular.function.))
+t_BP_sorted_1 <- arrange(t_BP, desc(Freq))
+t_BP <- as.data.frame(table(GO_2$Gene.Ontology..molecular.function.))
+t_BP_sorted_2 <- arrange(t_BP, desc(Freq))
+BP <- merge(t_BP_sorted_1, t_BP_sorted_2,
+            all = TRUE,
+            by = "Var1")
+results_comp <- c(results_comp,sum(is.na(BP[,2])))
+length_comp <- c(length_comp, length(BP[,1]))
+name_comp <- c(name_comp, "graph2C-2D to 3D")
+colnames(BP) <- c("Function", "2D","3D")
+kable(BP)
+kable(BP[is.na(BP[,3])==TRUE,1])
+kable(BP[is.na(BP[,2])==TRUE,1])
+
+################################# cellular.component
+t_BP <- as.data.frame(table(GO_1$Gene.Ontology..cellular.component.))
+t_BP_sorted <- arrange(t_BP, desc(Freq))
+t_BP <- as.data.frame(table(GO_2$Gene.Ontology..cellular.component.))
+t_BP_sorted <- arrange(t_BP, desc(Freq))
+#t_BP <- as.data.frame(table(GO_3$Gene.Ontology..cellular.component.))
+#t_BP_sorted <- arrange(t_BP, desc(Freq))
+#t_BP_sorted_3 <- t_BP_sorted[c(1:20),]
+BP <- merge(t_BP_sorted_1, t_BP_sorted_2,
+            all = TRUE,
+            by = "Var1")
+#BP <- merge(BP, t_BP_sorted_3, all = TRUE, by = "Var1")
+results_comp_cc <- c(results_comp_cc,sum(is.na(BP[,2])))
+length_comp_cc <- c(length_comp_cc, length(BP[,1]))
+colnames(BP) <- c("Function", "E4","E5")
+kable(BP)
+kable(BP[is.na(BP[,3])==TRUE,1])
+kable(BP[is.na(BP[,2])==TRUE,1])
+
+       
+```
+
+# Grafik 3
+
+## A
+
+```{r message=FALSE, warning=FALSE}
+############## B
+data <- readRDS(file = "results_v002/results_run1_mqpar_extracts_2gether_E4_D1_B_LFQ_combined_txt_proteinGroups.txt_Unique.RDS")
+data <- data[[1]]
+data_sub <- dplyr::select(data, contains("Pool_G"))
+#get rid of FALSE values
+B <- data_sub*1
+B[B==0] <- NA
+ind <- apply(B, 1, function(x) all(is.na(x)))
+
+
+############AF
+data <- readRDS(file = "results_v002/results_run1_mqpar_extracts_2gether_E4_D1_AF_TF_LFQ_combined_txt_proteinGroups.txt_Unique.RDS")
+data <- data[[1]]
+data_sub <- dplyr::select(data, contains("Pool_AF"))
+#get rid of FALSE values
+AF <- data_sub*1
+AF[AF==0] <- NA
+ind <- apply(AF, 1, function(x) all(is.na(x)))
+
+############TF
+data <- readRDS(file = "results_v002/results_run1_mqpar_extracts_2gether_E4_D1_AF_TF_LFQ_combined_txt_proteinGroups.txt_Unique.RDS")
+data <- data[[1]]
+data_sub <- dplyr::select(data, contains("Pool_TF"))
+#get rid of FALSE values
+TF <- data_sub*1
+TF[TF==0] <- NA
+ind <- apply(TF, 1, function(x) all(is.na(x)))
+
+
+## compare AF TF B poster
+AF_TF_raw <- readRDS(file = "results_v002/results_run1_mqpar_extracts_2gether_E4_D1_AF_TF_LFQ_combined_txt_proteinGroups.txt_Unique.RDS")
+AF_TF_raw <- AF_TF_raw[[1]]
+AF <- dplyr::select(AF_TF_raw, contains("AF"))
+AF <- apply(AF, 1, any)
+fasta <- c()
+for (i in 1:length(AF_TF_raw$FASTA)){
+  tmp <- strsplit(AF_TF_raw$FASTA[i],split='\\|')[[1]][2]
+  fasta <- c(fasta,tmp)
+}
+AF <- as.data.frame(cbind(AF, fasta))
+TF <- dplyr::select(AF_TF_raw, contains("TF"))
+TF <- apply(TF, 1, any)
+TF <- as.data.frame(cbind(TF, fasta))
+B_raw <- readRDS(file = "results_v002/results_run1_mqpar_extracts_2gether_E4_D1_B_LFQ_combined_txt_proteinGroups.txt_Unique.RDS")
+B_raw <- B_raw[[1]]
+B <- dplyr::select(B_raw, contains("Pool_G"))
+B <- apply(B, 1, any)
+fasta <- c()
+for (i in 1:length(B_raw$FASTA)){
+  tmp <- strsplit(B_raw$FASTA[i],split='\\|')[[1]][2]
+  fasta <- c(fasta,tmp)
+}
+B <- as.data.frame(cbind(B, fasta))
+
+AF_TF_B_comparison  <- merge(B, AF,
+                             all = TRUE,
+                             by = "fasta")
+AF_TF_B_comparison <- merge(AF_TF_B_comparison, TF,
+                            all = TRUE,
+                            by = "fasta")
+
+AF_TF_B_comparison$B <- as.logical(AF_TF_B_comparison$B)
+AF_TF_B_comparison$AF <- as.logical(AF_TF_B_comparison$AF)
+AF_TF_B_comparison$TF <- as.logical(AF_TF_B_comparison$TF)
+
+B <- AF_TF_B_comparison$fasta[AF_TF_B_comparison$B]
+B <- B[!is.na(B)]
+AF <- AF_TF_B_comparison$fasta[AF_TF_B_comparison$AF]
+AF <- AF[!is.na(AF)]
+TF <- AF_TF_B_comparison$fasta[AF_TF_B_comparison$TF]
+TF <- TF[!is.na(TF)]
+
+
+```
+
+
+```{r, fig.width=4,fig.height=4}
+#B <- GetProteinGOInfo(B)
+#saveRDS(B,"./go_terms/graph3_A_B_uni.RDS")
+GO_1 <- readRDS("./go_terms/graph3_A_B_uni.RDS")
+#AF <- GetProteinGOInfo(AF)
+#saveRDS(AF,"./go_terms/graph3_A_AF_uni.RDS")
+GO_2 <- readRDS("./go_terms/graph3_A_AF_uni.RDS")
+#TF <- GetProteinGOInfo(TF)
+#saveRDS(TF,"./go_terms/graph3_A_TF_uni.RDS")
+GO_3 <- readRDS("./go_terms/graph3_A_TF_uni.RDS")
+################################# molecular function
+t_BP <- as.data.frame(table(GO_1$Gene.Ontology..molecular.function.))
+t_BP_sorted_1 <- arrange(t_BP, desc(Freq))
+t_BP <- as.data.frame(table(GO_2$Gene.Ontology..molecular.function.))
+t_BP_sorted_2 <- arrange(t_BP, desc(Freq))
+t_BP <- as.data.frame(table(GO_3$Gene.Ontology..molecular.function.))
+t_BP_sorted_3 <- arrange(t_BP, desc(Freq))
+BP <- merge(t_BP_sorted_1, t_BP_sorted_2,
+            all = TRUE,
+            by = "Var1")
+BP <- merge(BP, t_BP_sorted_3, all = TRUE, by = "Var1")
+results_comp <- c(results_comp,sum(is.na(BP[,2])))
+results_comp <- c(results_comp,sum(is.na(BP[,3] & !is.na(BP[,4]))))
+results_comp <- c(results_comp,sum(is.na(BP[,3] & is.na(BP[,4]))))
+length_comp <- c(length_comp, length(BP[,1]), length(BP[,1]), length(BP[,1]))
+name_comp <- c(name_comp, "graph-3A-B to AF/TF", "graph-3A-AF to TF","graph3A Ist nur in B und kommt sowowhl in AF und TF nicht vor")
+
+colnames(BP) <- c("Function", "D1-electrophoretic fractionation","D1-low MW SEC fractionation","D1-high MW SEC fractionation")
+kable(BP)
+kable(subset(BP[,1], is.na(BP[,3]) == TRUE & !is.na(BP[,2]) == TRUE))
+kable(subset(BP[,1], is.na(BP[,2]) == TRUE & !is.na(BP[,3]) == TRUE))
+kable(subset(BP[,1], is.na(BP[,4]) == TRUE & !is.na(BP[,3]) == TRUE))
+kable(subset(BP[,1], is.na(BP[,3]) == TRUE & !is.na(BP[,4]) == TRUE))
+################################# cellular.component
+t_BP <- as.data.frame(table(GO_1$Gene.Ontology..cellular.component.))
+t_BP_sorted_1 <- arrange(t_BP, desc(Freq))
+t_BP <- as.data.frame(table(GO_2$Gene.Ontology..cellular.component.))
+t_BP_sorted_2 <- arrange(t_BP, desc(Freq))
+t_BP <- as.data.frame(table(GO_3$Gene.Ontology..cellular.component.))
+t_BP_sorted_3 <- arrange(t_BP, desc(Freq))
+BP <- merge(t_BP_sorted_1, t_BP_sorted_2,
+            all = TRUE,
+            by = "Var1")
+BP <- merge(BP, t_BP_sorted_3, all = TRUE, by = "Var1")
+results_comp_cc <- c(results_comp_cc,sum(is.na(BP[,2])))
+results_comp_cc <- c(results_comp_cc,sum(is.na(BP[,3] & !is.na(BP[,4]))))
+results_comp_cc <- c(results_comp_cc,sum(is.na(BP[,3] & is.na(BP[,4]))))
+length_comp_cc <- c(length_comp_cc, length(BP[,1]), length(BP[,1]), length(BP[,1]))
+colnames(BP) <- c("Function", "B","AF","TF")
+kable(BP)
+kable(subset(BP[,1], is.na(BP[,3]) == TRUE & !is.na(BP[,2]) == TRUE))
+kable(subset(BP[,1], is.na(BP[,2]) == TRUE & !is.na(BP[,3]) == TRUE))
+kable(subset(BP[,1], is.na(BP[,4]) == TRUE & !is.na(BP[,3]) == TRUE))
+kable(subset(BP[,1], is.na(BP[,3]) == TRUE & !is.na(BP[,4]) == TRUE))
+```
+
+## B
+
+```{r eval=FALSE, include=FALSE}
+#compare B to pool from 0609 
+B_raw <- readRDS(file = "results_v002/results_run1_mqpar_extracts_2gether_E4_D1_B_LFQ_combined_txt_proteinGroups.txt_Unique.RDS")
+B_raw <- B_raw[[1]]
+B <- dplyr::select(B_raw, contains("Pool_G"))
+B <- apply(B, 1, any)
+fasta <- c()
+for (i in 1:length(B_raw$FASTA)){
+  tmp <- strsplit(B_raw$FASTA[i],split='\\|')[[1]][2]
+  fasta <- c(fasta,tmp)
+}
+B <- as.data.frame(cbind(B, fasta))
+aj_raw <- readRDS(file = "results_v002/results_run1_mqpar_extracts_2gether_E4_D1_a-j_LFQ_combined_txt_proteinGroups.txt_Unique.RDS")
+aj_raw <- aj_raw[[1]]
+aj <- dplyr::select(aj_raw, contains("Pool"))
+aj <- apply(aj, 1, any)
+fasta <- c()
+for (i in 1:length(aj_raw$FASTA)){
+  tmp <- strsplit(aj_raw$FASTA[i],split='\\|')[[1]][2]
+  fasta <- c(fasta,tmp)
+}
+aj <- as.data.frame(cbind(aj, fasta))
+B_aj_comparison  <- merge(B, aj,
+                          all = TRUE,
+                          by = "fasta")
+
+B_aj_comparison$B <- as.logical(B_aj_comparison$B)
+B_aj_comparison$aj <- as.logical(B_aj_comparison$aj)
+
+B <- B_aj_comparison$fasta[B_aj_comparison$B]
+B <- B[!is.na(B)]
+aj <- B_aj_comparison$fasta[B_aj_comparison$aj]
+aj <- aj[!is.na(aj)]
+
+```
+
+
+```{r, fig.width=4,fig.height=4}
+
+
+#D1_uni <- GetProteinGOInfo(B)
+#saveRDS(D1_uni,"./go_terms/graph3_B_B_uni.RDS")
+GO_1 <- readRDS("./go_terms/graph3_B_B_uni.RDS")
+#aj <- GetProteinGOInfo(aj)
+#saveRDS(aj,"./go_terms/graph3_B_aj_uni.RDS")
+GO_2 <- readRDS("./go_terms/graph3_B_aj_uni.RDS")
+
+################################# molecular function
+t_BP <- as.data.frame(table(GO_1$Gene.Ontology..molecular.function.))
+t_BP_sorted_1 <- arrange(t_BP, desc(Freq))
+t_BP <- as.data.frame(table(GO_2$Gene.Ontology..molecular.function.))
+t_BP_sorted_2 <- arrange(t_BP, desc(Freq))
+BP <- merge(t_BP_sorted_1, t_BP_sorted_2,
+            all = TRUE,
+            by = "Var1")
+#BP <- merge(BP, t_BP_sorted_3, all = TRUE, by = "Var1")
+results_comp <- c(results_comp,sum(is.na(BP[,3])))
+length_comp <- c(length_comp, length(BP[,1]))
+name_comp <- c(name_comp, "graph3B-D1pool toD1 frac")
+colnames(BP) <- c("Function", "D1","D1 pool")
+kable(BP)
+kable(BP[is.na(BP[,3])==TRUE,1])
+kable(BP[is.na(BP[,2])==TRUE,1])
+################################# cellular compartmnet
+t_BP <- as.data.frame(table(GO_1$Gene.Ontology..cellular.component.))
+t_BP_sorted_1 <- arrange(t_BP, desc(Freq))
+t_BP <- as.data.frame(table(GO_2$Gene.Ontology..cellular.component.))
+t_BP_sorted_2 <- arrange(t_BP, desc(Freq))
+BP <- merge(t_BP_sorted_1, t_BP_sorted_2,
+            all = TRUE,
+            by = "Var1")
+#BP <- merge(BP, t_BP_sorted_3, all = TRUE, by = "Var1")
+results_comp_cc <- c(results_comp_cc,sum(is.na(BP[,3])))
+length_comp_cc <- c(length_comp_cc, length(BP[,1]))
+kable(BP)
+kable(BP[is.na(BP[,3])==TRUE,1])
+kable(BP[is.na(BP[,2])==TRUE,1])
+```
+
+## C
+
+```{r eval=FALSE, include=FALSE}
+#############################
+# D2
+###############################
+data <- readRDS(file = "results_v002/results_run1_mqpar_extracts_2gether_D2_LFQ_combined_txt_proteinGroups.txt_Unique.RDS")
+data <- data[[1]]
+
+data_D2_pool <- dplyr::select(data, contains("Gesamt"))
+data_D2_pool <- apply(data_D2_pool, 1, any)
+data_D2_fractions <- dplyr::select(data, contains("20"))
+data_D2_fractions <- apply(data_D2_fractions, 1, any)
+data_D2 <- as.data.frame(cbind(data_D2_pool,data_D2_fractions))
+
+fasta <- c()
+for (i in 1:length(data$FASTA)){
+  tmp <- strsplit(data$FASTA[i],split='\\|')[[1]][2]
+  fasta <- c(fasta,tmp)
+}
+
+pool <- as.logical(data_D2$data_D2_pool)
+fractions <- as.logical(data_D2$data_D2_fractions)
+
+pool <- fasta[pool]
+pool <- pool[!is.na(pool)]
+fractions <- fasta[fractions]
+fractions <- fractions[!is.na(fractions)]
+
+```
+
+
+```{r, fig.width=4,fig.height=4}
+#pool <- GetProteinGOInfo(pool)
+#saveRDS(pool,"./go_terms/graph3_C_pool_uni.RDS")
+GO1<- readRDS("./go_terms/graph3_C_pool_uni.RDS")
+#fractions <- GetProteinGOInfo(fractions)
+#saveRDS(fractions,"./go_terms/graph3_C_fractions_uni.RDS")
+GO_2 <- readRDS("./go_terms/graph3_C_fractions_uni.RDS")
+
+################################# molecular function
+t_BP <- as.data.frame(table(GO_1$Gene.Ontology..molecular.function.))
+t_BP_sorted_1 <- arrange(t_BP, desc(Freq))
+t_BP <- as.data.frame(table(GO_2$Gene.Ontology..molecular.function.))
+t_BP_sorted_2 <- arrange(t_BP, desc(Freq))
+#t_BP <- as.data.frame(table(GO_3$Gene.Ontology..molecular.function.))
+#t_BP_sorted <- arrange(t_BP, desc(Freq))
+#t_BP_sorted_3 <- t_BP_sorted[c(1:20),]
+BP <- merge(t_BP_sorted_1, t_BP_sorted_2,
+            all = TRUE,
+            by = "Var1")
+#BP <- merge(BP, t_BP_sorted_3, all = TRUE, by = "Var1")
+results_comp <- c(results_comp,sum(is.na(BP[,3])))
+length_comp <- c(length_comp,length(BP[,1]))
+name_comp <- c(name_comp, "graph3C-D2 pool to D2 frac")
+colnames(BP) <- c("Function", "D2","D2pool")
+kable(BP)
+kable(BP[is.na(BP[,3])==TRUE,1])
+kable(BP[is.na(BP[,2])==TRUE,1])
+################################# cellular.component
+t_BP <- as.data.frame(table(GO_1$Gene.Ontology..cellular.component.))
+t_BP_sorted_1 <- arrange(t_BP, desc(Freq))
+t_BP <- as.data.frame(table(GO_2$Gene.Ontology..cellular.component.))
+t_BP_sorted_2 <- arrange(t_BP, desc(Freq))
+#t_BP <- as.data.frame(table(GO_3$Gene.Ontology..cellular.component.))
+#t_BP_sorted <- arrange(t_BP, desc(Freq))
+#t_BP_sorted_3 <- t_BP_sorted[c(1:20),]
+BP <- merge(t_BP_sorted_1, t_BP_sorted_2,
+            all = TRUE,
+            by = "Var1")
+#BP <- merge(BP, t_BP_sorted_3, all = TRUE, by = "Var1")
+
+colnames(BP) <- c("Function", "D2","D2pool")
+kable(BP)
+kable(BP[is.na(BP[,3])==TRUE,1])
+kable(BP[is.na(BP[,2])==TRUE,1])
+results_comp_cc <- c(results_comp_cc,sum(is.na(BP[,3])))
+length_comp_cc <- c(length_comp_cc,length(BP[,1]))
+```
+
+# Grafik 4
+
+-   nicht notwendig
+
+# Results comparison
+
+```{r}
+#print(results_comp)
+#print(length_comp)
+#print(name_comp)
+#results_comp/length_comp*100
+name_comp_v002 <- c("D1 to D2",
+                    "D1 to D1b",
+                    "D1b to D2",
+                    "2D to 3D",
+                    "G to SEC",
+                    "SEC low to SEC high",
+                    "SEC to G",
+                    "D1 frac to D1 pool",
+                    "D2 frac to D2 pool")
+df <- as.data.frame(cbind(name_comp_v002,
+                          round(results_comp/length_comp*100,1),
+                          round(results_comp_cc/length_comp_cc*100,1)))
+colnames(df) <- c("Name","Result molecular function", "Result Cellular compartment")
+
+kable(df)
+kable(t(df))
+df$Name <- c("D1 to D2",
+                    "D1\nto\nD1b",
+                    "D1b\nto\nD2",
+                    "2D\nto\n3D",
+                    "G\nto\nSEC",
+                    "SEC low\nto\nSEC high",
+                    "SEC\nto\nG",
+                    "D1 frac\nto\nD1 pool",
+                    "D2 frac\nto\n D2 pool")
+kable(t(df))
+```
