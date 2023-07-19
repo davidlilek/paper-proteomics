@@ -25,7 +25,12 @@ results_comp <- c()
 length_comp <- c()
 results_comp_cc <- c()
 length_comp_cc <- c()
+results_comp_bp <- c()
+length_comp_bp <- c()
+results_comp_bp <- c()
 name_comp <- c()
+name_comp_cc <- c()
+name_comp_bp <- c()
 ```
 
 # Load Libraries & Plot function & Colors
@@ -180,9 +185,11 @@ BP <- merge(t_BP_sorted_1, t_BP_sorted_2,
             all = TRUE,
             by = "Var1")
 #BP <- merge(BP, t_BP_sorted_3, all = TRUE, by = "Var1")
-results_comp <- sum(is.na(BP[,2]))
-length_comp <- length(BP[,1])
-name_comp <- c("graph2A-D1-to-D2")
+tmp <- c(sum(complete.cases(BP[,-1])),
+                  sum(is.na(BP[,3])),
+                  sum(is.na(BP[,2])))
+results_comp <- c(results_comp, tmp/(length(BP[,1])))
+name_comp <- c(name_comp,"graph2A-D1+D2","graph2A-onlyD1","graph2A-onlyD2")
 
 colnames(BP) <- c("Function", "D1: Phosphate buffer", "D2: Phosphate buffer with urea-triton X")
 kable(BP)
@@ -201,8 +208,29 @@ colnames(BP) <- c("Function", "D1","D2")
 kable(BP)
 kable(BP[is.na(BP[,3])==TRUE,1])
 kable(BP[is.na(BP[,2])==TRUE,1])
-results_comp_cc <- sum(is.na(BP[,2]))
-length_comp_cc <- length(BP[,1])
+tmp <- c(sum(complete.cases(BP[,-1])),
+                  sum(is.na(BP[,3])),
+                  sum(is.na(BP[,2])))
+results_comp_cc <- c(results_comp_cc, tmp/(length(BP[,1])))
+name_comp_cc <- c(name_comp_cc, "graph2A-D1+D2","graph2A-onlyD1","graph2A-onlyD2")
+
+################################# biological process
+t_BP <- as.data.frame(table(GO_1$Gene.Ontology..biological.process.))
+t_BP_sorted_1 <- arrange(t_BP, desc(Freq))
+t_BP <- as.data.frame(table(GO_2$Gene.Ontology..biological.process.))
+t_BP_sorted_2 <- arrange(t_BP, desc(Freq))
+BP <- merge(t_BP_sorted_1, t_BP_sorted_2,
+            all = TRUE,
+            by = "Var1")
+colnames(BP) <- c("Function", "D1","D2")
+kable(BP)
+kable(BP[is.na(BP[,3])==TRUE,1])
+kable(BP[is.na(BP[,2])==TRUE,1])
+tmp <- c(sum(complete.cases(BP[,-1])),
+                  sum(is.na(BP[,3])),
+                  sum(is.na(BP[,2])))
+results_comp_bp <- c(results_comp_bp, tmp/(length(BP[,1])))
+name_comp_bp <- c(name_comp_bp, "graph2A-D1+D2","graph2A-onlyD1","graph2A-onlyD2")
 
 ```
 
@@ -260,10 +288,13 @@ BP <- merge(t_BP_sorted_1, t_BP_sorted_2,
             by = "Var1")
 BP <- merge(BP, t_BP_sorted_3, all = TRUE, by = "Var1")
 # schauen wo 
-results_comp <- c(results_comp,sum(is.na(BP$Freq.x) & !is.na(BP$Freq.y)))
-results_comp <- c(results_comp,sum(is.na(BP$Freq.y) & !is.na(BP$Freq)))
-length_comp <- c(length_comp,length(BP[,1]),length(BP[,1]))
-name_comp <- c(name_comp, "graph-2B-D1 to D1b", "graph-2B D1b to D2")
+#esults_comp <- c(results_comp, length(BP[,1]))
+#results_comp <- c(results_comp,sum(is.na(BP$Freq.x) & !is.na(BP$Freq.y)))
+#results_comp <- c(results_comp,sum(is.na(BP$Freq.y) & !is.na(BP$Freq)))
+#results_com <- c(results_comp, )
+#name_comp <- c(name_comp, 
+#               "graph2B-alle",
+#               "graph-2B-nur", "graph-2B D1b to D2")
 colnames(BP) <- c("Function", "D1: Phosphate buffer", "D1b: Carbonate buffer", "D2: Phosphate buffer with urea-triton X")
 
 kable(BP)
@@ -283,9 +314,9 @@ BP <- merge(t_BP_sorted_1, t_BP_sorted_2,
             all = TRUE,
             by = "Var1")
 BP <- merge(BP, t_BP_sorted_3, all = TRUE, by = "Var1")
-results_comp_cc <- c(results_comp_cc,sum(is.na(BP$Freq.x) & !is.na(BP$Freq.y)))
-results_comp_cc <- c(results_comp_cc,sum(is.na(BP$Freq.y) & !is.na(BP$Freq)))
-length_comp_cc <- c(length_comp_cc,length(BP[,1]),length(BP[,1]))
+#results_comp_cc <- c(results_comp_cc,sum(is.na(BP$Freq.x) & !is.na(BP$Freq.y)))
+#results_comp_cc <- c(results_comp_cc,sum(is.na(BP$Freq.y) & !is.na(BP$Freq)))
+#length_comp_cc <- c(length_comp_cc,length(BP[,1]),length(BP[,1]))
 colnames(BP) <- c("Function", "D1","D2","D4")
 kable(BP)
 kable(subset(BP[,1], is.na(BP[,3]) == TRUE & !is.na(BP[,2]) == TRUE))
@@ -358,11 +389,13 @@ D2 <- D2[!is.na(D2)]
 
 ```{r, fig.width=4,fig.height=4}
 #D1_uni <- GetProteinGOInfo(D1)
-#saveRDS(D1_uni,"./go_terms/graph2_E4_uni.RDS")
-GO_1 <- readRDS("./go_terms/graph2_E4_uni.RDS")
+#saveRDS(D1_uni,"./go_terms/graph2_E4_uni_230719.RDS")
+#GO_1 <- readRDS("./go_terms/graph2_E4_uni.RDS")
+GO_1 <- readRDS("./go_terms/graph2_E4_uni_230719.RDS")
 #D2_uni <- GetProteinGOInfo(D2)
-#saveRDS(D2_uni,"./go_terms/graph2_E5_uni.RDS")
+#saveRDS(D2_uni,"./go_terms/graph2_E5_uni_230719.RDS")
 GO_2 <- readRDS("./go_terms/graph2_E5_uni.RDS")
+GO_2 <- readRDS("./go_terms/graph2_E5_uni_230719.RDS")
 
 ################################# molecular function
 t_BP <- as.data.frame(table(GO_1$Gene.Ontology..molecular.function.))
@@ -372,9 +405,11 @@ t_BP_sorted_2 <- arrange(t_BP, desc(Freq))
 BP <- merge(t_BP_sorted_1, t_BP_sorted_2,
             all = TRUE,
             by = "Var1")
-results_comp <- c(results_comp,sum(is.na(BP[,2])))
-length_comp <- c(length_comp, length(BP[,1]))
-name_comp <- c(name_comp, "graph2C-2D to 3D")
+tmp <- c(sum(complete.cases(BP[,-1])),
+                  sum(is.na(BP[,3])),
+                  sum(is.na(BP[,2])))
+results_comp <- c(results_comp, tmp/(length(BP[,1])))
+name_comp <- c(name_comp,"graph2C-2D+3D","graph2C-only2D","graph2C-only3D")
 colnames(BP) <- c("Function", "2D","3D")
 kable(BP)
 kable(BP[is.na(BP[,3])==TRUE,1])
@@ -392,19 +427,42 @@ BP <- merge(t_BP_sorted_1, t_BP_sorted_2,
             all = TRUE,
             by = "Var1")
 #BP <- merge(BP, t_BP_sorted_3, all = TRUE, by = "Var1")
-results_comp_cc <- c(results_comp_cc,sum(is.na(BP[,2])))
-length_comp_cc <- c(length_comp_cc, length(BP[,1]))
+tmp <- c(sum(complete.cases(BP[,-1])),
+                  sum(is.na(BP[,3])),
+                  sum(is.na(BP[,2])))
+results_comp_cc <- c(results_comp_cc, tmp/(length(BP[,1])))
+name_comp_cc <- c(name_comp_cc,"graph2C-2D+3D","graph2C-only2D","graph2C-only3D")
 colnames(BP) <- c("Function", "E4","E5")
 kable(BP)
 kable(BP[is.na(BP[,3])==TRUE,1])
 kable(BP[is.na(BP[,2])==TRUE,1])
 
-       
+################################# cellular.component
+t_BP <- as.data.frame(table(GO_1$Gene.Ontology..biological.process.))
+t_BP_sorted <- arrange(t_BP, desc(Freq))
+t_BP <- as.data.frame(table(GO_2$Gene.Ontology..biological.process.))
+t_BP_sorted <- arrange(t_BP, desc(Freq))
+#t_BP <- as.data.frame(table(GO_3$Gene.Ontology..cellular.component.))
+#t_BP_sorted <- arrange(t_BP, desc(Freq))
+#t_BP_sorted_3 <- t_BP_sorted[c(1:20),]
+BP <- merge(t_BP_sorted_1, t_BP_sorted_2,
+            all = TRUE,
+            by = "Var1")
+#BP <- merge(BP, t_BP_sorted_3, all = TRUE, by = "Var1")
+tmp <- c(sum(complete.cases(BP[,-1])),
+                  sum(is.na(BP[,3])),
+                  sum(is.na(BP[,2])))
+results_comp_bp <- c(results_comp_bp, tmp/(length(BP[,1])))
+name_comp_bp <- c(name_comp_bp,"graph2C-2D+3D","graph2C-only2D","graph2C-only3D")
+colnames(BP) <- c("Function", "E4","E5")
+kable(BP)
+kable(BP[is.na(BP[,3])==TRUE,1])
+kable(BP[is.na(BP[,2])==TRUE,1])       
 ```
 
 # Grafik 3
 
-## A
+### A
 
 ```{r message=FALSE, warning=FALSE}
 ############## B
@@ -421,7 +479,7 @@ ind <- apply(B, 1, function(x) all(is.na(x)))
 data <- readRDS(file = "results_v002/results_run1_mqpar_extracts_2gether_E4_D1_AF_TF_LFQ_combined_txt_proteinGroups.txt_Unique.RDS")
 data <- data[[1]]
 data_sub <- dplyr::select(data, contains("Pool_AF"))
-#get rid of FALSE values
+##get rid of FALSE values
 AF <- data_sub*1
 AF[AF==0] <- NA
 ind <- apply(AF, 1, function(x) all(is.na(x)))
@@ -504,11 +562,11 @@ BP <- merge(t_BP_sorted_1, t_BP_sorted_2,
             all = TRUE,
             by = "Var1")
 BP <- merge(BP, t_BP_sorted_3, all = TRUE, by = "Var1")
-results_comp <- c(results_comp,sum(is.na(BP[,2])))
-results_comp <- c(results_comp,sum(is.na(BP[,3] & !is.na(BP[,4]))))
-results_comp <- c(results_comp,sum(is.na(BP[,3] & is.na(BP[,4]))))
-length_comp <- c(length_comp, length(BP[,1]), length(BP[,1]), length(BP[,1]))
-name_comp <- c(name_comp, "graph-3A-B to AF/TF", "graph-3A-AF to TF","graph3A Ist nur in B und kommt sowowhl in AF und TF nicht vor")
+#results_comp <- c(results_comp,sum(is.na(BP[,2])))
+#results_comp <- c(results_comp,sum(is.na(BP[,3] & !is.na(BP[,4]))))
+#results_comp <- c(results_comp,sum(is.na(BP[,3] & is.na(BP[,4]))))
+#length_comp <- c(length_comp, length(BP[,1]), length(BP[,1]), length(BP[,1]))
+#name_comp <- c(name_comp, "graph-3A-B to AF/TF", "graph-3A-AF to TF","graph3A Ist nur in B und kommt sowowhl in AF und TF nicht vor")
 
 colnames(BP) <- c("Function", "D1-electrophoretic fractionation","D1-low MW SEC fractionation","D1-high MW SEC fractionation")
 kable(BP)
@@ -527,10 +585,10 @@ BP <- merge(t_BP_sorted_1, t_BP_sorted_2,
             all = TRUE,
             by = "Var1")
 BP <- merge(BP, t_BP_sorted_3, all = TRUE, by = "Var1")
-results_comp_cc <- c(results_comp_cc,sum(is.na(BP[,2])))
-results_comp_cc <- c(results_comp_cc,sum(is.na(BP[,3] & !is.na(BP[,4]))))
-results_comp_cc <- c(results_comp_cc,sum(is.na(BP[,3] & is.na(BP[,4]))))
-length_comp_cc <- c(length_comp_cc, length(BP[,1]), length(BP[,1]), length(BP[,1]))
+#results_comp_cc <- c(results_comp_cc,sum(is.na(BP[,2])))
+#results_comp_cc <- c(results_comp_cc,sum(is.na(BP[,3] & !is.na(BP[,4]))))
+#results_comp_cc <- c(results_comp_cc,sum(is.na(BP[,3] & is.na(BP[,4]))))
+#length_comp_cc <- c(length_comp_cc, length(BP[,1]), length(BP[,1]), #length(BP[,1]))
 colnames(BP) <- c("Function", "B","AF","TF")
 kable(BP)
 kable(subset(BP[,1], is.na(BP[,3]) == TRUE & !is.na(BP[,2]) == TRUE))
@@ -597,9 +655,11 @@ BP <- merge(t_BP_sorted_1, t_BP_sorted_2,
             all = TRUE,
             by = "Var1")
 #BP <- merge(BP, t_BP_sorted_3, all = TRUE, by = "Var1")
-results_comp <- c(results_comp,sum(is.na(BP[,3])))
-length_comp <- c(length_comp, length(BP[,1]))
-name_comp <- c(name_comp, "graph3B-D1pool toD1 frac")
+tmp <- c(sum(complete.cases(BP[,-1])),
+                  sum(is.na(BP[,3])),
+                  sum(is.na(BP[,2])))
+results_comp <- c(results_comp, tmp/(length(BP[,1])))
+name_comp <- c(name_comp,"graph3B-pool+fracD1","graph3B-onlyFracD1","graph3B-onlyPoolD1")
 colnames(BP) <- c("Function", "D1","D1 pool")
 kable(BP)
 kable(BP[is.na(BP[,3])==TRUE,1])
@@ -613,8 +673,29 @@ BP <- merge(t_BP_sorted_1, t_BP_sorted_2,
             all = TRUE,
             by = "Var1")
 #BP <- merge(BP, t_BP_sorted_3, all = TRUE, by = "Var1")
-results_comp_cc <- c(results_comp_cc,sum(is.na(BP[,3])))
-length_comp_cc <- c(length_comp_cc, length(BP[,1]))
+tmp <- c(sum(complete.cases(BP[,-1])),
+                  sum(is.na(BP[,3])),
+                  sum(is.na(BP[,2])))
+results_comp_cc <- c(results_comp_cc, tmp/(length(BP[,1])))
+name_comp_cc <- c(name_comp_cc,"graph3B-pool+fracD1","graph3B-onlyFracD1","graph3B-onlyPoolD1")
+kable(BP)
+kable(BP[is.na(BP[,3])==TRUE,1])
+kable(BP[is.na(BP[,2])==TRUE,1])
+
+################################# biological process
+t_BP <- as.data.frame(table(GO_1$Gene.Ontology..biological.process.))
+t_BP_sorted_1 <- arrange(t_BP, desc(Freq))
+t_BP <- as.data.frame(table(GO_2$Gene.Ontology..biological.process.))
+t_BP_sorted_2 <- arrange(t_BP, desc(Freq))
+BP <- merge(t_BP_sorted_1, t_BP_sorted_2,
+            all = TRUE,
+            by = "Var1")
+#BP <- merge(BP, t_BP_sorted_3, all = TRUE, by = "Var1")
+tmp <- c(sum(complete.cases(BP[,-1])),
+                  sum(is.na(BP[,3])),
+                  sum(is.na(BP[,2])))
+results_comp_bp <- c(results_comp_bp, tmp/(length(BP[,1])))
+name_comp_bp <- c(name_comp_bp,"graph3B-pool+fracD1","graph3B-onlyFracD1","graph3B-onlyPoolD1")
 kable(BP)
 kable(BP[is.na(BP[,3])==TRUE,1])
 kable(BP[is.na(BP[,2])==TRUE,1])
@@ -672,9 +753,11 @@ BP <- merge(t_BP_sorted_1, t_BP_sorted_2,
             all = TRUE,
             by = "Var1")
 #BP <- merge(BP, t_BP_sorted_3, all = TRUE, by = "Var1")
-results_comp <- c(results_comp,sum(is.na(BP[,3])))
-length_comp <- c(length_comp,length(BP[,1]))
-name_comp <- c(name_comp, "graph3C-D2 pool to D2 frac")
+tmp <- c(sum(complete.cases(BP[,-1])),
+                  sum(is.na(BP[,3])),
+                  sum(is.na(BP[,2])))
+results_comp <- c(results_comp, tmp/(length(BP[,1])))
+name_comp <- c(name_comp, "graph3C-pool+fracD2","graph3C-onlyFracD2","graph3C-onlyPoolD2")
 colnames(BP) <- c("Function", "D2","D2pool")
 kable(BP)
 kable(BP[is.na(BP[,3])==TRUE,1])
@@ -696,8 +779,34 @@ colnames(BP) <- c("Function", "D2","D2pool")
 kable(BP)
 kable(BP[is.na(BP[,3])==TRUE,1])
 kable(BP[is.na(BP[,2])==TRUE,1])
-results_comp_cc <- c(results_comp_cc,sum(is.na(BP[,3])))
-length_comp_cc <- c(length_comp_cc,length(BP[,1]))
+tmp <- c(sum(complete.cases(BP[,-1])),
+                  sum(is.na(BP[,3])),
+                  sum(is.na(BP[,2])))
+results_comp_cc <- c(results_comp_cc, tmp/(length(BP[,1])))
+name_comp_cc <- c(name_comp_cc,"graph3C-pool+fracD2","graph3C-onlyFracD2","graph3C-onlyPoolD2")
+
+################################# biological process
+t_BP <- as.data.frame(table(GO_1$Gene.Ontology..biological.process.))
+t_BP_sorted_1 <- arrange(t_BP, desc(Freq))
+t_BP <- as.data.frame(table(GO_2$Gene.Ontology..biological.process.))
+t_BP_sorted_2 <- arrange(t_BP, desc(Freq))
+#t_BP <- as.data.frame(table(GO_3$Gene.Ontology..cellular.component.))
+#t_BP_sorted <- arrange(t_BP, desc(Freq))
+#t_BP_sorted_3 <- t_BP_sorted[c(1:20),]
+BP <- merge(t_BP_sorted_1, t_BP_sorted_2,
+            all = TRUE,
+            by = "Var1")
+#BP <- merge(BP, t_BP_sorted_3, all = TRUE, by = "Var1")
+
+colnames(BP) <- c("Function", "D2","D2pool")
+kable(BP)
+kable(BP[is.na(BP[,3])==TRUE,1])
+kable(BP[is.na(BP[,2])==TRUE,1])
+tmp <- c(sum(complete.cases(BP[,-1])),
+                  sum(is.na(BP[,3])),
+                  sum(is.na(BP[,2])))
+results_comp_bp <- c(results_comp_bp, tmp/(length(BP[,1])))
+name_comp_bp <- c(name_comp_bp,"graph3C-pool+fracD2","graph3C-onlyFracD2","graph3C-onlyPoolD2")
 ```
 
 # Grafik 4
@@ -712,29 +821,69 @@ length_comp_cc <- c(length_comp_cc,length(BP[,1]))
 #print(name_comp)
 #results_comp/length_comp*100
 name_comp_v002 <- c("D1 to D2",
-                    "D1 to D1b",
-                    "D1b to D2",
                     "2D to 3D",
-                    "G to SEC",
-                    "SEC low to SEC high",
-                    "SEC to G",
                     "D1 frac to D1 pool",
                     "D2 frac to D2 pool")
 df <- as.data.frame(cbind(name_comp_v002,
-                          round(results_comp/length_comp*100,1),
-                          round(results_comp_cc/length_comp_cc*100,1)))
+                          round(results_comp*100,1),
+                          round(results_comp_cc*100,1),
+                          round(results_comp_bp*100,1)))
 colnames(df) <- c("Name","Result molecular function", "Result Cellular compartment")
 
 kable(df)
 kable(t(df))
-df$Name <- c("D1 to D2",
-                    "D1\nto\nD1b",
-                    "D1b\nto\nD2",
-                    "2D\nto\n3D",
-                    "G\nto\nSEC",
-                    "SEC low\nto\nSEC high",
-                    "SEC\nto\nG",
-                    "D1 frac\nto\nD1 pool",
-                    "D2 frac\nto\n D2 pool")
-kable(t(df))
+
 ```
+```{r}
+tmp <- c(rep("2A",3),
+  rep("2C",3),
+  rep("3B",3),
+  rep("3C",3))
+df <- data.frame(
+  Category = rep(tmp, times = 3),
+  Type = c(rep(c("bp", "mf", "cc"), each = 12)),
+  Percentage = c(round(results_comp_bp*100,1),
+                 round(results_comp*100,1),
+                 round(results_comp_cc*100,1)),
+  Variable = rep(c("D1+D2", "D1", "D2",
+               "2D+3D", "2D", "3D",
+               "D1frac+pool", "D1 frac", "D1 pool",
+               "D2frac+pool", "D2 frac", "D2 pool"),3)
+)
+
+df_2 <- data.frame(
+  Category = rep(tmp, times = 3),
+  Type = c(rep(c("biological process", "molecular funciton", "cellular compartment"), each = 12)),
+  Percentage = c(round(results_comp_bp*100,1),
+                 round(results_comp*100,1),
+                 round(results_comp_cc*100,1)),
+  Variable = rep(c("D1+D2", "D1", "D2",
+                   "2D+3D", "2D", "3D",
+                   "D1frac+pool", "D1 frac", "D1",
+                   "D2frac+pool", "D2 frac", "D2"),3)
+)
+# Create the stacked bar plot with smaller text labels
+ggplot(df_2, aes(x = Category, y = Percentage, fill = Variable)) +
+  geom_bar(stat = "identity", position = "stack") +
+  geom_text(aes(label = paste0(Percentage, "%")), position = position_stack(vjust = 0.5), size = 3) +  # Adjust the size here
+  facet_grid(Type ~ ., scales = "free_y", space = "free_y") +
+  theme_minimal() +
+  labs(x = "Category",
+       y = "Percentage",
+       fill = "Legend")
+
+# Create the stacked bar plot with smaller text labels and the legend at the bottom
+ggplot(df_2, aes(x = Category, y = Percentage, fill = Variable)) +
+  geom_bar(stat = "identity", position = "stack") +
+  geom_text(aes(label = paste0(Percentage, "%")), position = position_stack(vjust = 0.5), size = 3) +
+  facet_wrap(~ Type, scales = "free", nrow = 1) +  # All plots in one row
+  theme_minimal() +
+  labs(x = "Category",
+       y = "Percentage",
+       fill = "Variable") +
+  theme(legend.position = "bottom", legend.box = "horizontal")
+
+
+
+```
+
