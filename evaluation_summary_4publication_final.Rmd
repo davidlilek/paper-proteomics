@@ -629,11 +629,11 @@ euler_venn_3comp(lst,
                  label_venn = c("D1-electrophoretic fractionation","D1-low MW SEC fractionation","D1-high MW SEC fractionation"),
                  color_venn = c(col_X_light, col_X_lowMW, col_X_highMW), 
                  cex_venn = c(1,
+                              0.0, #0.7
+                              0.0, #0.5
                               0.7,
-                              0.5,
-                              0.8,
-                              0.8,
-                              0.6,
+                              0.7,
+                              0.0, #0.8
                               1),
                  h_just = 0.5,
                  v_just = 0.5)
@@ -694,7 +694,7 @@ lst <- list("E4_D1_B_fractions"=as.double(B_inter[,1]),
 
 
 
-euler_venn_2comp(lst, label_venn = c("D1-electrophoretic fractionation","D1-total protein extract"), color_venn = c(col_X_light, col_X_dark), cex_venn = c(1,0.6,1), h_just = 0.5, v_just = 0.5)
+euler_venn_2comp(lst, label_venn = c("D1-electrophoretic fractionation","D1-total protein extract"), color_venn = c(col_X_light, col_X_dark), cex_venn = c(1,0,1), h_just = 0.5, v_just = 0.5)
 
 print(c("B","E4_D1_pool"))
 sum(B_aj_comparison$B,na.rm = TRUE)
@@ -769,7 +769,7 @@ D2_ingel_col <- rgb(169,208,142,maxColorValue = 255)
 #E4_D1_pool_col <- rgb(255,217,102, maxColorValue = 255)
 
 
-euler_venn_2comp(lst, label_venn = c("D2-electrophoretic fractionation","D2-total protein extract"), color_venn = c( col_Y_light,col_Y_dark), cex_venn = c(1,0.6,1), h_just = 0.5, v_just = 0.5)
+euler_venn_2comp(lst, label_venn = c("D2-electrophoretic fractionation","D2-total protein extract"), color_venn = c( col_Y_light,col_Y_dark), cex_venn = c(1,0.0,1), h_just = 0.5, v_just = 0.5)
 
 ```
 
