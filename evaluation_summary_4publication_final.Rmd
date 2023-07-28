@@ -25,6 +25,7 @@ editor_options:
 # Load Libraries & Plot function & Colors
 
 ```{r message=FALSE, warning=FALSE}
+# load libaries
 library(ggplot2)
 library(tidyverse)
 library(dplyr)
@@ -34,15 +35,21 @@ library(ggvenn)
 library(knitr)
 library(reshape2)
 library(eulerr)
-#library(venneuler)
-#library(VennDiagram) 
+library(UniprotR)
+library(stringr)
+library(ggfittext)
 ```
 
 ```{r}
-euler_venn_2comp <- function(lst, label_venn, color_venn, cex_venn, grid, gList, h_just, v_just) {
-  ######################################
-  #################plot 2 venn diagrams
-  ######################################
+# load functions for
+euler_venn_2comp <- function(lst, 
+                             label_venn,
+                             color_venn, 
+                             cex_venn,
+                             grid,
+                             gList,
+                             h_just,
+                             v_just) {
   p<-plot(euler(lst),
           input="union",
           shape="ellipse",
@@ -57,6 +64,7 @@ euler_venn_2comp <- function(lst, label_venn, color_venn, cex_venn, grid, gList,
           edges=TRUE,
           fills = color_venn, #color für A,B bzw intersection 
           alpha=1)
+  # adjust label position
   # https://stackoverflow.com/questions/75177293/how-to-change-the-label-position-when-plotting-venn-diagram-from-eulerr-package
   tags <- p$children[[2]]$children[[1]]$children$tags$children
   tags <- do.call(grid::gList, lapply(tags, function(x) {
@@ -89,6 +97,7 @@ euler_venn_3comp <- function(lst, cex_venn, label_venn, color_venn, grid, gList,
           edges=TRUE,
           fills = color_venn, #color für A,B bzw intersection fills = grey[c(10,18,25)]
           alpha=1)
+  # adjust labels
   # https://stackoverflow.com/questions/75177293/how-to-change-the-label-position-when-plotting-venn-diagram-from-eulerr-packages
   tags <- p$children[[2]]$children[[1]]$children$tags$children
   tags <- do.call(grid::gList, lapply(tags, function(x) {
@@ -104,69 +113,10 @@ euler_venn_3comp <- function(lst, cex_venn, label_venn, color_venn, grid, gList,
 
 ```
 
-## colors
-
 ```{r}
-#get colors
-#total protein extract
-total <- rgb(255,93,93, maxColorValue = 255)
-#fractions high MW SEC
-highMW <- rgb(169,208,142,maxColorValue = 255)
-#fractions low MW SEC
-lowMW <- rgb(255,217,102, maxColorValue = 255)
-#in-gel digest
-IG <- rgb(180,198,231,maxColorValue = 255)
-
-
-
-```
-
-```{r eval=FALSE, warning=FALSE, include=FALSE}
-#v001
-
-
+# load colors
 #col X - D1
-#dark: total protein extract
-#light: fractionation
-col_X_dark <- rgb(255,0,0, maxColorValue = 255)
-col_X_light <- rgb(255,102,102,maxColorValue = 255)
-#fractions high MW SEC
-col_X_lowMW  <- rgb(255,153,153,maxColorValue = 255)
-#fractions low MW SEC
-col_X_highMW <- rgb(255,204,204, maxColorValue = 255)
-col_X_carbonate <- rgb(255,170,170, maxColorValue = 255)
-# D2
-col_Y_light <- rgb(102,102,255, maxColorValue = 255)
-col_Y_dark <- rgb(0,0,255, maxColorValue = 255)
-
-```
-
-```{r}
-#v002
-
-
-#col X - D1
-#dark: total protein extract
-#light: fractionation
-col_X_dark <- rgb(204,0,0, maxColorValue = 255)
-col_X_light <- rgb(255,70,70,maxColorValue = 255)
-#fractions high MW SEC
-col_X_lowMW  <- rgb(255,150,150,maxColorValue = 255)
-#fractions low MW SEC
-col_X_highMW <- rgb(255,230,230, maxColorValue = 255)
-col_X_carbonate <- rgb(255,170,170, maxColorValue = 255)
-# D2
-col_Y_dark <- rgb(0,0,204, maxColorValue = 255)
-col_Y_light <- rgb(70,70,255, maxColorValue = 255)
-
-```
-
-
-```{r}
-#v003
-
-
-#col X - D1
+#col Y - D2
 #dark: total protein extract
 #light: fractionation
 col_X_dark <- rgb(204,0,0, maxColorValue = 255)
@@ -175,109 +125,90 @@ col_X_light <- rgb(255,100,100,maxColorValue = 255)
 col_X_lowMW  <- rgb(255,150,150,maxColorValue = 255)
 #fractions low MW SEC
 col_X_highMW <- rgb(255,230,230, maxColorValue = 255)
-col_X_carbonate <- rgb(255,170,170, maxColorValue = 255)
+col_X_carbonate <- rgb(255,217,102, maxColorValue = 255)
+col_X_citrate <- rgb(169,208,142,maxColorValue = 255)
 # D2
 col_Y_dark <- rgb(0,0,204, maxColorValue = 255)
 col_Y_light <- rgb(100,100,255, maxColorValue = 255)
 
 ```
 
-```{r eval=FALSE, include=FALSE}
-#v004
+# Figure 1 
 
-#https://r-charts.com/color-palettes/
-#paletteer_c("ggthemes::Red-Blue Diverging", 30)
-#col X - D1
-#dark: total protein extract
-#light: fractionation
-col_X_dark <- "#A90C38"
-col_X_light <- "#EB5C52"
-#fractions high MW SEC
-col_X_lowMW  <- "#ECBBB0"
-#fractions low MW SEC
-col_X_highMW <- "#E4CCC6"
-col_X_carbonate <- rgb(255,170,170, maxColorValue = 255)
-# D2
-col_Y_dark <- "#2E7A85"
-col_Y_light <- "#78A8CE"
-
-```
-
-# Grafik 0 - Puffervergleich
+## A - Buffer comparison
 
 ```{r message=FALSE, warning=FALSE, fig.width=4,fig.height=4}
-# Siehe Proteinquanti_Puffervergleich.xlsx -> Teams 
+# get concentration values and define group
 values <- c(6.39,
             6.09,
             12.33,
             10.68,
             15.1,
             14.12)
-puffer <- c("Citrate","Citrate","Phosphate","Phosphate","Carbonate","Carbonate")
-data <- as.data.frame(cbind(values,puffer))
+buffer <- c("Citrate","Citrate","Phosphate","Phosphate","Carbonate","Carbonate")
+data <- as.data.frame(cbind(values,buffer))
 
-res <- aov(values ~ puffer, data = data)
+# perform anova, post-hoc test and plot summary
+res <- aov(values ~ buffer, data = data)
 summary(res)
 TukeyHSD(res)
 
-#puffer <- factor(puffer, levels = c("Citrat", "Phosphate", "Carbonate"))
-data_4plot <- as.data.frame(cbind(values, factor(puffer)))
-ggplot(data_4plot, aes(x=reorder(puffer,values), y=values)) + 
+# create boxplot 
+data_4plot <- as.data.frame(cbind(values, factor(buffer)))
+ggplot(data_4plot, aes(x=reorder(buffer,values), y=values)) + 
   geom_boxplot() + 
   labs(x = "",
        y = "Protein concentration mg/mL") +
   scale_x_discrete(labels = c("Citrate" = "Citrate", "Phosphate" = "Phosphate", "Carbonate" = "Carbonate"))
+```
 
+## B - Venn diagram buffer comparison
+
+```{r message=FALSE, warning=FALSE, fig.width=4,fig.height=4}
+# read in filtered results of maxquant
 res_raw <- readRDS(file = "results_v002/mqpar_extracts_2gether_reanalysisCM_extraktejakob_proteinGroups.txt_Unique.RDS")
 res_raw <- res_raw[[1]]
-
-
+# get rid of the column with the FASTA headers
 res <- res_raw[,-ncol(res_raw)]
+# multiply by 1; TRUE = 1; FALSE = 0
 res <- res*1
-
+# combine all carbonate (CAR), citrate (CIT), and phosphate (PHOS) columns 
 CAR <- apply(res[,c(1:2)], 1, any)
 CIT <- apply(res[,c(3:4)],1,any)
 PHOS <- apply(res[,c(5:6)],1,any)
 
+# get primary accession ID from the FASTA headers
 fasta <- c()
 for (i in 1:length(res_raw$FASTA)){
   tmp <- strsplit(res_raw$FASTA[i],split='\\|')[[1]][2]
   fasta <- c(fasta,tmp)
 }
 
+# combine FASTA ID with merged samples and prepare data.frame for further data analysis
 res_clear <- as.data.frame(cbind(CAR,CIT,PHOS,fasta))
-
 res_clear$CAR <- as.logical(res_clear$CAR)
 res_clear$CIT <- as.logical(res_clear$CIT)
 res_clear$PHOS <- as.logical(res_clear$PHOS)
 res_clear <- res_clear[,-4]*1
 res_clear[res_clear==0] <- NA
 
-
-
+# check for rows which are not NA
+# column 1 belongs to CAR, column 2 to CIT and column 3 to PHOS
 proteins <- as.data.frame(which(!is.na(res_clear), arr.ind=TRUE))
-
 CAR <- proteins %>% dplyr::filter(col == 1)
 CIT <- proteins %>% dplyr::filter(col == 2)
 PHOS <- proteins %>% dplyr::filter(col == 3)
-
 # combine to list
 lst <- list("CIT"=as.double(CIT[,1]),
             "PHOS"=as.double(PHOS[,1]),
             "CAR"=as.double(CAR[,1]))
-            
-
-
-#venn digarams
-#get colors
-col1 <- rgb(255,93,93, maxColorValue = 255)
-#fractions high MW SEC
-col2 <- rgb(169,208,142,maxColorValue = 255)
-#fractions low MW SEC
-col3 <- rgb(255,217,102, maxColorValue = 255)
-
+# proportional venn diagram
 euler_venn_3comp(lst, label_venn = c("Citrate buffer pH 4.8", "Phosphate buffer pH 8","Carbonate buffer pH 10.8"),
-                 color_venn = c(col2,col_X_dark,col3), cex_venn = c(0.85,1,0.5,0.75,0,1,1), h_just = 0.5, v_just = 0.5)
+                 color_venn = c(col_X_citrate,col_X_dark,col_X_carbonate),
+                 cex_venn = c(0.85,1,0.5,0.75,0,1,1), 
+                 h_just = 0.5, v_just = 0.5)
+
+# print results
 print(c("car","cit","phos"))
 sum(res_clear$CAR, na.rm = TRUE)
 sum(res_clear$CIT,na.rm = TRUE)
@@ -285,35 +216,14 @@ sum(res_clear$PHOS,na.rm = TRUE)
 ```
 
 
-# Grafik 1 - Comparison E3_D1 - noTreatment, Heatshock, ProteaseInhibitor
-
-The results show that the significant highest number of protein identifications (median=586) could be achieved using protease inhibitor. The significant lowest number of proteins was determined using heatshock (median=315). No treatment resulted in 491 identified proteins. (p value ANOVA 1.43e-09; p value Tukey HSD test below 0.0003). All measurement were performed in using 6 technical replicates.
-
-
-ACHTUNG: Die Anzahl der oben genannten Proteine beziehen sich auf die Bildung des einfachen Mittelwertes. Hier wenn man merged und die "wirkliche" Anzahl an Proteinen gibt.
-
-```{r message=FALSE, warning=FALSE, fig.width=4,fig.height=4}
-#E3_D1
-D1_raw <- readRDS(file = "results_v002/results_run1_mqpar_extracts_2gether_E3_D1_LFQ_combined_txt_proteinGroups.txt_Unique.RDS")
-D1_raw <- D1_raw[[1]]
-
-D1 <- D1_raw[,-ncol(D1_raw)]
-D1 <- D1*1
-
-noT <- apply(D1[,c(1:6)], 1, any)
-HS <- apply(D1[,c(7:12)],1,any)
-PI <- apply(D1[,c(13:18)],1,any)
-print("no Treatment")
-sum(noT*1)
-print("Heatshock")
-sum(HS*1)
-print("Protease Inhibitor")
-sum(PI*1)
-```
+# Table 1 - Comparison noTreatment, Heatshock, ProteaseInhibitor
 
 ```{r, fig.width=4,fig.height=4}
+# read in filtered results of maxquant 
 data <- read.csv("Extraktionen_gesamt_V2_DL.csv", sep=";")
+# use 2 unique peptides and no MBR
 data_sub <- as.data.frame(data$Unique.no.MBR.2.peptides)
+# the first 18 rows (6 replicates for each treatment) belong to this comparison
 data_sub <- as.data.frame(data_sub[c(1:18),])
 data_sub$group <- c(rep("No treatment",6),
                    rep("Heatshock",6),
@@ -328,9 +238,7 @@ sd(subset(data_sub,group=="Heatshock")[,1])
 print("Median and sd ProteaseInhibitor")
 median(subset(data_sub,group=="Protease inhibitor")[,1])
 sd(subset(data_sub,group=="Protease inhibitor")[,1])
-ggplot(data_sub, aes(x=group, y=number)) + 
-  geom_boxplot() +
-  theme(axis.title.x = element_blank())
+# perform ANOVA, post-hoc test and plot summary
 anova <- aov(number ~ group, data=data_sub)
 summary(anova)
 Tukey <- TukeyHSD(anova)
@@ -338,24 +246,25 @@ plot(Tukey)
 Tukey
 ```
 
-# Grafik 2
+# Figure 2
 
-## A
+## A - D1/D2 comparison
 
 ```{r, fig.width=4,fig.height=4}
 # D1-D2 comparison
-
+# prepare data D1
 D1_raw <- readRDS(file = "results_v002/results_run1_mqpar_extracts_2gether_E4_D1_a-j_LFQ_combined_txt_proteinGroups.txt_Unique.RDS")
 D1_raw <- D1_raw[[1]]
 D1 <- dplyr::select(D1_raw, contains("Pool"))
 D1 <- apply(D1, 1, any)
-#D1 <- as.data.frame(cbind(D1, D1_raw$FASTA))
 fasta <- c()
 for (i in 1:length(D1_raw$FASTA)){
   tmp <- strsplit(D1_raw$FASTA[i],split='\\|')[[1]][2]
   fasta <- c(fasta,tmp)
 }
 D1 <- as.data.frame(cbind(D1, fasta))
+
+# prepare data D2
 D2_raw <- readRDS(file = "results_v002/results_run1_mqpar_extracts_2gether_D2_LFQ_combined_txt_proteinGroups.txt_Unique.RDS")
 D2_raw <- D2_raw[[1]]
 D2 <- dplyr::select(D2_raw, contains("Gesamt"))
@@ -365,8 +274,9 @@ for (i in 1:length(D2_raw$FASTA)){
   tmp <- strsplit(D2_raw$FASTA[i],split='\\|')[[1]][2]
   fasta <- c(fasta,tmp)
 }
-#D2 <- as.data.frame(cbind(D2, D2_raw$FASTA))
 D2 <- as.data.frame(cbind(D2, fasta))
+
+# merge D1 & D2 and prepare data.frame for plotting
 D1_D2_comparison  <- merge(D1, D2,
                            all = TRUE,
                            by = "fasta")
@@ -376,78 +286,70 @@ D1_D2_comparison$D2 <- as.logical(D1_D2_comparison$D2)
 D1_D2_comparison <- D1_D2_comparison[,-1]*1
 D1_D2_comparison[D1_D2_comparison==0] <- NA
 
-
-
 proteins <- as.data.frame(which(!is.na(D1_D2_comparison), arr.ind=TRUE))
 
 D1_inter <- proteins %>% dplyr::filter(col == 1)
 D2_inter <- proteins %>% dplyr::filter(col == 2)
 
 # combine to list
-lst <- list("E4_D1"=as.double(D1_inter[,1]),
-            "E4_D2"=as.double(D2_inter[,1]))
+lst <- list("D1"=as.double(D1_inter[,1]),
+            "D2"=as.double(D2_inter[,1]))
 
-
-
-
-
-
+# plot results as venn diagram
 euler_venn_2comp(lst, label_venn = c("D1: Phosphate buffer", "D2: Phosphate buffer with urea-triton X"), color_venn = c(col_X_dark, col_Y_dark), cex_venn = c(1,1), h_just = 0.5, v_just = 0.5)
 
-
-print(c("E4_D1","E4_D2"))
+# print summary
+print(c("D1","D2"))
 sum(D1_D2_comparison$D1,na.rm = TRUE)
 sum(D1_D2_comparison$D2,na.rm = TRUE)
 ```
 
 
-## B
+## B - D1/D2/D3 comparison
 
 ```{r, fig.width=4,fig.height=4}
-data <- readRDS("./27_20230201_FH/results/D5_extracts_Razor.RDS")
-data <- data[[1]]
-b <- dplyr::select(data, contains("_b"))
-D1_b <- b$Razor...unique.peptides.1_b_01+ b$Razor...unique.peptides.1_b_02
-D2_b <- b$Razor...unique.peptides.2_b_01 + b$Razor...unique.peptides.2_b_02
-D4_b <- b$Razor...unique.peptides.4_b_01 + b$Razor...unique.peptides.4_b_02
-b <- as.data.frame(cbind(D1_b,D2_b,D4_b))
-b[b==0] <- NA
-b[b==2] <- 1
+# load result for comparison and prepare data
+data_raw <- readRDS("./27_20230201_FH/results/D5_extracts_Razor.RDS")
+data <- data_raw[[1]]
+data_clear <- dplyr::select(data, contains("_b"))
+D1 <- data_clear$Razor...unique.peptides.1_b_01+ data_clear$Razor...unique.peptides.1_b_02
+D1_b <- data_clear$Razor...unique.peptides.2_b_01 + data_clear$Razor...unique.peptides.2_b_02
+D2 <- data_clear$Razor...unique.peptides.4_b_01 + data_clear$Razor...unique.peptides.4_b_02
+data_clear <- as.data.frame(cbind(D1, D1_b, D2))
+data_clear[data_clear==0] <- NA
+data_clear[data_clear==2] <- 1
 
-#venn diagram
-proteins <- as.data.frame(which(!is.na(b), arr.ind=TRUE))
-D1_b <- proteins %>% dplyr::filter(col == 1)
-D2_b <- proteins %>% dplyr::filter(col == 2)
-D4_b <- proteins %>% dplyr::filter(col == 3)
+proteins <- as.data.frame(which(!is.na(data_clear), arr.ind=TRUE))
+D1 <- proteins %>% dplyr::filter(col == 1)
+D1_b <- proteins %>% dplyr::filter(col == 2)
+D2 <- proteins %>% dplyr::filter(col == 3)
 
 # combine to list
-lst <- list(E5_D1_b = as.double(D1_b[,1]),
-            E5_D2_b = as.double(D2_b[,1]),
-            E5_D4_b = as.double(D4_b[,1]))
+lst <- list(D1 = as.double(D1[,1]),
+            D1_b = as.double(D1_b[,1]),
+            D2 = as.double(D2[,1]))
 
-
+# plot as proportional venn diagram
 euler_venn_3comp(lst, label_venn = c("D1: Phosphate buffer",
                                      "D1b: Carbonate buffer",
                                      "D2: Phosphate buffer with urea-triton X"), 
                  color_venn = c(col_X_dark,
-                                col3,
+                                col_X_carbonate,
                                 col_Y_dark), 
                  cex_venn = c(1,1,1,1,0,1,1),
                  h_just = 0.5, v_just = 0.5)
 
-print(c("E5_D1_b","E5_D2_b","E5_D4_b"))
-sum(b$Razor...unique.peptides.1_b_01,na.rm = TRUE)
-sum(b$Razor...unique.peptides.2_b_01,na.rm = TRUE)
-sum(b$Razor...unique.peptides.4_b_01,na.rm = TRUE)
+# print summary results
+print(c("D1","D1_b","D2"))
+sum(data_clear$Razor...unique.peptides.1_b_01,na.rm = TRUE)
+sum(data_clear$Razor...unique.peptides.2_b_01,na.rm = TRUE)
+sum(data_clear$Razor...unique.peptides.4_b_01,na.rm = TRUE)
 ```
 
-
-
-
-## C
+## C - Comparing 2D/3D
 
 ```{r, fig.width=8,fig.height=4,message=FALSE, warning=FALSE}
-# D1-D2 comparison
+# read in an prepare data for 2D approach
 D1_raw <- readRDS(file = "results_v002/results_run1_mqpar_extracts_2gether_E4_D1_a-j_LFQ_combined_txt_proteinGroups.txt_Unique.RDS")
 D1_raw <- D1_raw[[1]]
 D1 <- dplyr::select(D1_raw, contains("Pool"))
@@ -474,7 +376,8 @@ D1_D2_comparison  <- merge(D1, D2,
                            all = TRUE,
                            by = "fasta")
 D1_D2_comparison$comb <- apply(D1_D2_comparison[,c(2:3)], 1, any)
-#E5
+
+# read in an prepare data for 3D approach
 data <- readRDS("./27_20230201_FH/results/D5_extracts_Razor.RDS")
 data <- data[[1]]
 b <- dplyr::select(data, contains("_b"))
@@ -488,29 +391,26 @@ for (i in 1:length(data$FASTA)){
 b$fasta <- fasta
 colnames(b) <- c("b","fasta")
 
-#merge with D5
-D1_D2_D5_comparison  <- merge(D1_D2_comparison[,c(1,4)],b,
+#merge 2D with 3D and prepare date for plotting
+comparison_2D_3D  <- merge(D1_D2_comparison[,c(1,4)],b,
                            all = TRUE,
                            by = "fasta")
-colnames(D1_D2_D5_comparison) <- c("fasta","E4","E5")
+colnames(comparison_2D_3D) <- c("fasta","E4","E5")
+comparison_2D_3D$D1 <- as.logical(comparison_2D_3D$E4)
+comparison_2D_3D$D2 <- as.logical(comparison_2D_3D$E5)
+comparison_2D_3D <- comparison_2D_3D[,-1]*1
+comparison_2D_3D[comparison_2D_3D==0] <- NA
 
-D1_D2_D5_comparison$D1 <- as.logical(D1_D2_D5_comparison$E4)
-D1_D2_D5_comparison$D2 <- as.logical(D1_D2_D5_comparison$E5)
-D1_D2_D5_comparison <- D1_D2_D5_comparison[,-1]*1
-D1_D2_D5_comparison[D1_D2_D5_comparison==0] <- NA
+proteins <- as.data.frame(which(!is.na(comparison_2D_3D), arr.ind=TRUE))
 
-
-
-proteins <- as.data.frame(which(!is.na(D1_D2_D5_comparison), arr.ind=TRUE))
-
-E4_inter <- proteins %>% dplyr::filter(col == 1)
-E5_inter <- proteins %>% dplyr::filter(col == 2)
-
+comp_2D <- proteins %>% dplyr::filter(col == 1)
+comp_3D <- proteins %>% dplyr::filter(col == 2)
 
 # combine to list
-lst <- list("2D"=as.double(E4_inter[,1]),
-            "3D"=as.double(E5_inter[,1]))
+lst <- list("2D"=as.double(comp_2D[,1]),
+            "3D"=as.double(comp_3D[,1]))
 
+# plot with upset R
 upset(fromList(lst), 
       order.by = "freq",
       nsets = 10,
@@ -518,55 +418,22 @@ upset(fromList(lst),
       keep.order = TRUE,
       sets=c("2D", "3D"),
       mainbar.y.label = "Number of shared proteins",
-      sets.x.label = "Number of proteins per fraction",
+      sets.x.label = "Total number of proteins",
       set_size.show = TRUE,
       set_size.angles = 0,
       set_size.scale_max = 1500
 )
-
-
-       
 ```
 
 
 
 
-# Grafik 3
+# Figure 3
 
-## A
+## A - Compare electrophoretic separation and SEC
 
 ```{r, fig.width=4,fig.height=4}
-
-############## B
-data <- readRDS(file = "results_v002/results_run1_mqpar_extracts_2gether_E4_D1_B_LFQ_combined_txt_proteinGroups.txt_Unique.RDS")
-data <- data[[1]]
-data_sub <- dplyr::select(data, contains("Pool_G"))
-#get rid of FALSE values
-B <- data_sub*1
-B[B==0] <- NA
-ind <- apply(B, 1, function(x) all(is.na(x)))
-
-
-############AF
-data <- readRDS(file = "results_v002/results_run1_mqpar_extracts_2gether_E4_D1_AF_TF_LFQ_combined_txt_proteinGroups.txt_Unique.RDS")
-data <- data[[1]]
-data_sub <- dplyr::select(data, contains("Pool_AF"))
-#get rid of FALSE values
-AF <- data_sub*1
-AF[AF==0] <- NA
-ind <- apply(AF, 1, function(x) all(is.na(x)))
-
-############TF
-data <- readRDS(file = "results_v002/results_run1_mqpar_extracts_2gether_E4_D1_AF_TF_LFQ_combined_txt_proteinGroups.txt_Unique.RDS")
-data <- data[[1]]
-data_sub <- dplyr::select(data, contains("Pool_TF"))
-#get rid of FALSE values
-TF <- data_sub*1
-TF[TF==0] <- NA
-ind <- apply(TF, 1, function(x) all(is.na(x)))
-
-
-## compare AF TF B poster
+## read in and prepare data from low and high MW SEC
 AF_TF_raw <- readRDS(file = "results_v002/results_run1_mqpar_extracts_2gether_E4_D1_AF_TF_LFQ_combined_txt_proteinGroups.txt_Unique.RDS")
 AF_TF_raw <- AF_TF_raw[[1]]
 AF <- dplyr::select(AF_TF_raw, contains("AF"))
@@ -580,6 +447,7 @@ AF <- as.data.frame(cbind(AF, fasta))
 TF <- dplyr::select(AF_TF_raw, contains("TF"))
 TF <- apply(TF, 1, any)
 TF <- as.data.frame(cbind(TF, fasta))
+# read in and prepare data from electrophorectic separation
 B_raw <- readRDS(file = "results_v002/results_run1_mqpar_extracts_2gether_E4_D1_B_LFQ_combined_txt_proteinGroups.txt_Unique.RDS")
 B_raw <- B_raw[[1]]
 B <- dplyr::select(B_raw, contains("Pool_G"))
@@ -591,6 +459,7 @@ for (i in 1:length(B_raw$FASTA)){
 }
 B <- as.data.frame(cbind(B, fasta))
 
+# merge data and preapare for plotting
 AF_TF_B_comparison  <- merge(B, AF,
                            all = TRUE,
                            by = "fasta")
@@ -604,9 +473,6 @@ AF_TF_B_comparison$TF <- as.logical(AF_TF_B_comparison$TF)
 AF_TF_B_comparison <- AF_TF_B_comparison[,-1]*1
 AF_TF_B_comparison[AF_TF_B_comparison==0] <- NA
 
-
-
-
 proteins <- as.data.frame(which(!is.na(AF_TF_B_comparison), arr.ind=TRUE))
 
 B <- proteins %>% dplyr::filter(col == 1)
@@ -619,12 +485,7 @@ lst <- list("E4_D1_B"=as.double(B[,1]),
             "E4_D1_AF"=as.double(AF[,1]),
             "E4_D1_TF"=as.double(TF[,1]))
 
-
-
-
-
-
-
+# plot results as venn diagram
 euler_venn_3comp(lst, 
                  label_venn = c("D1-electrophoretic fractionation","D1-low MW SEC fractionation","D1-high MW SEC fractionation"),
                  color_venn = c(col_X_light, col_X_lowMW, col_X_highMW), 
@@ -638,19 +499,17 @@ euler_venn_3comp(lst,
                  h_just = 0.5,
                  v_just = 0.5)
 
-print(c("E4_D1_B","E4_D1_AF","E4_D1_TF"))
+# print summary results
+print(c("electrophoretic separation","low MW SEC","high MW SEC"))
 sum(AF_TF_B_comparison$B,na.rm = TRUE)
 sum(AF_TF_B_comparison$AF,na.rm = TRUE)
 sum(AF_TF_B_comparison$TF,na.rm = TRUE)
-        
-
-
 ```
 
-## B
+## B - Compare D1 fractionation and pool
 
 ```{r, fig.width=4,fig.height=4}
-#compare B to pool from 0609 
+# load and prepare data D1 fractionation 
 B_raw <- readRDS(file = "results_v002/results_run1_mqpar_extracts_2gether_E4_D1_B_LFQ_combined_txt_proteinGroups.txt_Unique.RDS")
 B_raw <- B_raw[[1]]
 B <- dplyr::select(B_raw, contains("Pool_G"))
@@ -661,6 +520,8 @@ for (i in 1:length(B_raw$FASTA)){
   fasta <- c(fasta,tmp)
 }
 B <- as.data.frame(cbind(B, fasta))
+
+# load and prepare data from D1 pool
 aj_raw <- readRDS(file = "results_v002/results_run1_mqpar_extracts_2gether_E4_D1_a-j_LFQ_combined_txt_proteinGroups.txt_Unique.RDS")
 aj_raw <- aj_raw[[1]]
 aj <- dplyr::select(aj_raw, contains("Pool"))
@@ -671,6 +532,8 @@ for (i in 1:length(aj_raw$FASTA)){
   fasta <- c(fasta,tmp)
 }
 aj <- as.data.frame(cbind(aj, fasta))
+
+# merge data D1 fractionation and pool and prepare data for plotting
 B_aj_comparison  <- merge(B, aj,
                              all = TRUE,
                              by = "fasta")
@@ -680,69 +543,36 @@ B_aj_comparison$aj <- as.logical(B_aj_comparison$aj)
 B_aj_comparison <- B_aj_comparison[,-1]*1
 B_aj_comparison[B_aj_comparison==0] <- NA
 
-
 proteins <- as.data.frame(which(!is.na(B_aj_comparison), arr.ind=TRUE))
 
 B_inter <- proteins %>% dplyr::filter(col == 1)
 aj_inter <- proteins %>% dplyr::filter(col == 2)
 
 # combine to list
-lst <- list("E4_D1_B_fractions"=as.double(B_inter[,1]),
-            "E4_D1"=as.double(aj_inter[,1]))
+lst <- list("D1_fractions"=as.double(B_inter[,1]),
+            "D1_pool"=as.double(aj_inter[,1]))
 
+# plot results
+euler_venn_2comp(lst,
+                 label_venn = c("D1-electrophoretic fractionation","D1-total protein extract"),
+                 color_venn = c(col_X_light, col_X_dark),
+                 cex_venn = c(1,0,1),
+                 h_just = 0.5,
+                 v_just = 0.5)
 
-
-
-
-euler_venn_2comp(lst, label_venn = c("D1-electrophoretic fractionation","D1-total protein extract"), color_venn = c(col_X_light, col_X_dark), cex_venn = c(1,0,1), h_just = 0.5, v_just = 0.5)
-
-print(c("B","E4_D1_pool"))
+# print summary results
+print(c("D1 fractionation","D1 pool"))
 sum(B_aj_comparison$B,na.rm = TRUE)
 sum(B_aj_comparison$aj,na.rm = TRUE)
-       
-
 ```
 
 
-## C
+## C - Compare D2 fractionation and pool
 
 ```{r, fig.width=4,fig.height=4}
-#############################
-# D2
-###############################
+# load and prepare data D2 fractionation and pool
 data <- readRDS(file = "results_v002/results_run1_mqpar_extracts_2gether_D2_LFQ_combined_txt_proteinGroups.txt_Unique.RDS")
 data <- data[[1]]
-data_sub <- dplyr::select(data, contains("Pool_20"))
-B_D2 <- data_sub*1
-B_D2[B_D2==0] <- NA
-
-
-### analysis B
-proteins <- as.data.frame(which(!is.na(B_D2), arr.ind=TRUE))
-
-B1 <- proteins %>% dplyr::filter(col == 1 ) # | col == 2 -> means or col2
-B10 <- proteins %>% dplyr::filter(col == 2)
-B2 <- proteins %>% dplyr::filter(col == 3)
-B3 <- proteins %>% dplyr::filter(col == 4)
-B4 <- proteins %>% dplyr::filter(col == 5)
-B5 <- proteins %>% dplyr::filter(col == 6)
-B6 <- proteins %>% dplyr::filter(col == 7)
-B7 <- proteins %>% dplyr::filter(col == 8)
-B8 <- proteins %>% dplyr::filter(col == 9)
-B9 <- proteins %>% dplyr::filter(col == 10)
-# combine to list
-lst <- list(B1 = as.double(B1[,1]),
-            B2 = as.double(B2[,1]),
-            B3 = as.double(B3[,1]),
-            B4 = as.double(B4[,1]),
-            B5 = as.double(B5[,1]),
-            B6 = as.double(B6[,1]),
-            B7 = as.double(B7[,1]),
-            B8 = as.double(B8[,1]),
-            B9 = as.double(B9[,1]),
-            B10 = as.double(B10[,1]))            
-
-
 data_D2_pool <- dplyr::select(data, contains("Gesamt"))
 data_D2_pool <- apply(data_D2_pool, 1, any)
 data_D2_fractions <- dplyr::select(data, contains("20"))
@@ -751,52 +581,47 @@ data_D2 <- as.data.frame(cbind(data_D2_pool,data_D2_fractions))
 data_D2 <- data_D2*1
 data_D2[data_D2==0] <- NA
 
-
-
 proteins <- as.data.frame(which(!is.na(data_D2), arr.ind=TRUE))
 
-D2_pool_inter <- proteins %>% dplyr::filter(col == 1)
-D2_fractions_inter <- proteins %>% dplyr::filter(col == 2)
+D2_pool <- proteins %>% dplyr::filter(col == 1)
+D2_fractions <- proteins %>% dplyr::filter(col == 2)
 
 # combine to list
-lst <- list(D2_fractions=as.double(D2_fractions_inter[,1]),
-            D2_pool=as.double(D2_pool_inter[,1]))
+lst <- list(D2_fractions=as.double(D2_fractions[,1]),
+            D2_pool=as.double(D2_pool[,1]))
 
-#venn digarams
-#get colors
-D2_pool_col <- rgb(255,93,93, maxColorValue = 255)
-D2_ingel_col <- rgb(169,208,142,maxColorValue = 255)
-#E4_D1_pool_col <- rgb(255,217,102, maxColorValue = 255)
-
-
-euler_venn_2comp(lst, label_venn = c("D2-electrophoretic fractionation","D2-total protein extract"), color_venn = c( col_Y_light,col_Y_dark), cex_venn = c(1,0.0,1), h_just = 0.5, v_just = 0.5)
-
+# plot results
+euler_venn_2comp(lst,
+                 label_venn = c("D2-electrophoretic fractionation","D2-total protein extract"),
+                 color_venn = c( col_Y_light,col_Y_dark),
+                 cex_venn = c(1,0.0,1),
+                 h_just = 0.5,
+                 v_just = 0.5)
+# print summary results
+print(c("D2 fractionation","D2 pool"))
+sum(data_D2$data_D2_fractions,na.rm = TRUE)
+sum(data_D2$data_D2_pool,na.rm = TRUE)
 ```
 
 
 
-# Grafik 4 - SDS Page Identifiaktionen
+# Figure 4 - Electrophoretic separation 
 
-## E4_D1
-
-* manuell von hier abgeschrieben `file://fhwn.ac.at/TU/Forschung/wissenschaftliche%20Ver%C3%B6ffentlichungen/Publikationen/2022/Proteomics_JRS_DL/data/evaluation_summary.html#4_Compare_D1_and_D2_B1-B9_resp_B1-B10`
+## D1
 
 ```{r, fig.width=4,fig.height=4}
-#col <- rgb(98,90,189, maxColorValue = 255)
-#col <- rgb(87,83,148, maxColorValue = 255)
-#col <- rgb(142,136,200, maxColorValue = 255)
-#col <- rgb(146,146,233, maxColorValue = 255)
+# read in data
 dat <- as.data.frame(
   cbind(c(126,159,147,241,322,591,661,852,699),
         c(paste("B",1:9,sep=""))))
 colnames(dat) <- c("no","fraction")
 dat$no <- as.numeric(dat$no)
-
+# re-arrange position
 positions <-  c(paste("B",9:1,sep=""))
 
-
-ggplot(data=dat, aes(x=fraction,y=no))+
-  geom_bar(stat="identity") +#fill=col
+# create bar-plot
+ggplot(data=dat,aes(x=fraction,y=no))+
+  geom_bar(stat="identity") +
   coord_flip() +
   geom_text(aes(label=no), hjust=1.5,vjust=0.6, color="white", size=4) +
   theme(axis.title.y = element_blank(),axis.text.y = element_text(size=14)) + 
@@ -805,19 +630,19 @@ ggplot(data=dat, aes(x=fraction,y=no))+
   scale_x_discrete(limits = positions)
 ```
 
-## E4_D2
-
-* manuell von hier abgeschrieben `file:///X:/wissenschaftliche%20Ver%C3%B6ffentlichungen/Publikationen/2022/Proteomics_JRS_DL/data/evaluation_summary_4publication.html#9_D2`
+## D2
 
 ```{r, fig.width=4,fig.height=4}
+# read in data
 dat <- as.data.frame(
   cbind(c(107,241,231,142,145,148,139,166,180,98),
         c(paste("B",1:10,sep=""))))
 colnames(dat) <- c("no","fraction")
 dat$no <- as.numeric(dat$no)
-
+# re-arrange position
 positions <-  c(paste("B",10:1,sep=""))
 
+#create bar-plot
 ggplot(data=dat, aes(x=fraction,y=no))+
   geom_bar(stat="identity") +
   coord_flip() +
@@ -828,53 +653,436 @@ ggplot(data=dat, aes(x=fraction,y=no))+
   labs(y="Number of proteins per fraction")
 ```
 
+# Figure 5 - Biological annotation
 
-# Grafik 5 - Bioinformatic Data Analysis
+## Preparation
 
-## A
+```{r}
+# prepare vectors
+results_comp <- c()
+length_comp <- c()
+results_comp_cc <- c()
+length_comp_cc <- c()
+results_comp_bp <- c()
+length_comp_bp <- c()
+results_comp_bp <- c()
+name_comp <- c()
+name_comp_cc <- c()
+name_comp_bp <- c()
 
-```{r, fig.width=4,fig.height=3}
+# function to extract and remove square brackets from a string
+extract_goterm <- function(input_string) {
+  # extract first string between square brackets
+  extracted_string <- str_extract(input_string, "\\[(.*?)\\]")
+  # remove square brackets
+  extracted_string <- str_remove_all(extracted_string, "\\[|\\]")
+  # return extracted string
+  return(extracted_string)
+}
+```
 
-# von hier file:///X:/wissenschaftliche%20Ver%C3%B6ffentlichungen/Publikationen/2022/Proteomics_JRS_DL_stillgelegt%20und%20transferiert%20auf%20Teams_230605/Data/evaluation_summary_unique.html
-library(ggplot2)
+## Get data
 
-data <- read.csv("Extraktionen_gesamt_V2_DL.csv", sep=";")
+### Get data for Figure 2A
 
-# Calculate ratios
-MBR <- (data$Razor.MBR.2.peptides / data$Unique.MBR.2.peptides) * 100
-noMBR <- (data$Razor.noMBR.2.peptides / data$Unique.no.MBR.2.peptides) * 100
+```{r}
+# get data D1/D2 comparison
+#D1_uni <- GetProteinGOInfo(D1)
+#saveRDS(D1_uni,"./go_terms/graph2_D1_uni.RDS")
+GO_1 <- readRDS("./go_terms/graph2_D1_uni.RDS")
+#D2_uni <- G1 <- t_BP_sorted[c(1:20),]etProteinGOInfo(D2)
+#saveRDS(D2_uni,"./go_terms/graph2_D2_uni.RDS")
+GO_2 <- readRDS("./go_terms/graph2_D2_uni.RDS")
 
-# Create a data frame for plotting
-df <- data.frame(Group = c(rep("MBR", length(MBR)), rep("noMBR", length(noMBR))),
-                 Deviation = c(MBR, noMBR))
+################################# molecular function
+t_BP <- as.data.frame(table(GO_1$Gene.Ontology..molecular.function.))
+t_BP_sorted_1 <- arrange(t_BP, desc(Freq))
+#t_BP_sorted_1 <- t_BP_sorted[c(1:20),]
+t_BP <- as.data.frame(table(GO_2$Gene.Ontology..molecular.function.))
+t_BP_sorted_2 <- arrange(t_BP, desc(Freq))
+#t_BP_sorted_2 <- t_BP_sorted[c(1:20),]
+#t_BP <- as.data.frame(table(GO_3$Gene.Ontology..molecular.function.))
+#t_BP_sorted <- arrange(t_BP, desc(Freq))
+#t_BP_sorted_3 <- t_BP_sorted[c(1:20),]
+BP <- merge(t_BP_sorted_1, t_BP_sorted_2,
+            all = TRUE,
+            by = "Var1")
+#BP <- merge(BP, t_BP_sorted_3, all = TRUE, by = "Var1")
+tmp <- c(sum(complete.cases(BP[,-1])),
+                  sum(is.na(BP[,3])),
+                  sum(is.na(BP[,2])))
+results_comp <- c(results_comp, tmp/(length(BP[,1])))
+name_comp <- c(name_comp,"graph2A-D1+D2","graph2A-onlyD1","graph2A-onlyD2")
 
-# Create the boxplot using ggplot
-ggplot(df, aes(x = Group, y = Deviation)) +
-  geom_boxplot() +
-  labs(y = "Deviation Razor-Unique [%]") +
-  scale_x_discrete(labels = c("MBR", "noMBR")) +
-  theme_minimal() 
+################################# cellular.component
+t_BP <- as.data.frame(table(GO_1$Gene.Ontology..cellular.component.))
+t_BP_sorted_1 <- arrange(t_BP, desc(Freq))
+t_BP <- as.data.frame(table(GO_2$Gene.Ontology..cellular.component.))
+t_BP_sorted_2 <- arrange(t_BP, desc(Freq))
+BP <- merge(t_BP_sorted_1, t_BP_sorted_2,
+            all = TRUE,
+            by = "Var1")
+colnames(BP) <- c("Function", "D1","D2")
+tmp <- c(sum(complete.cases(BP[,-1])),
+                  sum(is.na(BP[,3])),
+                  sum(is.na(BP[,2])))
+results_comp_cc <- c(results_comp_cc, tmp/(length(BP[,1])))
+name_comp_cc <- c(name_comp_cc, "graph2A-D1+D2","graph2A-onlyD1","graph2A-onlyD2")
 
+################################# biological process
+t_BP <- as.data.frame(table(GO_1$Gene.Ontology..biological.process.))
+t_BP_sorted_1 <- arrange(t_BP, desc(Freq))
+t_BP <- as.data.frame(table(GO_2$Gene.Ontology..biological.process.))
+t_BP_sorted_2 <- arrange(t_BP, desc(Freq))
+BP <- merge(t_BP_sorted_1, t_BP_sorted_2,
+            all = TRUE,
+            by = "Var1")
+colnames(BP) <- c("Function", "D1","D2")
+tmp <- c(sum(complete.cases(BP[,-1])),
+                  sum(is.na(BP[,3])),
+                  sum(is.na(BP[,2])))
+results_comp_bp <- c(results_comp_bp, tmp/(length(BP[,1])))
+name_comp_bp <- c(name_comp_bp, "graph2A-D1+D2","graph2A-onlyD1","graph2A-onlyD2")
+```
+
+### Get data for Figure 2C
+
+```{r, fig.width=4,fig.height=4}
+#D1_uni <- GetProteinGOInfo(D1)
+#saveRDS(D1_uni,"./go_terms/graph2_E4_uni_230719.RDS")
+GO_1 <- readRDS("./go_terms/graph2_E4_uni.RDS")
+#GO_1 <- readRDS("./go_terms/graph2_E4_uni_230719.RDS")
+#D2_uni <- GetProteinGOInfo(D2)
+#saveRDS(D2_uni,"./go_terms/graph2_E5_uni_230719.RDS")
+GO_2 <- readRDS("./go_terms/graph2_E5_uni.RDS")
+#GO_2 <- readRDS("./go_terms/graph2_E5_uni_230719.RDS")
+
+################################# molecular function
+t_BP <- as.data.frame(table(GO_1$Gene.Ontology..molecular.function.))
+t_BP_sorted_1 <- arrange(t_BP, desc(Freq))
+t_BP <- as.data.frame(table(GO_2$Gene.Ontology..molecular.function.))
+t_BP_sorted_2 <- arrange(t_BP, desc(Freq))
+BP <- merge(t_BP_sorted_1, t_BP_sorted_2,
+            all = TRUE,
+            by = "Var1")
+tmp <- c(sum(complete.cases(BP[,-1])),
+                  sum(is.na(BP[,3])),
+                  sum(is.na(BP[,2])))
+results_comp <- c(results_comp, tmp/(length(BP[,1])))
+name_comp <- c(name_comp,"graph2C-2D+3D","graph2C-only2D","graph2C-only3D")
+
+
+################################# cellular.component
+t_BP <- as.data.frame(table(GO_1$Gene.Ontology..cellular.component.))
+t_BP_sorted_1 <- arrange(t_BP, desc(Freq))
+t_BP <- as.data.frame(table(GO_2$Gene.Ontology..cellular.component.))
+t_BP_sorted_2 <- arrange(t_BP, desc(Freq))
+#t_BP <- as.data.frame(table(GO_3$Gene.Ontology..cellular.component.))
+#t_BP_sorted <- arrange(t_BP, desc(Freq))
+#t_BP_sorted_3 <- t_BP_sorted[c(1:20),]
+BP <- merge(t_BP_sorted_1, t_BP_sorted_2,
+            all = TRUE,
+            by = "Var1")
+#BP <- merge(BP, t_BP_sorted_3, all = TRUE, by = "Var1")
+tmp <- c(sum(complete.cases(BP[,-1])),
+                  sum(is.na(BP[,3])),
+                  sum(is.na(BP[,2])))
+results_comp_cc <- c(results_comp_cc, tmp/(length(BP[,1])))
+name_comp_cc <- c(name_comp_cc,"graph2C-2D+3D","graph2C-only2D","graph2C-only3D")
+
+
+################################# biological process
+t_BP <- as.data.frame(table(GO_1$Gene.Ontology..biological.process.))
+t_BP_sorted_1 <- arrange(t_BP, desc(Freq))
+t_BP <- as.data.frame(table(GO_2$Gene.Ontology..biological.process.))
+t_BP_sorted_2 <- arrange(t_BP, desc(Freq))
+#t_BP <- as.data.frame(table(GO_3$Gene.Ontology..cellular.component.))
+#t_BP_sorted <- arrange(t_BP, desc(Freq))
+#t_BP_sorted_3 <- t_BP_sorted[c(1:20),]
+BP <- merge(t_BP_sorted_1, t_BP_sorted_2,
+            all = TRUE,
+            by = "Var1")
+#BP <- merge(BP, t_BP_sorted_3, all = TRUE, by = "Var1")
+tmp <- c(sum(complete.cases(BP[,-1])),
+                  sum(is.na(BP[,3])),
+                  sum(is.na(BP[,2])))
+results_comp_bp <- c(results_comp_bp, tmp/(length(BP[,1])))
+name_comp_bp <- c(name_comp_bp,"graph2C-2D+3D","graph2C-only2D","graph2C-only3D")
+      
+```
+
+### Get data for Figure 3B
+
+```{r}
+#D1_uni <- GetProteinGOInfo(B)
+#saveRDS(D1_uni,"./go_terms/graph3_B_B_uni.RDS")
+GO_1 <- readRDS("./go_terms/graph3_B_B_uni.RDS")
+#aj <- GetProteinGOInfo(aj)
+#saveRDS(aj,"./go_terms/graph3_B_aj_uni.RDS")
+GO_2 <- readRDS("./go_terms/graph3_B_aj_uni.RDS")
+
+################################# molecular function
+t_BP <- as.data.frame(table(GO_1$Gene.Ontology..molecular.function.))
+t_BP_sorted_1 <- arrange(t_BP, desc(Freq))
+t_BP <- as.data.frame(table(GO_2$Gene.Ontology..molecular.function.))
+t_BP_sorted_2 <- arrange(t_BP, desc(Freq))
+BP <- merge(t_BP_sorted_1, t_BP_sorted_2,
+            all = TRUE,
+            by = "Var1")
+#BP <- merge(BP, t_BP_sorted_3, all = TRUE, by = "Var1")
+tmp <- c(sum(complete.cases(BP[,-1])),
+                  sum(is.na(BP[,3])),
+                  sum(is.na(BP[,2])))
+results_comp <- c(results_comp, tmp/(length(BP[,1])))
+name_comp <- c(name_comp,"graph3B-pool+fracD1","graph3B-onlyFracD1","graph3B-onlyPoolD1")
+colnames(BP) <- c("Function", "D1","D1 pool")
+
+################################# cellular compartmnet
+t_BP <- as.data.frame(table(GO_1$Gene.Ontology..cellular.component.))
+t_BP_sorted_1 <- arrange(t_BP, desc(Freq))
+t_BP <- as.data.frame(table(GO_2$Gene.Ontology..cellular.component.))
+t_BP_sorted_2 <- arrange(t_BP, desc(Freq))
+BP <- merge(t_BP_sorted_1, t_BP_sorted_2,
+            all = TRUE,
+            by = "Var1")
+#BP <- merge(BP, t_BP_sorted_3, all = TRUE, by = "Var1")
+tmp <- c(sum(complete.cases(BP[,-1])),
+                  sum(is.na(BP[,3])),
+                  sum(is.na(BP[,2])))
+results_comp_cc <- c(results_comp_cc, tmp/(length(BP[,1])))
+name_comp_cc <- c(name_comp_cc,"graph3B-pool+fracD1","graph3B-onlyFracD1","graph3B-onlyPoolD1")
+
+
+################################# biological process
+t_BP <- as.data.frame(table(GO_1$Gene.Ontology..biological.process.))
+t_BP_sorted_1 <- arrange(t_BP, desc(Freq))
+t_BP <- as.data.frame(table(GO_2$Gene.Ontology..biological.process.))
+t_BP_sorted_2 <- arrange(t_BP, desc(Freq))
+BP <- merge(t_BP_sorted_1, t_BP_sorted_2,
+            all = TRUE,
+            by = "Var1")
+#BP <- merge(BP, t_BP_sorted_3, all = TRUE, by = "Var1")
+tmp <- c(sum(complete.cases(BP[,-1])),
+                  sum(is.na(BP[,3])),
+                  sum(is.na(BP[,2])))
+results_comp_bp <- c(results_comp_bp, tmp/(length(BP[,1])))
+name_comp_bp <- c(name_comp_bp,"graph3B-pool+fracD1","graph3B-onlyFracD1","graph3B-onlyPoolD1")
+
+```
+
+
+### Get Data for Figure 3C
+
+```{r, fig.width=4,fig.height=4}
+#pool <- GetProteinGOInfo(pool)
+#saveRDS(pool,"./go_terms/graph3_C_pool_uni.RDS")
+GO1<- readRDS("./go_terms/graph3_C_pool_uni.RDS")
+#fractions <- GetProteinGOInfo(fractions)
+#saveRDS(fractions,"./go_terms/graph3_C_fractions_uni.RDS")
+GO_2 <- readRDS("./go_terms/graph3_C_fractions_uni.RDS")
+
+################################# molecular function
+t_BP <- as.data.frame(table(GO_1$Gene.Ontology..molecular.function.))
+t_BP_sorted_1 <- arrange(t_BP, desc(Freq))
+t_BP <- as.data.frame(table(GO_2$Gene.Ontology..molecular.function.))
+t_BP_sorted_2 <- arrange(t_BP, desc(Freq))
+#t_BP <- as.data.frame(table(GO_3$Gene.Ontology..molecular.function.))
+#t_BP_sorted <- arrange(t_BP, desc(Freq))
+#t_BP_sorted_3 <- t_BP_sorted[c(1:20),]
+BP <- merge(t_BP_sorted_1, t_BP_sorted_2,
+            all = TRUE,
+            by = "Var1")
+#BP <- merge(BP, t_BP_sorted_3, all = TRUE, by = "Var1")
+tmp <- c(sum(complete.cases(BP[,-1])),
+                  sum(is.na(BP[,3])),
+                  sum(is.na(BP[,2])))
+results_comp <- c(results_comp, tmp/(length(BP[,1])))
+name_comp <- c(name_comp, "graph3C-pool+fracD2","graph3C-onlyFracD2","graph3C-onlyPoolD2")
+colnames(BP) <- c("Function", "D2","D2pool")
+################################# cellular.component
+t_BP <- as.data.frame(table(GO_1$Gene.Ontology..cellular.component.))
+t_BP_sorted_1 <- arrange(t_BP, desc(Freq))
+t_BP <- as.data.frame(table(GO_2$Gene.Ontology..cellular.component.))
+t_BP_sorted_2 <- arrange(t_BP, desc(Freq))
+#t_BP <- as.data.frame(table(GO_3$Gene.Ontology..cellular.component.))
+#t_BP_sorted <- arrange(t_BP, desc(Freq))
+#t_BP_sorted_3 <- t_BP_sorted[c(1:20),]
+BP <- merge(t_BP_sorted_1, t_BP_sorted_2,
+            all = TRUE,
+            by = "Var1")
+#BP <- merge(BP, t_BP_sorted_3, all = TRUE, by = "Var1")
+
+colnames(BP) <- c("Function", "D2","D2pool")
+tmp <- c(sum(complete.cases(BP[,-1])),
+                  sum(is.na(BP[,3])),
+                  sum(is.na(BP[,2])))
+results_comp_cc <- c(results_comp_cc, tmp/(length(BP[,1])))
+name_comp_cc <- c(name_comp_cc,"graph3C-pool+fracD2","graph3C-onlyFracD2","graph3C-onlyPoolD2")
+
+################################# biological process
+t_BP <- as.data.frame(table(GO_1$Gene.Ontology..biological.process.))
+t_BP_sorted_1 <- arrange(t_BP, desc(Freq))
+t_BP <- as.data.frame(table(GO_2$Gene.Ontology..biological.process.))
+t_BP_sorted_2 <- arrange(t_BP, desc(Freq))
+#t_BP <- as.data.frame(table(GO_3$Gene.Ontology..cellular.component.))
+#t_BP_sorted <- arrange(t_BP, desc(Freq))
+#t_BP_sorted_3 <- t_BP_sorted[c(1:20),]
+BP <- merge(t_BP_sorted_1, t_BP_sorted_2,
+            all = TRUE,
+            by = "Var1")
+#BP <- merge(BP, t_BP_sorted_3, all = TRUE, by = "Var1")
+
+colnames(BP) <- c("Function", "D2","D2pool")
+tmp <- c(sum(complete.cases(BP[,-1])),
+                  sum(is.na(BP[,3])),
+                  sum(is.na(BP[,2])))
+results_comp_bp <- c(results_comp_bp, tmp/(length(BP[,1])))
+name_comp_bp <- c(name_comp_bp,"graph3C-pool+fracD2","graph3C-onlyFracD2","graph3C-onlyPoolD2")
+```
+
+## Plot data
+
+```{r, fig.width=8,fig.height=8}
+#col X - D1
+#dark: total protein extract
+#light: fractionation
+col3 <- rgb(255,217,102, maxColorValue = 255)
+col_X_dark <- rgb(204,0,0, maxColorValue = 255)
+col_X_light <- rgb(255,100,100,maxColorValue = 255)
+#fractions high MW SEC
+col_X_lowMW  <- rgb(255,150,150,maxColorValue = 255)
+#fractions low MW SEC
+col_X_highMW <- rgb(255,230,230, maxColorValue = 255)
+col_X_carbonate <- rgb(255,170,170, maxColorValue = 255)
+# D2
+col_Y_dark <- rgb(0,0,204, maxColorValue = 255)
+col_Y_light <- rgb(100,100,255, maxColorValue = 255)
+col_D1D2 <- rgb(160,0,108, maxColorValue = 255)
+col_D1frac_pool <- rgb(231,63,52, maxColorValue = 255)
+col_D2frac_pool <- rgb(67,59,229, maxColorValue = 255)
+
+# Create a vector of custom colors for each "Variable" level
+custom_colors <- c(
+  "B" = col_D1D2,
+  "A" = col_X_dark,
+  "C" = col_Y_dark,
+  "E" = "darkgreen",
+  "D" = "lightgreen",
+  "F" = "green",
+  "H" = col_D1frac_pool,
+  "G" = col_X_light,
+  "I" = col_X_dark,
+  "K" = col_D2frac_pool,
+  "J" = col_Y_light,
+  "L" = col_Y_dark)
+
+
+tmp <- c(rep("D1 vs. D2",3),
+         rep("2D vs. 3D",3),
+         rep("D1 frac/pool",3),
+         rep("D2 frac/pool",3))
+
+df_2 <- data.frame(
+  Category = rep(tmp, times = 3),
+  Type = c(rep(c("biological process", "molecular funciton", "cellular compartment"), each = 12)),
+  Percentage = c(round(results_comp_bp*100,1),
+                 round(results_comp*100,1),
+                 round(results_comp_cc*100,1)),
+  Variable = rep(c("B", "A", "C",
+                   "E", "D", "F",
+                   "H", "G", "I",
+                   "K", "J", "L"),3)
+)
+
+
+df_2$Category <- factor(df_2$Category, levels = c("D1 vs. D2", "2D vs. 3D", "D1 frac/pool", "D2 frac/pool"))
+
+desired_order_2 <- c("B"="D1-D2","A"="D1",
+                     "C"="D2",
+                     "E"="2D-3D", "D"="2D", "F"="3D",
+                     "H"="D1 frac-pool", "G"="D1 frac", "I"="D1 pool",
+                     "K"="D2 frac-pool", "J"="D2 frac", "L"="D2 pool")
+
+desired_order <- c("A", "D", "G", "J",
+                   "B", "E", "H", "K",
+                   "C", "F", "I", "L")
+
+
+
+
+# Create the stacked bar plot with smaller text labels
+ggplot(df_2, aes(x = Category, y = Percentage, fill = Variable)) +
+  geom_bar(stat = "identity", position = "stack",
+           color = "white", linewidth = 0.15) +
+  facet_grid(Type ~ ., scales = "free_y", space = "free_y") +
+  theme_minimal() +
+  labs(x = "",
+       y = "Percentage",
+       fill = "") + 
+  theme(legend.position = "bottom", legend.box = "horizontal",
+        legend.key.size = unit(0.4, "cm"),
+        legend.background = element_rect(size=0.5, linetype="solid"),
+        axis.text.x = element_text(angle = 0, hjust = 0.5),
+        legend.text = element_text(size = 8),
+        strip.text = element_text(margin = margin(20, unit = "pt"))) + # Adjust the margin value as per your requirement)
+  guides(fill=guide_legend(nrow=3, byrow=TRUE)) +
+  scale_fill_manual(values = custom_colors, breaks = desired_order, labels = desired_order_2) +
+  geom_bar_text(aes(label = paste0(Percentage,"%")),
+                position = "stack",
+                reflow = FALSE,
+                min.size = 0.1,
+                place = "middle",
+                outside = TRUE,
+                contrast = TRUE)
 
 
 ```
 
 
-## B
+
+
+# Figure 6 - Bioinformatic Data Analysis
+
+```{r}
+# read in data for bioinformatic data analysis
+data <- read.csv("Extraktionen_gesamt_V2_DL.csv", sep=";")
+```
+
+
+## A - Razor/Unique vs. MBR
 
 ```{r, fig.width=4,fig.height=3}
-# von hier file:///X:/wissenschaftliche%20Ver%C3%B6ffentlichungen/Publikationen/2022/Proteomics_JRS_DL_stillgelegt%20und%20transferiert%20auf%20Teams_230605/Data/evaluation_summary_unique.html
-# Calculate ratios and mean
+# calculate ratios
+MBR <- (data$Razor.MBR.2.peptides / data$Unique.MBR.2.peptides) * 100
+noMBR <- (data$Razor.noMBR.2.peptides / data$Unique.no.MBR.2.peptides) * 100
+
+# create a data frame for plotting
+df <- data.frame(Group = c(rep("MBR", length(MBR)), rep("noMBR", length(noMBR))),
+                 Deviation = c(MBR, noMBR))
+
+# create the boxplot using ggplot
+ggplot(df, aes(x = Group, y = Deviation)) +
+  geom_boxplot() +
+  labs(y = "Deviation Razor-Unique [%]") +
+  scale_x_discrete(labels = c("MBR", "noMBR")) +
+  theme_minimal() 
+```
+
+
+## B - Razor/Uniqe vs. proteins
+
+```{r, fig.width=4,fig.height=3}
+#  calculate ratios and mean
 unique <- (data$Unique.MBR.2.peptides / data$Unique.no.MBR.2.peptides) * 100
 mean_unique <- (data$Unique.MBR.2.peptides + data$Unique.no.MBR.2.peptides) / 2
 
-# Create a data frame for plotting
+# create a data frame for plotting
 df <- data.frame(
   MeanUnique = mean_unique,
   Deviation = unique
 )
 
-# Create the scatter plot using ggplot
+# create the scatter plot using ggplot
 ggplot(df, aes(x = MeanUnique, y = Deviation)) +
   geom_point() +
   labs(x = "Number of identified proteins", y = "Deviation MBR [%]") +
@@ -884,27 +1092,24 @@ ggplot(df, aes(x = MeanUnique, y = Deviation)) +
 
 ```
 
-## C
+## C - MBR vs. proteins
 
 ```{r, fig.width=4,fig.height=3}
-# von hier file:///X:/wissenschaftliche%20Ver%C3%B6ffentlichungen/Publikationen/2022/Proteomics_JRS_DL_stillgelegt%20und%20transferiert%20auf%20Teams_230605/Data/evaluation_summary_unique.html
-data <- read.csv("Extraktionen_gesamt_V2_DL.csv", sep=";")
-
-# Calculate ratios
+# calculate ratios
 MBR <- (data$Razor.MBR.2.peptides / data$Unique.MBR.2.peptides) * 100
 noMBR <- (data$Razor.noMBR.2.peptides / data$Unique.no.MBR.2.peptides) * 100
 
-# Calculate means
+# calculate means
 mean_MBR <- (data$Razor.MBR.2.peptides + data$Unique.MBR.2.peptide) / 2
 mean_noMBR <- (data$Razor.noMBR.2.peptides + data$Unique.no.MBR.2.peptides) / 2
 
-# Create a data frame for plotting
+# create a data frame for plotting
 df <- data.frame(
   MeanNoMBR = mean_noMBR,
   Deviation = noMBR
 )
 
-# Create the scatter plot using ggplot
+# create the scatter plot using ggplot
 ggplot(df, aes(x = MeanNoMBR, y = Deviation)) +
   geom_point() +
   labs(x = "Number of identified proteins", y = "Deviation Razor-Unique [%]") +
@@ -912,16 +1117,15 @@ ggplot(df, aes(x = MeanNoMBR, y = Deviation)) +
   scale_x_continuous(limits = c(0, 800)) 
 ```
 
-## D
+## D - rel. standard deviation vs. proteins
 
 ```{r, fig.width=4,fig.height=3}
-# aus file:///X:/wissenschaftliche%20Ver%C3%B6ffentlichungen/Publikationen/2022/Proteomics_JRS_DL_stillgelegt%20und%20transferiert%20auf%20Teams_230605/Data/evaluation_summary_4publication.html
-
-data <- read.csv("Extraktionen_gesamt_V2_DL.csv", sep=";")
+# group samples and create vectors
 sample_group <- c(seq(1,18,by=3),seq(19,162,by=2))
 sd_samples <- c()
 mean_samples <- c()
 
+# calculate sd and mean for each pair of data
 for (i in 1:length(sample_group)) {
   if (i < 78) {
     tmp <- sd(data$Unique.no.MBR.2.peptides[sample_group[i]:(sample_group[i+1]-1)])
@@ -936,34 +1140,34 @@ for (i in 1:length(sample_group)) {
   }
 }
 
-# Calculate relative standard deviation
+# calculate relative standard deviation
 rel_sd <- sd_samples / mean_samples * 100
 
-# Calculate medians
+# calculate medians
 median_below_200 <- median(rel_sd[which(mean_samples < 200)])
 median_above_200 <- median(rel_sd[which(mean_samples > 200)])
 
-# Perform t-test
+# perform t-test
 t_test_result <- t.test(rel_sd[which(mean_samples < 200)], rel_sd[which(mean_samples > 200)])
 
-# Create a data frame for plotting
+# create a data frame for plotting
 df <- data.frame(
   MeanSamples = mean_samples[-31],
   RelSD = sd_samples[-31] / mean_samples[-31] * 100
 )
 
-# Create the scatter plot using ggplot
+# create the scatter plot using ggplot
 ggplot(df, aes(x = MeanSamples, y = RelSD)) +
   geom_point() +
   labs(x = "Number of identified proteins", y = "rel. sd [%]") +
   theme_minimal() +
   scale_x_continuous(limits = c(0, 800)) 
 
-# Output median values
+# print summary median values
 print(paste("Median below 200:", median_below_200))
 print(paste("Median above 200:", median_above_200))
 
-# Output t-test result
+# output t-test result
 print(t_test_result)
 
 ```
