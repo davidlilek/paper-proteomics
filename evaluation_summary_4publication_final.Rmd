@@ -697,17 +697,11 @@ GO_2 <- readRDS("./go_terms/graph2_D2_uni.RDS")
 ################################# molecular function
 t_BP <- as.data.frame(table(GO_1$Gene.Ontology..molecular.function.))
 t_BP_sorted_1 <- arrange(t_BP, desc(Freq))
-#t_BP_sorted_1 <- t_BP_sorted[c(1:20),]
 t_BP <- as.data.frame(table(GO_2$Gene.Ontology..molecular.function.))
 t_BP_sorted_2 <- arrange(t_BP, desc(Freq))
-#t_BP_sorted_2 <- t_BP_sorted[c(1:20),]
-#t_BP <- as.data.frame(table(GO_3$Gene.Ontology..molecular.function.))
-#t_BP_sorted <- arrange(t_BP, desc(Freq))
-#t_BP_sorted_3 <- t_BP_sorted[c(1:20),]
 BP <- merge(t_BP_sorted_1, t_BP_sorted_2,
             all = TRUE,
             by = "Var1")
-#BP <- merge(BP, t_BP_sorted_3, all = TRUE, by = "Var1")
 tmp <- c(sum(complete.cases(BP[,-1])),
                   sum(is.na(BP[,3])),
                   sum(is.na(BP[,2])))
@@ -748,14 +742,8 @@ name_comp_bp <- c(name_comp_bp, "graph2A-D1+D2","graph2A-onlyD1","graph2A-onlyD2
 ### Get data for Figure 2C
 
 ```{r, fig.width=4,fig.height=4}
-#D1_uni <- GetProteinGOInfo(D1)
-#saveRDS(D1_uni,"./go_terms/graph2_E4_uni_230719.RDS")
 GO_1 <- readRDS("./go_terms/graph2_E4_uni.RDS")
-#GO_1 <- readRDS("./go_terms/graph2_E4_uni_230719.RDS")
-#D2_uni <- GetProteinGOInfo(D2)
-#saveRDS(D2_uni,"./go_terms/graph2_E5_uni_230719.RDS")
 GO_2 <- readRDS("./go_terms/graph2_E5_uni.RDS")
-#GO_2 <- readRDS("./go_terms/graph2_E5_uni_230719.RDS")
 
 ################################# molecular function
 t_BP <- as.data.frame(table(GO_1$Gene.Ontology..molecular.function.))
@@ -796,13 +784,9 @@ t_BP <- as.data.frame(table(GO_1$Gene.Ontology..biological.process.))
 t_BP_sorted_1 <- arrange(t_BP, desc(Freq))
 t_BP <- as.data.frame(table(GO_2$Gene.Ontology..biological.process.))
 t_BP_sorted_2 <- arrange(t_BP, desc(Freq))
-#t_BP <- as.data.frame(table(GO_3$Gene.Ontology..cellular.component.))
-#t_BP_sorted <- arrange(t_BP, desc(Freq))
-#t_BP_sorted_3 <- t_BP_sorted[c(1:20),]
 BP <- merge(t_BP_sorted_1, t_BP_sorted_2,
             all = TRUE,
             by = "Var1")
-#BP <- merge(BP, t_BP_sorted_3, all = TRUE, by = "Var1")
 tmp <- c(sum(complete.cases(BP[,-1])),
                   sum(is.na(BP[,3])),
                   sum(is.na(BP[,2])))
@@ -814,11 +798,7 @@ name_comp_bp <- c(name_comp_bp,"graph2C-2D+3D","graph2C-only2D","graph2C-only3D"
 ### Get data for Figure 3B
 
 ```{r}
-#D1_uni <- GetProteinGOInfo(B)
-#saveRDS(D1_uni,"./go_terms/graph3_B_B_uni.RDS")
 GO_1 <- readRDS("./go_terms/graph3_B_B_uni.RDS")
-#aj <- GetProteinGOInfo(aj)
-#saveRDS(aj,"./go_terms/graph3_B_aj_uni.RDS")
 GO_2 <- readRDS("./go_terms/graph3_B_aj_uni.RDS")
 
 ################################# molecular function
@@ -829,7 +809,6 @@ t_BP_sorted_2 <- arrange(t_BP, desc(Freq))
 BP <- merge(t_BP_sorted_1, t_BP_sorted_2,
             all = TRUE,
             by = "Var1")
-#BP <- merge(BP, t_BP_sorted_3, all = TRUE, by = "Var1")
 tmp <- c(sum(complete.cases(BP[,-1])),
                   sum(is.na(BP[,3])),
                   sum(is.na(BP[,2])))
@@ -845,7 +824,6 @@ t_BP_sorted_2 <- arrange(t_BP, desc(Freq))
 BP <- merge(t_BP_sorted_1, t_BP_sorted_2,
             all = TRUE,
             by = "Var1")
-#BP <- merge(BP, t_BP_sorted_3, all = TRUE, by = "Var1")
 tmp <- c(sum(complete.cases(BP[,-1])),
                   sum(is.na(BP[,3])),
                   sum(is.na(BP[,2])))
@@ -861,7 +839,6 @@ t_BP_sorted_2 <- arrange(t_BP, desc(Freq))
 BP <- merge(t_BP_sorted_1, t_BP_sorted_2,
             all = TRUE,
             by = "Var1")
-#BP <- merge(BP, t_BP_sorted_3, all = TRUE, by = "Var1")
 tmp <- c(sum(complete.cases(BP[,-1])),
                   sum(is.na(BP[,3])),
                   sum(is.na(BP[,2])))
@@ -874,11 +851,7 @@ name_comp_bp <- c(name_comp_bp,"graph3B-pool+fracD1","graph3B-onlyFracD1","graph
 ### Get Data for Figure 3C
 
 ```{r, fig.width=4,fig.height=4}
-#pool <- GetProteinGOInfo(pool)
-#saveRDS(pool,"./go_terms/graph3_C_pool_uni.RDS")
 GO1<- readRDS("./go_terms/graph3_C_pool_uni.RDS")
-#fractions <- GetProteinGOInfo(fractions)
-#saveRDS(fractions,"./go_terms/graph3_C_fractions_uni.RDS")
 GO_2 <- readRDS("./go_terms/graph3_C_fractions_uni.RDS")
 
 ################################# molecular function
@@ -886,33 +859,24 @@ t_BP <- as.data.frame(table(GO_1$Gene.Ontology..molecular.function.))
 t_BP_sorted_1 <- arrange(t_BP, desc(Freq))
 t_BP <- as.data.frame(table(GO_2$Gene.Ontology..molecular.function.))
 t_BP_sorted_2 <- arrange(t_BP, desc(Freq))
-#t_BP <- as.data.frame(table(GO_3$Gene.Ontology..molecular.function.))
-#t_BP_sorted <- arrange(t_BP, desc(Freq))
-#t_BP_sorted_3 <- t_BP_sorted[c(1:20),]
 BP <- merge(t_BP_sorted_1, t_BP_sorted_2,
             all = TRUE,
             by = "Var1")
-#BP <- merge(BP, t_BP_sorted_3, all = TRUE, by = "Var1")
 tmp <- c(sum(complete.cases(BP[,-1])),
                   sum(is.na(BP[,3])),
                   sum(is.na(BP[,2])))
 results_comp <- c(results_comp, tmp/(length(BP[,1])))
 name_comp <- c(name_comp, "graph3C-pool+fracD2","graph3C-onlyFracD2","graph3C-onlyPoolD2")
 colnames(BP) <- c("Function", "D2","D2pool")
+
 ################################# cellular.component
 t_BP <- as.data.frame(table(GO_1$Gene.Ontology..cellular.component.))
 t_BP_sorted_1 <- arrange(t_BP, desc(Freq))
 t_BP <- as.data.frame(table(GO_2$Gene.Ontology..cellular.component.))
 t_BP_sorted_2 <- arrange(t_BP, desc(Freq))
-#t_BP <- as.data.frame(table(GO_3$Gene.Ontology..cellular.component.))
-#t_BP_sorted <- arrange(t_BP, desc(Freq))
-#t_BP_sorted_3 <- t_BP_sorted[c(1:20),]
 BP <- merge(t_BP_sorted_1, t_BP_sorted_2,
             all = TRUE,
             by = "Var1")
-#BP <- merge(BP, t_BP_sorted_3, all = TRUE, by = "Var1")
-
-colnames(BP) <- c("Function", "D2","D2pool")
 tmp <- c(sum(complete.cases(BP[,-1])),
                   sum(is.na(BP[,3])),
                   sum(is.na(BP[,2])))
@@ -924,15 +888,9 @@ t_BP <- as.data.frame(table(GO_1$Gene.Ontology..biological.process.))
 t_BP_sorted_1 <- arrange(t_BP, desc(Freq))
 t_BP <- as.data.frame(table(GO_2$Gene.Ontology..biological.process.))
 t_BP_sorted_2 <- arrange(t_BP, desc(Freq))
-#t_BP <- as.data.frame(table(GO_3$Gene.Ontology..cellular.component.))
-#t_BP_sorted <- arrange(t_BP, desc(Freq))
-#t_BP_sorted_3 <- t_BP_sorted[c(1:20),]
 BP <- merge(t_BP_sorted_1, t_BP_sorted_2,
             all = TRUE,
             by = "Var1")
-#BP <- merge(BP, t_BP_sorted_3, all = TRUE, by = "Var1")
-
-colnames(BP) <- c("Function", "D2","D2pool")
 tmp <- c(sum(complete.cases(BP[,-1])),
                   sum(is.na(BP[,3])),
                   sum(is.na(BP[,2])))
@@ -943,25 +901,12 @@ name_comp_bp <- c(name_comp_bp,"graph3C-pool+fracD2","graph3C-onlyFracD2","graph
 ## Plot data
 
 ```{r, fig.width=8,fig.height=8}
-#col X - D1
-#dark: total protein extract
-#light: fractionation
-col3 <- rgb(255,217,102, maxColorValue = 255)
-col_X_dark <- rgb(204,0,0, maxColorValue = 255)
-col_X_light <- rgb(255,100,100,maxColorValue = 255)
-#fractions high MW SEC
-col_X_lowMW  <- rgb(255,150,150,maxColorValue = 255)
-#fractions low MW SEC
-col_X_highMW <- rgb(255,230,230, maxColorValue = 255)
-col_X_carbonate <- rgb(255,170,170, maxColorValue = 255)
-# D2
-col_Y_dark <- rgb(0,0,204, maxColorValue = 255)
-col_Y_light <- rgb(100,100,255, maxColorValue = 255)
+# define additional colors  
 col_D1D2 <- rgb(160,0,108, maxColorValue = 255)
 col_D1frac_pool <- rgb(231,63,52, maxColorValue = 255)
 col_D2frac_pool <- rgb(67,59,229, maxColorValue = 255)
 
-# Create a vector of custom colors for each "Variable" level
+# define colors for levels
 custom_colors <- c(
   "B" = col_D1D2,
   "A" = col_X_dark,
@@ -976,13 +921,14 @@ custom_colors <- c(
   "J" = col_Y_light,
   "L" = col_Y_dark)
 
-
+# create vector for comparisons
 tmp <- c(rep("D1 vs. D2",3),
          rep("2D vs. 3D",3),
          rep("D1 frac/pool",3),
          rep("D2 frac/pool",3))
 
-df_2 <- data.frame(
+# create data.frame for plotting
+df <- data.frame(
   Category = rep(tmp, times = 3),
   Type = c(rep(c("biological process", "molecular funciton", "cellular compartment"), each = 12)),
   Percentage = c(round(results_comp_bp*100,1),
@@ -992,26 +938,25 @@ df_2 <- data.frame(
                    "E", "D", "F",
                    "H", "G", "I",
                    "K", "J", "L"),3)
-)
+  )
 
+# reorder category
+df$Category <- factor(df$Category, levels = c("D1 vs. D2", "2D vs. 3D", "D1 frac/pool", "D2 frac/pool"))
 
-df_2$Category <- factor(df_2$Category, levels = c("D1 vs. D2", "2D vs. 3D", "D1 frac/pool", "D2 frac/pool"))
+# vector for desired order
+desired_order <- c("A", "D", "G", "J",
+                   "B", "E", "H", "K",
+                   "C", "F", "I", "L")
 
+# vector for the labels
 desired_order_2 <- c("B"="D1-D2","A"="D1",
                      "C"="D2",
                      "E"="2D-3D", "D"="2D", "F"="3D",
                      "H"="D1 frac-pool", "G"="D1 frac", "I"="D1 pool",
                      "K"="D2 frac-pool", "J"="D2 frac", "L"="D2 pool")
 
-desired_order <- c("A", "D", "G", "J",
-                   "B", "E", "H", "K",
-                   "C", "F", "I", "L")
-
-
-
-
-# Create the stacked bar plot with smaller text labels
-ggplot(df_2, aes(x = Category, y = Percentage, fill = Variable)) +
+# stacked barplot
+ggplot(df, aes(x = Category, y = Percentage, fill = Variable)) +
   geom_bar(stat = "identity", position = "stack",
            color = "white", linewidth = 0.15) +
   facet_grid(Type ~ ., scales = "free_y", space = "free_y") +
@@ -1024,7 +969,7 @@ ggplot(df_2, aes(x = Category, y = Percentage, fill = Variable)) +
         legend.background = element_rect(size=0.5, linetype="solid"),
         axis.text.x = element_text(angle = 0, hjust = 0.5),
         legend.text = element_text(size = 8),
-        strip.text = element_text(margin = margin(20, unit = "pt"))) + # Adjust the margin value as per your requirement)
+        strip.text = element_text(margin = margin(20, unit = "pt"))) +
   guides(fill=guide_legend(nrow=3, byrow=TRUE)) +
   scale_fill_manual(values = custom_colors, breaks = desired_order, labels = desired_order_2) +
   geom_bar_text(aes(label = paste0(Percentage,"%")),
@@ -1034,12 +979,7 @@ ggplot(df_2, aes(x = Category, y = Percentage, fill = Variable)) +
                 place = "middle",
                 outside = TRUE,
                 contrast = TRUE)
-
-
 ```
-
-
-
 
 # Figure 6 - Bioinformatic Data Analysis
 
