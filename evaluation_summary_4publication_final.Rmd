@@ -133,7 +133,7 @@ col_Y_light <- rgb(100,100,255, maxColorValue = 255)
 
 ```
 
-# Figure 1 
+# Figure 2
 
 ## A - Buffer comparison
 
@@ -246,7 +246,7 @@ plot(Tukey)
 Tukey
 ```
 
-# Figure 2
+# Figure 3
 
 ## A - D1/D2 comparison
 
@@ -428,7 +428,7 @@ upset(fromList(lst),
 
 
 
-# Figure 3
+# Figure 4
 
 ## A - Compare electrophoretic separation and SEC
 
@@ -605,7 +605,7 @@ sum(data_D2$data_D2_pool,na.rm = TRUE)
 
 
 
-# Figure 4 - Electrophoretic separation 
+# Figure 5 - Electrophoretic separation 
 
 ## D1
 
@@ -653,7 +653,7 @@ ggplot(data=dat, aes(x=fraction,y=no))+
   labs(y="Number of proteins per fraction")
 ```
 
-# Figure 5 - Biological annotation
+# Figure 6 - Biological annotation
 
 ## Preparation
 
@@ -988,7 +988,7 @@ p + theme(plot.margin = margin(1, 1, 1, 1, "cm"))
 ```
 
 
-# Figure 6 - Bioinformatic Data Analysis
+# Figure 7 - Bioinformatic Data Analysis
 
 ```{r}
 # read in data for bioinformatic data analysis
@@ -1106,7 +1106,7 @@ df <- data.frame(
 # create the scatter plot using ggplot
 ggplot(df, aes(x = MeanSamples, y = RelSD)) +
   geom_point() +
-  labs(x = "Number of identified proteins", y = "rel. sd [%]") +
+  labs(x = "Number of identified proteins", y = "RSD [%]") +
   theme_minimal() +
   scale_x_continuous(limits = c(0, 800)) 
 
