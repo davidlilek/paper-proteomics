@@ -224,7 +224,7 @@ ggplot(data.frame(dev = dev), aes(x = "Variable", y = dev)) +
   ggtitle("D1 | Pool - Fractions from Figure 4B")
 ```
 
-#Figure 4C
+# Figure 4C
 
 ```{r}
 # load and prepare data D2 fractionation and pool
@@ -301,11 +301,11 @@ df$variable <- c(
 ggplot(df, aes(x = variable, y = value)) +
   geom_violin(fill = "lightgray", color = "darkgray", alpha = 0.5) +
   
-  geom_point(position = position_jitter(width = 0.1), color = "red", alpha = 0.3) +
+  geom_point(position = position_jitter(width = 0.1), color = "red", alpha = 0.1) +
   ylab("Relative deviation of the LFQ intensities [%]") +
-  xlab("Comparison") +
+  xlab("Compared datasets") +
   geom_hline(yintercept = 0, linetype = "dashed", color = "black") +
-  stat_summary(fun = median, geom = "point", color = "blue", shape = 18, size = 3) 
+  stat_summary(fun = median, geom = "point", color = "blue", shape = 17, size = 3) 
 
 #geom_boxplot(width = 0.2, fill = "lightblue", color = "blue") +
 ```
