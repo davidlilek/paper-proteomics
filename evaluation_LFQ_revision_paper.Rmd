@@ -86,7 +86,7 @@ df_filtered <- as.data.frame(lapply(df_filtered[,-1], as.numeric))
 df_filtered$substraction <- df_filtered$D1-df_filtered$D2
 
 dev <- df_filtered$substraction / rowMeans(df_filtered[,-3], na.rm = TRUE) * 100
-
+dev_fig3A <- dev
 # Create a boxplot with points and violin plot
 ggplot(data.frame(dev = dev), aes(x = "Variable", y = dev)) +
   geom_boxplot(width = 0.2, fill = "lightblue", color = "blue") +
@@ -96,6 +96,55 @@ ggplot(data.frame(dev = dev), aes(x = "Variable", y = dev)) +
   xlab("") +
   ggtitle("D1-D2 from Figure 3A")
 ```
+# Figure 4A
+
+```{r}
+# read in and prepare data from low and high MW SEC
+AF_TF_raw <- readRDS(file = "results_v002/results_run1_mqpar_extracts_2gether_E4_D1_AF_TF_LFQ_combined_txt_proteinGroups.txt_LFQ.RDS")
+AF_TF_raw <- AF_TF_raw[[1]]
+AF <- dplyr::select(AF_TF_raw, contains("AF"))
+AF <- as.data.frame(apply(AF, 2, as.numeric))
+AF <- rowMeans(AF, na.rm = TRUE)
+fasta <- c()
+for (i in 1:length(AF_TF_raw$FASTA)){
+  tmp <- strsplit(AF_TF_raw$FASTA[i],split='\\|')[[1]][2]
+  fasta <- c(fasta,tmp)
+}
+AF <- as.data.frame(cbind(AF, fasta))
+TF <- dplyr::select(AF_TF_raw, contains("TF"))
+TF <- rowMeans(TF, na.rm = TRUE)
+TF <- as.data.frame(cbind(TF, fasta))
+# read in and prepare data from electrophorectic separation
+B_raw <- readRDS(file = "results_v002/results_run1_mqpar_extracts_2gether_E4_D1_B_LFQ_combined_txt_proteinGroups.txt_LFQ.RDS")
+B_raw <- B_raw[[1]]
+B <- dplyr::select(B_raw, contains("Pool_G"))
+B <- rowMeans(B, na.rm = TRUE)
+fasta <- c()
+for (i in 1:length(B_raw$FASTA)){
+  tmp <- strsplit(B_raw$FASTA[i],split='\\|')[[1]][2]
+  fasta <- c(fasta,tmp)
+}
+B <- as.data.frame(cbind(B, fasta))
+
+# merge data and preapare for plotting
+AF_TF_B_comparison  <- merge(B, AF,
+                             all = TRUE,
+                             by = "fasta")
+AF_TF_B_comparison <- merge(AF_TF_B_comparison, TF,
+                            all = TRUE,
+                            by = "fasta")
+
+df <- AF_TF_B_comparison
+df[df== "NaN"] <- NA
+df_clear <- df[complete.cases(df$B, df$AF, df$TF),]
+df_clear <- as.data.frame(apply(df_clear[,-1], 2, as.numeric))
+dev_B_AF <- (df_clear$B-df_clear$AF) / rowMeans(df_clear[,-c(3)], na.rm = TRUE) * 100
+dev_B_TF <- (df_clear$B-df_clear$TF) / rowMeans(df_clear[,-c(2)], na.rm = TRUE) * 100
+
+       
+```
+
+
 
 # Figure 4B
 
@@ -164,7 +213,7 @@ df_filtered <- as.data.frame(lapply(df_filtered[,-1], as.numeric))
 df_filtered$substraction <- df_filtered$aj-df_filtered$B
 
 dev <- df_filtered$substraction / rowMeans(df_filtered[,-3], na.rm = TRUE) * 100
-
+dev_fig4B <- dev
 # Create a boxplot with points and violin plot
 ggplot(data.frame(dev = dev), aes(x = "Variable", y = dev)) +
   geom_boxplot(width = 0.2, fill = "lightblue", color = "blue") +
@@ -220,7 +269,7 @@ df_filtered <- as.data.frame(lapply(df_filtered, as.numeric))
 df_filtered$substraction <- df_filtered$data_D2_pool-df_filtered$data_D2_fractions
 
 dev <- df_filtered$substraction / rowMeans(df_filtered[,-3], na.rm = TRUE) * 100
-
+dev_fig4C <- dev
 # Create a boxplot with points and violin plot
 ggplot(data.frame(dev = dev), aes(x = "Variable", y = dev)) +
   geom_boxplot(width = 0.2, fill = "lightblue", color = "blue") +
@@ -232,4 +281,32 @@ ggplot(data.frame(dev = dev), aes(x = "Variable", y = dev)) +
 
 ```
 
+# 2gether
+
+```{r}
+# Assuming A, B, and C are your vectors with numeric values
+# Create a data frame with these vectors
+df <- data.frame(
+  value = c(dev_fig3A, dev_fig4B, dev_fig4C, dev_B_AF, dev_B_TF)
+)
+df$variable <- c(
+  rep("A", length(dev_fig3A)),
+  rep("B", length(dev_fig4B)),
+  rep("C", length(dev_fig4C)),
+  rep("D", length(dev_B_AF)),
+  rep("E", length(dev_B_TF))
+)
+
+# Create the violin plot
+ggplot(df, aes(x = variable, y = value)) +
+  geom_violin(fill = "lightgray", color = "darkgray", alpha = 0.5) +
+  
+  geom_point(position = position_jitter(width = 0.1), color = "red", alpha = 0.3) +
+  ylab("Relative deviation of the LFQ intensities [%]") +
+  xlab("Comparison") +
+  geom_hline(yintercept = 0, linetype = "dashed", color = "black") +
+  stat_summary(fun = median, geom = "point", color = "blue", shape = 18, size = 3) 
+
+#geom_boxplot(width = 0.2, fill = "lightblue", color = "blue") +
+```
 
