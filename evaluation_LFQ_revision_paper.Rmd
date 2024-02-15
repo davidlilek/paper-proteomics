@@ -1,0 +1,235 @@
+---
+output:
+  html_document:
+    df_print: paged
+    fig.align: center
+    self_contained: yes 
+    fig.height: 4
+    fig.width: 8
+    theme: united
+    toc: yes
+    toc_depth: 4
+    toc_float: yes
+    number_sections: yes
+    code_folding: hide
+title: "Auswertung TC Daten"
+author: "David Lilek"
+date: "`r format(Sys.time(), '%d %B %Y, %X')`"
+editor_options: 
+  markdown: 
+    wrap: 72
+---
+
+
+
+# Load Libraries 
+
+```{r}
+library(ggplot2)
+```
+
+# Figure 3 A
+
+```{r}
+# D1-D2 comparison
+# prepare data D1
+D1_raw <- readRDS(file = "X:/wissenschaftliche Veröffentlichungen/Publikationen/2022/Proteomics_JRS_DL/Data/results_v002/results_run1_mqpar_extracts_2gether_E4_D1_a-j_LFQ_combined_txt_proteinGroups.txt_LFQ.RDS")
+D1_raw <- D1_raw[[1]]
+D1 <- dplyr::select(D1_raw, contains("Pool"))
+df <- D1
+colnames(df) <- c("column1","column2")
+df$combined_value <- ifelse(!is.na(df$column1) & !is.na(df$column2), (df$column1 + df$column2) / 2,
+                            ifelse(!is.na(df$column1), df$column1,
+                                   ifelse(!is.na(df$column2), df$column2, NA)))
+
+D1 <- df$combined_value
+fasta <- c()
+for (i in 1:length(D1_raw$FASTA)){
+  tmp <- strsplit(D1_raw$FASTA[i],split='\\|')[[1]][2]
+  fasta <- c(fasta,tmp)
+}
+D1 <- as.data.frame(cbind(D1, fasta))
+
+# prepare data D2
+D2_raw <- readRDS(file = "X:/wissenschaftliche Veröffentlichungen/Publikationen/2022/Proteomics_JRS_DL/Data/results_v002/results_run1_mqpar_extracts_2gether_D2_LFQ_combined_txt_proteinGroups.txt_LFQ.RDS")
+D2_raw <- D2_raw[[1]]
+D2 <- dplyr::select(D2_raw, contains("Gesamt"))
+df <- D2
+
+df$combined_value <- apply(df, 1, function(row) {
+  numeric_values <- as.numeric(row[!is.na(row)])
+  
+  if (length(numeric_values) == 0) {
+    return(NA)
+  } else if (length(numeric_values) == 1) {
+    return(numeric_values)
+  } else {
+    return(mean(numeric_values))
+  }
+})
+D2 <- df$combined_value
+fasta <- c()
+for (i in 1:length(D2_raw$FASTA)){
+  tmp <- strsplit(D2_raw$FASTA[i],split='\\|')[[1]][2]
+  fasta <- c(fasta,tmp)
+}
+D2 <- as.data.frame(cbind(D2, fasta))
+
+# merge D1 & D2 and prepare data.frame for plotting
+D1_D2_comparison  <- merge(D1, D2,
+                           all = TRUE,
+                           by = "fasta")
+
+
+df_filtered <- D1_D2_comparison[complete.cases(D1_D2_comparison$D1, D1_D2_comparison$D2), ]
+df_filtered <- as.data.frame(lapply(df_filtered[,-1], as.numeric))
+df_filtered$substraction <- df_filtered$D1-df_filtered$D2
+
+dev <- df_filtered$substraction / rowMeans(df_filtered[,-3], na.rm = TRUE) * 100
+
+# Create a boxplot with points and violin plot
+ggplot(data.frame(dev = dev), aes(x = "Variable", y = dev)) +
+  geom_boxplot(width = 0.2, fill = "lightblue", color = "blue") +
+  geom_point(position = position_jitter(width = 0.1), color = "red", alpha = 0.7) +
+  geom_violin(fill = "lightgray", color = "darkgray", alpha = 0.5) +
+  ylab("Relative deviation of the LFQ intensities [%]") +
+  xlab("") +
+  ggtitle("D1-D2 from Figure 3A")
+```
+
+# Figure 4B
+
+```{r}
+# load and prepare data D1 fractionation 
+B_raw <- readRDS(file = "X:/wissenschaftliche Veröffentlichungen/Publikationen/2022/Proteomics_JRS_DL/Data/results_v002/results_run1_mqpar_extracts_2gether_E4_D1_B_LFQ_combined_txt_proteinGroups.txt_LFQ.RDS")
+B_raw <- B_raw[[1]]
+B <- dplyr::select(B_raw, contains("Pool_G"))
+df <- B
+
+df$combined_value <- apply(df, 1, function(row) {
+  numeric_values <- as.numeric(row[!is.na(row)])
+  
+  if (length(numeric_values) == 0) {
+    return(NA)
+  } else if (length(numeric_values) == 1) {
+    return(numeric_values)
+  } else {
+    return(mean(numeric_values))
+  }
+})
+B <- df$combined_value
+
+fasta <- c()
+for (i in 1:length(B_raw$FASTA)){
+  tmp <- strsplit(B_raw$FASTA[i],split='\\|')[[1]][2]
+  fasta <- c(fasta,tmp)
+}
+B <- as.data.frame(cbind(B, fasta))
+
+# load and prepare data from D1 pool
+aj_raw <- readRDS(file = "X:/wissenschaftliche Veröffentlichungen/Publikationen/2022/Proteomics_JRS_DL/Data/results_v002/results_run1_mqpar_extracts_2gether_E4_D1_a-j_LFQ_combined_txt_proteinGroups.txt_LFQ.RDS")
+aj_raw <- aj_raw[[1]]
+aj <- dplyr::select(aj_raw, contains("Pool"))
+df <- aj
+
+df$combined_value <- apply(df, 1, function(row) {
+  numeric_values <- as.numeric(row[!is.na(row)])
+  
+  if (length(numeric_values) == 0) {
+    return(NA)
+  } else if (length(numeric_values) == 1) {
+    return(numeric_values)
+  } else {
+    return(mean(numeric_values))
+  }
+})
+aj <- df$combined_value
+
+fasta <- c()
+for (i in 1:length(aj_raw$FASTA)){
+  tmp <- strsplit(aj_raw$FASTA[i],split='\\|')[[1]][2]
+  fasta <- c(fasta,tmp)
+}
+aj <- as.data.frame(cbind(aj, fasta))
+
+# merge data D1 fractionation and pool and prepare data for plotting
+B_aj_comparison  <- merge(B, aj,
+                          all = TRUE,
+                          by = "fasta")
+
+
+
+df_filtered <- B_aj_comparison[complete.cases(B_aj_comparison$B, B_aj_comparison$aj), ]
+df_filtered <- as.data.frame(lapply(df_filtered[,-1], as.numeric))
+df_filtered$substraction <- df_filtered$aj-df_filtered$B
+
+dev <- df_filtered$substraction / rowMeans(df_filtered[,-3], na.rm = TRUE) * 100
+
+# Create a boxplot with points and violin plot
+ggplot(data.frame(dev = dev), aes(x = "Variable", y = dev)) +
+  geom_boxplot(width = 0.2, fill = "lightblue", color = "blue") +
+  geom_point(position = position_jitter(width = 0.1), color = "red", alpha = 0.7) +
+  geom_violin(fill = "lightgray", color = "darkgray", alpha = 0.5) +
+  ylab("Relative deviation of the LFQ intensities [%]") +
+  xlab("") +
+  ggtitle("D1 | Pool - Fractions from Figure 4B")
+```
+
+#Figure 4C
+
+```{r}
+# load and prepare data D2 fractionation and pool
+data <- readRDS(file = "X:/wissenschaftliche Veröffentlichungen/Publikationen/2022/Proteomics_JRS_DL/Data/results_v002/results_run1_mqpar_extracts_2gether_D2_LFQ_combined_txt_proteinGroups.txt_LFQ.RDS")
+data <- data[[1]]
+data_D2_pool <- dplyr::select(data, contains("Gesamt"))
+df <- data_D2_pool
+
+df$combined_value <- apply(df, 1, function(row) {
+  numeric_values <- as.numeric(row[!is.na(row)])
+  
+  if (length(numeric_values) == 0) {
+    return(NA)
+  } else if (length(numeric_values) == 1) {
+    return(numeric_values)
+  } else {
+    return(mean(numeric_values))
+  }
+})
+data_D2_pool <- df$combined_value
+
+data_D2_fractions <- dplyr::select(data, contains("20"))
+df <- data_D2_fractions
+
+df$combined_value <- apply(df, 1, function(row) {
+  numeric_values <- as.numeric(row[!is.na(row)])
+  
+  if (length(numeric_values) == 0) {
+    return(NA)
+  } else if (length(numeric_values) == 1) {
+    return(numeric_values)
+  } else {
+    return(mean(numeric_values))
+  }
+})
+data_D2_fractions <- df$combined_value
+
+data_D2 <- as.data.frame(cbind(data_D2_pool,data_D2_fractions))
+
+df_filtered <- data_D2[complete.cases(data_D2$data_D2_pool, data_D2$data_D2_fractions), ]
+df_filtered <- as.data.frame(lapply(df_filtered, as.numeric))
+df_filtered$substraction <- df_filtered$data_D2_pool-df_filtered$data_D2_fractions
+
+dev <- df_filtered$substraction / rowMeans(df_filtered[,-3], na.rm = TRUE) * 100
+
+# Create a boxplot with points and violin plot
+ggplot(data.frame(dev = dev), aes(x = "Variable", y = dev)) +
+  geom_boxplot(width = 0.2, fill = "lightblue", color = "blue") +
+  geom_point(position = position_jitter(width = 0.1), color = "red", alpha = 0.7) +
+  geom_violin(fill = "lightgray", color = "darkgray", alpha = 0.5) +
+  ylab("Relative deviation of the LFQ intensities [%]") +
+  xlab("") +
+  ggtitle("D2 | Pool - Fractions from Figure 4C")
+
+```
+
+

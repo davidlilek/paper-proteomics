@@ -31,9 +31,9 @@ params:
   protein_types:
     label: "Protein types"
     input: select 
-    value: ["RAZOR","UNIQUE"]
+    value: ["RAZOR","UNIQUE","LFQ"]
     multiple: TRUE
-    choices: ["RAZOR","UNIQUE"]  
+    choices: ["RAZOR","UNIQUE","LFQ"]  
 title: "`r params$title`"
 author: "`r params$author`"
 date: "`r format(Sys.time(), '%d %B %Y, %X')`"
@@ -57,7 +57,7 @@ unique <- params$unique  # how many peptides should be at least necessary to ide
 # which types should be evaluated TRUE or FALSE could be used
 RAZOR <- TRUE
 UNIQUE <- TRUE
-LFQ <- FALSE
+LFQ <- TRUE
 
 # define path of the proteinGroups.txt file(s)
 path = params$path

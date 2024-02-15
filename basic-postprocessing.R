@@ -13,15 +13,15 @@ library(rmarkdown)
 # args[6] is the path defined in the bash script
 # e.g. /proj/proteomics/11_20220713_FH/results/results_run1_mqpar_20220713_QC_delete
 # pth <- "/proj/proteomics/11_20220713_FH/results/results_run1_mqpar_20220713_QC_delete"
-pth <- "X:/wissenschaftliche Veröffentlichungen/Publikationen/2022/Proteomics_JRS_DL/data/proteinGroups_v002"
+pth <- "X:/wissenschaftliche Veröffentlichungen/Publikationen/2022/Proteomics_JRS_DL/Data/proteinGroups_v002"
 filelist = list.files(path = pth, pattern = ".*.txt")
 
 for (file in filelist){
   print(file)
-  rmarkdown::render("X:/wissenschaftliche Veröffentlichungen/Publikationen/2022/Proteomics_JRS_DL/data/post-processing.Rmd", 
+  rmarkdown::render("X:/wissenschaftliche Veröffentlichungen/Publikationen/2022/Proteomics_JRS_DL/Data/post-processing.Rmd", 
                     params = list(
                       path = paste(pth,"/",file,sep=""),
-                      pathRDS = paste("X:/wissenschaftliche Veröffentlichungen/Publikationen/2022/Proteomics_JRS_DL/data/results_v002/",file,sep="")),
-                    output_dir = "X:/wissenschaftliche Veröffentlichungen/Publikationen/2022/Proteomics_JRS_DL/data/results_v002",
+                      pathRDS = paste("X:/wissenschaftliche Veröffentlichungen/Publikationen/2022/Proteomics_JRS_DL/Data/results_v003/",file,sep="")),
+                    output_dir = "X:/wissenschaftliche Veröffentlichungen/Publikationen/2022/Proteomics_JRS_DL/Data/results_v003/",
                     output_file = paste(file,"_post-processing.html",sep=""))
 }
